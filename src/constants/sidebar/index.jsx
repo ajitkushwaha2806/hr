@@ -1,70 +1,94 @@
-import { LayoutDashboard, Settings, User, TableProperties, ClipboardList, Globe, Tags, Camera, Puzzle, BarChart3, Radio, Sparkles } from "lucide-react";
+import {
+  LayoutDashboard,
+  Users,
+  Building2,
+  Clock,
+  CalendarDays,
+  Wallet,
+  TrendingUp,
+  UserPlus,
+  Laptop,
+  BarChart3,
+  ShieldCheck,
+  Settings,
+  User,
+} from "lucide-react";
 
 export const APP_SIDEBAR_CONFIG = {
   navUserItems: [
+    {
+      title: "My Profile",
+      url: "/profile",
+      icon: <User />,
+    },
+    {
+      title: "Account Settings",
+      url: "/settings",
+      icon: <Settings />,
+    },
   ],
   navMain: {
-    title: "MANAGE",
+    title: "HR MANAGEMENT",
     items: [
       {
-        title: "Live Orders",
-        url: "/",
-        icon: <Radio />,
-      },
-      {
-        title: "Reports",
-        url: "/restaurant/reports",
-        icon: <BarChart3 />,
-      },
-      {
-        title: "Orders",
-        url: "/restaurant/orders",
-        icon: <ClipboardList />,
-      },
-      {
-        title: "Menu",
-        url: "/restaurant/menu",
+        title: "Dashboard",
+        url: "/dashboard",
         icon: <LayoutDashboard />,
       },
       {
-        title: "Promotions",
-        url: "/restaurant/promotions",
-        icon: <Tags />,
+        title: "Employees",
+        url: "/employees",
+        icon: <Users />,
       },
       {
-        title: "Website",
-        url: "/restaurant/website",
-        icon: <Globe />,
+        title: "Departments",
+        url: "/departments",
+        icon: <Building2 />,
       },
       {
-        title: "Tables",
-        url: "/restaurant/tables",
-        icon: <TableProperties />,
+        title: "Attendance",
+        url: "/attendance",
+        icon: <Clock />,
       },
       {
-        title: "Customers",
-        url: "/restaurant/users",
-        icon: <User />,
+        title: "Leave Management",
+        url: "/leaves",
+        icon: <CalendarDays />,
       },
       {
-        title: "Settings",
-        url: "/restaurant/profile",
+        title: "Payroll",
+        url: "/payroll",
+        icon: <Wallet />,
+      },
+      {
+        title: "Performance",
+        url: "/performance",
+        icon: <TrendingUp />,
+      },
+      {
+        title: "Recruitment",
+        url: "/recruitment",
+        icon: <UserPlus />,
+      },
+      {
+        title: "Assets",
+        url: "/assets",
+        icon: <Laptop />,
+      },
+      {
+        title: "Reports & Analytics",
+        url: "/reports",
+        icon: <BarChart3 />,
+      },
+      {
+        title: "Roles & Permissions",
+        url: "/settings/roles",
+        icon: <ShieldCheck />,
+      },
+      {
+        title: "Company Settings",
+        url: "/settings",
         icon: <Settings />,
-      },
-      {
-        title: "Integrations",
-        url: "/restaurant/integrations",
-        icon: <Puzzle />,
-      },
-      {
-        title: "Social",
-        url: "/restaurant/social",
-        icon: <Camera />,
-      },
-      {
-        title: "Pricing",
-        url: "/pricing",
-        icon: <Sparkles />,
       },
     ],
   },
