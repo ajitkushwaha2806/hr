@@ -1,0 +1,12 @@
+{
+  "editor.formatOnSave": true,
+  "editor.formatOnType": true,
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "prettier.printWidth": 120,
+  "prettier.jsxBracketSameLine": true,
+  "prettier.arrowParens": "avoid",
+  "prettier.singleQuote": true,
+  "prettier.trailingComma": "es5",
+  "prettier.bracketSameLine": true,
+  "prettier.proseWrap": "never"
+}
