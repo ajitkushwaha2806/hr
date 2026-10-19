@@ -1,9 +1,7 @@
 "use client";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import KotTemplate from "@/templates/KotTemplate";
 import { Asset } from "@/components/common/Asset";
-import BillTemplate from "@/templates/BillTemplate"
 import { ORDER_TYPE_MAP } from "../helpers/constants";
 import { useRestaurant } from "@/store/hooks/useRestaurant";
 import { WhatsAppShareButton } from "@/components/global/whatsapp-share";
@@ -144,30 +142,6 @@ export const OrderCard = ({ order, onUpdateStatus, onRejectStatus }) => {
                                     <span className="text-gray-900 dark:text-gray-100 text-[14px] font-extrabold tracking-tight leading-none truncate">{displayId}</span>
                                 </div>
                                 <div className="flex items-center gap-1.5 shrink-0">
-                                    <Popover>
-                                        <PopoverTrigger render={
-                                            <button onClick={(e) => e.stopPropagation()} className="text-[11px] font-semibold text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-zinc-700 rounded-md px-2 py-1 hover:bg-gray-50 dark:hover:bg-zinc-800 transition-colors flex items-center gap-1 cursor-pointer">
-                                                <Printer className="w-3 h-3" /> KOT
-                                            </button>
-                                        } />
-                                        <PopoverContent side="bottom" className="w-auto p-0 border-none shadow-2xl bg-transparent z-50">
-                                            <div className="max-h-[80vh] overflow-y-auto p-2 bg-gray-200 dark:bg-zinc-800 rounded-lg">
-                                                <KotTemplate order={order} restaurant={activeRestaurant} />
-                                            </div>
-                                        </PopoverContent>
-                                    </Popover>
-                                    <Popover>
-                                        <PopoverTrigger render={
-                                            <button onClick={(e) => e.stopPropagation()} className="text-[11px] font-semibold text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-zinc-700 rounded-md px-2 py-1 hover:bg-gray-50 dark:hover:bg-zinc-800 transition-colors flex items-center gap-1 cursor-pointer">
-                                                <FileText className="w-3 h-3" /> ORDER
-                                            </button>
-                                        } />
-                                        <PopoverContent side="bottom" className="w-auto p-0 border-none shadow-2xl bg-transparent z-50">
-                                            <div className="max-h-[80vh] overflow-y-auto p-2 bg-gray-200 dark:bg-zinc-800 rounded-lg">
-                                                <BillTemplate order={order} restaurant={activeRestaurant} />
-                                            </div>
-                                        </PopoverContent>
-                                    </Popover>
                                     <WhatsAppShareButton order={order} restaurant={activeRestaurant} />
                                 </div>
                             </div>
