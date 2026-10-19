@@ -1,7 +1,12 @@
-import { LayoutDashboard, Users, Building2, Clock, CalendarDays, Wallet, TrendingUp, UserPlus, Laptop, BarChart3, ShieldCheck, Settings, User } from "lucide-react";
+import { LayoutDashboard, Users, Building2, Clock, CalendarDays, Wallet, TrendingUp, UserPlus, Laptop, BarChart3, ShieldCheck, Settings, User, Sparkles } from "lucide-react";
 
 export const APP_SIDEBAR_CONFIG = {
   navUserItems: [
+    {
+      title: "Onboarding Checklist",
+      url: "/onboarding",
+      icon: <Sparkles />,
+    },
     {
       title: "My Profile",
       url: "/profile",
@@ -13,6 +18,7 @@ export const APP_SIDEBAR_CONFIG = {
       icon: <Settings />,
     },
   ],
+
   navMain: {
     title: "HR MANAGEMENT",
     items: [

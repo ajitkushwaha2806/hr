@@ -1,66 +1,70 @@
 import { Schema, model, models, Types } from "mongoose";
 
-const AddressSchema = new Schema({
-  street: { type: String, required: true, trim: true },
-  city: { type: String, required: true, trim: true },
-  state: { type: String, trim: true },
-  zipCode: { type: String, required: true, trim: true },
-  isDefault: { type: Boolean, default: false },
-  label: { type: String, enum: ['Home', 'Work', 'Other'], default: 'Other' },
-  instructions: { type: String, trim: true },
-});
-
 const userSchema = new Schema(
   {
+    clerkId: {
+      type: String,
+      unique: true,
+      sparse: true,
+      index: true,
+    },
+
     name: {
       type: String,
       required: true,
       trim: true,
     },
-      
+
+    email: {
+      type: String,
+      required: true,
+      unique: true,
+      trim: true,
+      lowercase: true,
+      index: true,
+    },
+
     phone: {
       type: String,
-      required: true,
+      trim: true,
+      default: "",
     },
 
-    passwordHash: {
+    avatar: {
       type: String,
-      default: null,
-      select: false,
+      default: "",
     },
 
-    isGuest: {
-      type: Boolean,
-      default: false,
-    },
-
-    image: {
+    role: {
       type: String,
-      default: null,
-    },
-
-    restaurant: {
-      type: Types.ObjectId,
-      ref: "Restaurant",
-      required: true,
+      enum: [
+        "SUPER_ADMIN",
+        "HR_ADMIN",
+        "HR_MANAGER",
+        "FINANCE_MANAGER",
+        "TEAM_LEAD",
+        "EMPLOYEE",
+      ],
+      default: "EMPLOYEE",
       index: true,
     },
 
     status: {
       type: String,
-      enum: ["ACTIVE", "INACTIVE", "BLOCKED"],
+      enum: ["ACTIVE", "INACTIVE", "SUSPENDED"],
       default: "ACTIVE",
       index: true,
     },
 
-    addresses: {
-      type: [AddressSchema],
-      validate: [
-        function (val) {
-          return val.length <= 3;
-        },
-        '{PATH} exceeds the limit of 3',
-      ],
+    isOnboarded: {
+      type: Boolean,
+      default: false,
+    },
+
+    employeeProfile: {
+      type: Types.ObjectId,
+      ref: "Employee",
+      default: null,
     },
   },
   {
@@ -69,3 +73,4 @@ const userSchema = new Schema(
 );
 
 export const User = models.User || model("User", userSchema);
+export default User;

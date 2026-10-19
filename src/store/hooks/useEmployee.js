@@ -1,28 +1,15 @@
 "use client";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { EmployeeService } from "@/services/frontend/employee";
 import useNotification from "@/store/hooks/useNotification";
+import { EmployeeService } from "@/services/frontend/employee";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
-export function useEmployees({
-  status = "all",
-  department = "all",
-  search = "",
-  employmentType = "all",
-  page = 1,
-  limit = 50,
-} = {}) {
+export function useEmployees({ status = "all", department = "all", search = "", employmentType = "all", page = 1, limit = 50 } = {}) {
   const queryClient = useQueryClient();
   const notification = useNotification();
 
   const queryKey = ["employees", { status, department, search, employmentType, page, limit }];
 
-  const {
-    data,
-    isLoading,
-    isFetching,
-    error,
-    refetch,
-  } = useQuery({
+  const { data, isLoading, isFetching, error, refetch } = useQuery({
     queryKey,
     queryFn: () =>
       EmployeeService.getEmployees({
@@ -44,7 +31,6 @@ export function useEmployees({
     probation: employees.filter((e) => e.status === "Probation").length,
   };
 
-  // Add Employee Mutation
   const addMutation = useMutation({
     mutationFn: (newEmployee) => EmployeeService.createEmployee(newEmployee),
     onSuccess: () => {
@@ -57,7 +43,6 @@ export function useEmployees({
     },
   });
 
-  // Update Employee Mutation
   const updateMutation = useMutation({
     mutationFn: ({ id, data }) => EmployeeService.updateEmployee(id, data),
     onSuccess: () => {
@@ -70,7 +55,6 @@ export function useEmployees({
     },
   });
 
-  // Delete Employee Mutation
   const deleteMutation = useMutation({
     mutationFn: (id) => EmployeeService.deleteEmployee(id),
     onSuccess: () => {

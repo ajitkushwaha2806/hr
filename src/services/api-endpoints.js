@@ -6,4 +6,8 @@ export const API_ENDPOINTS = {
     UPDATE: (id) => `/api/employees/${id}`,
     DELETE: (id) => `/api/employees/${id}`,
   },
+  ONBOARDING: {
+    GET_STATUS: "/api/onboarding",
+    SUBMIT: "/api/onboarding",
+  },
 };

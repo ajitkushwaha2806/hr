@@ -1,11 +1,11 @@
 "use client";
+import { Plus, RefreshCw } from "lucide-react";
 import { EmployeeFormSheet } from "./fragments";
 import { Button } from "@/components/ui/button";
 import DataTable from "@/components/global/table";
+import { useState, useMemo, useCallback } from "react";
 import { useEmployees } from "@/store/hooks/useEmployee";
-import React, { useState, useMemo, useCallback } from "react";
 import { ConfirmDeleteAlert } from "@/components/ui/confirm-delete-alert";
-import { Plus, RefreshCw, Users, UserCheck, CalendarOff, Clock } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { EMPLOYEE_STATUS_FILTERS, DEPARTMENTS, DEFAULT_PAGE_SIZE, EMPLOYEE_EMPTY_STATE, getEmployeeColumns } from "./helpers";
 
@@ -66,62 +66,6 @@ export default function EmployeeManagement() {
 
   return (
     <div className="flex flex-col m-2 sm:m-4 space-y-4 sm:space-y-6 min-w-0"> 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-        <div className="p-4 rounded-xl border border-border/50 bg-white dark:bg-zinc-900 shadow-2xs flex items-center justify-between">
-          <div>
-            <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
-              Total Workforce
-            </span>
-            <p className="text-2xl font-bold text-foreground mt-1">{stats?.total ?? 0}</p>
-          </div>
-          <div className="size-10 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
-            <Users className="size-5" />
-          </div>
-        </div>
-
-        <div className="p-4 rounded-xl border border-border/50 bg-white dark:bg-zinc-900 shadow-2xs flex items-center justify-between">
-          <div>
-            <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
-              Active Employees
-            </span>
-            <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-400 mt-1">
-              {stats?.active ?? 0}
-            </p>
-          </div>
-          <div className="size-10 rounded-lg bg-emerald-50 text-emerald-600 dark:bg-emerald-950/40 flex items-center justify-center shrink-0">
-            <UserCheck className="size-5" />
-          </div>
-        </div>
-
-        <div className="p-4 rounded-xl border border-border/50 bg-white dark:bg-zinc-900 shadow-2xs flex items-center justify-between">
-          <div>
-            <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
-              On Leave
-            </span>
-            <p className="text-2xl font-bold text-amber-600 dark:text-amber-400 mt-1">
-              {stats?.onLeave ?? 0}
-            </p>
-          </div>
-          <div className="size-10 rounded-lg bg-amber-50 text-amber-600 dark:bg-amber-950/40 flex items-center justify-center shrink-0">
-            <CalendarOff className="size-5" />
-          </div>
-        </div>
-
-        <div className="p-4 rounded-xl border border-border/50 bg-white dark:bg-zinc-900 shadow-2xs flex items-center justify-between">
-          <div>
-            <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
-              On Probation
-            </span>
-            <p className="text-2xl font-bold text-purple-600 dark:text-purple-400 mt-1">
-              {stats?.probation ?? 0}
-            </p>
-          </div>
-          <div className="size-10 rounded-lg bg-purple-50 text-purple-600 dark:bg-purple-950/40 flex items-center justify-center shrink-0">
-            <Clock className="size-5" />
-          </div>
-        </div>
-      </div>
-
       <div className="bg-white dark:bg-zinc-900 p-3 sm:p-5 rounded-xl border border-border/40 shadow-xs">
         <DataTable
           title="Employee Directory"
