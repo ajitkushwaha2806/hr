@@ -8,7 +8,6 @@ import { useAndroidBridge } from "@/hooks/useAndroidBridge";
 import OfflineBanner from "@/components/global/offline-banner";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import NotificationBanner from "@/components/global/notification-banner";
-import { NewOrderAlertModal } from "@/components/global/new-order-modal";
 
 export function Providers({ children }) {
   const [queryClient] = useState(
@@ -32,7 +31,6 @@ export function Providers({ children }) {
             <OfflineBanner />
             <NotificationBanner />
             {children}
-            <NewOrderAlertModal />
           </TooltipProvider>
         </QueryClientProvider>
       </AppClerkProvider>

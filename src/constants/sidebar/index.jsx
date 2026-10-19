@@ -1,18 +1,4 @@
-import {
-  LayoutDashboard,
-  Users,
-  Building2,
-  Clock,
-  CalendarDays,
-  Wallet,
-  TrendingUp,
-  UserPlus,
-  Laptop,
-  BarChart3,
-  ShieldCheck,
-  Settings,
-  User,
-} from "lucide-react";
+import { LayoutDashboard, Users, Building2, Clock, CalendarDays, Wallet, TrendingUp, UserPlus, Laptop, BarChart3, ShieldCheck, Settings, User } from "lucide-react";
 
 export const APP_SIDEBAR_CONFIG = {
   navUserItems: [
