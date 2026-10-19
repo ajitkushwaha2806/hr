@@ -1,7 +1,7 @@
 "use client";
-import { useUser } from "@clerk/nextjs";
 import { NavUser } from "./nav-user";
 import { NavMain } from "./nav-main";
+import { useUser } from "@clerk/nextjs";
 import { APP_SIDEBAR_CONFIG } from "@/constants/sidebar";
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarRail, SidebarSeparator } from "@/components/ui/sidebar";
 

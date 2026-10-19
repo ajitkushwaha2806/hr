@@ -12,56 +12,89 @@ export function MobileNav() {
   const { toggleSidebar } = useSidebar();
 
   const items = APP_SIDEBAR_CONFIG?.navMain?.items || [];
+  
   const navItems = [
-    items.find(i => i.title === "Dashboard"),
-    items.find(i => i.title === "Employees"),
-    items.find(i => i.title === "Attendance"),
-    items.find(i => i.title === "Leave Management"),
-  ].filter(Boolean);
+    {
+      item: items.find((i) => i.title === "Dashboard") || { title: "Dashboard", url: "/dashboard" },
+      label: "Dashboard",
+    },
+    {
+      item: items.find((i) => i.title === "Employees") || { title: "Employees", url: "/employees" },
+      label: "Employees",
+    },
+    {
+      item: items.find((i) => i.title === "Attendance") || { title: "Attendance", url: "/attendance" },
+      label: "Attendance",
+    },
+    {
+      item: items.find((i) => i.title === "Leave Management" || i.title === "Leaves") || { title: "Leaves", url: "/leaves" },
+      label: "Leaves",
+    },
+  ];
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 h-[68px] pb-safe bg-white dark:bg-zinc-950 border-t border-border/40 flex items-center justify-around px-1 sm:hidden z-50 shadow-[0_-4px_10px_rgba(0,0,0,0.02)]">
-      {navItems.map((item) => {
-        const isActive = pathname === item.url || (item.url !== "/" && pathname?.startsWith(item.url));
+    <nav 
+      aria-label="Mobile Navigation"
+      className="fixed bottom-0 left-0 right-0 h-16 pb-safe bg-white/95 dark:bg-zinc-950/95 backdrop-blur-xl border-t border-border/40 flex items-center justify-around px-2 sm:hidden z-50 shadow-[0_-4px_20px_rgba(0,0,0,0.04)] dark:shadow-[0_-4px_20px_rgba(0,0,0,0.25)]"
+    >
+      {navItems.map(({ item, label }) => {
+        const isActive =
+          pathname === item.url ||
+          (item.url !== "/" && item.url !== "/dashboard" && pathname?.startsWith(item.url)) ||
+          (item.url === "/dashboard" && (pathname === "/" || pathname === "/dashboard"));
+
         return (
           <Link
-            key={item.title}
+            key={label}
             href={item.url}
             className={cn(
-              "flex flex-col items-center justify-center flex-1 h-full gap-1 text-muted-foreground transition-all duration-300 group",
-              isActive ? "text-primary" : "hover:text-foreground"
+              "flex flex-col items-center justify-center flex-1 h-full py-1 text-muted-foreground transition-all duration-200 select-none active:scale-95 group",
+              isActive ? "text-primary font-semibold" : "hover:text-foreground"
             )}
           >
-            <div className={cn(
-              "relative flex items-center justify-center w-14 h-8 rounded-full transition-all duration-300", 
-              isActive ? "bg-primary/15" : "bg-transparent group-hover:bg-muted/50"
-            )}>
-              {item.icon && React.cloneElement(item.icon, { 
-                className: cn(
-                  "w-[22px] h-[22px] transition-all duration-300", 
-                  isActive ? "text-primary fill-primary/20 stroke-[2.5] scale-110" : "stroke-2 scale-100"
-                ) 
-              })}
+            <div
+              className={cn(
+                "relative flex items-center justify-center w-12 h-7 rounded-full transition-all duration-200",
+                isActive
+                  ? "bg-primary/12 text-primary shadow-xs dark:bg-primary/20"
+                  : "bg-transparent group-hover:bg-muted/60"
+              )}
+            >
+              {item.icon &&
+                React.cloneElement(item.icon, {
+                  className: cn(
+                    "w-5 h-5 transition-transform duration-200",
+                    isActive
+                      ? "text-primary stroke-[2.2] scale-105"
+                      : "text-muted-foreground stroke-[1.8] group-hover:text-foreground"
+                  ),
+                })}
             </div>
-            <span className={cn(
-              "text-[10.5px] leading-none tracking-tight transition-all duration-300", 
-              isActive ? "font-bold" : "font-medium"
-            )}>
-              {item.title}
+            <span
+              className={cn(
+                "text-[10.5px] mt-0.5 tracking-tight transition-colors duration-200 truncate max-w-[64px] text-center",
+                isActive ? "text-primary font-bold" : "text-muted-foreground/90 font-medium"
+              )}
+            >
+              {label}
             </span>
           </Link>
         );
       })}
-      
+
       <button
         onClick={toggleSidebar}
-        className="flex flex-col items-center justify-center flex-1 h-full gap-1 text-muted-foreground transition-all duration-300 group hover:text-foreground"
+        type="button"
+        aria-label="Open more menu"
+        className="flex flex-col items-center justify-center flex-1 h-full py-1 text-muted-foreground transition-all duration-200 select-none active:scale-95 group hover:text-foreground"
       >
-        <div className="flex items-center justify-center w-14 h-8 rounded-full transition-all duration-300 bg-transparent group-hover:bg-muted/50">
-          <Menu className="w-[22px] h-[22px] stroke-2 transition-all duration-300 group-hover:scale-110" />
+        <div className="flex items-center justify-center w-12 h-7 rounded-full transition-all duration-200 bg-transparent group-hover:bg-muted/60">
+          <Menu className="w-5 h-5 stroke-[1.8] transition-transform duration-200 group-hover:scale-105 group-hover:text-foreground" />
         </div>
-        <span className="text-[10.5px] font-medium leading-none tracking-tight">More</span>
+        <span className="text-[10.5px] mt-0.5 font-medium tracking-tight text-muted-foreground/90">
+          More
+        </span>
       </button>
-    </div>
+    </nav>
   );
 }
