@@ -8,7 +8,6 @@ import { getRestaurant } from "@/lib/api/hooks/getRestaurant";
 import { validateRequiredFields } from "@/lib/api/helpers/validator";
 import { getCache, setCache } from "@/services/backend/redis/cache.service";
 import { getPromotionCacheKey, invalidatePromotionCache } from "@/lib/api/helpers/cacheKeys";
-import { captureServerEvent } from "@/lib/posthog-server";
 import { 
   withErrorHandler, 
   successResponse, 
@@ -151,10 +150,5 @@ export const POST = withErrorHandler(async (req, { params }) => {
   });
 
   await invalidatePromotionCache(id);
-  await captureServerEvent({
-    distinctId: user.id,
-    event: "promotion_created",
-    properties: { restaurant_id: id, promotion_type: type },
-  });
   return successResponse(newPromotion, "Promotion created successfully", 201);
 });

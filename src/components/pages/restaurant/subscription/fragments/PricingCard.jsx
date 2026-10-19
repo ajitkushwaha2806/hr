@@ -8,7 +8,6 @@ import { Check, Loader2, Sparkles, ShieldCheck, ArrowRight } from "lucide-react"
 import { usePayment } from "@/hooks/use-payment";
 import { PRICING_ADDONS } from "@/constants/pricing";
 import { motion } from "framer-motion";
-import posthog from "posthog-js";
 
 export default function PricingCard({ plan, index = 0, isCurrentPlan = false, onPaymentSuccess }) {
   const { _id, id, title, description, price, billingCycle, isPopular, badge, features } = plan;
@@ -50,35 +49,21 @@ export default function PricingCard({ plan, index = 0, isCurrentPlan = false, on
     addon_count: selectedAddons.length,
   };
 
-  const safePosthog = (event, props) => {
-    if (typeof window !== "undefined" && posthog?.capture) {
-      try {
-        posthog.capture(event, props);
-      } catch (_) {}
-    }
-  };
-
   const onPayNow = () => {
-    safePosthog("subscription_checkout_started", checkoutProperties);
-
     handlePayment({
       planId,
       planTitle: displayTitle,
       price: finalPrice,
       selectedAddons,
       onSuccess: (res) => {
-        safePosthog("subscription_payment_completed", checkoutProperties);
         if (onPaymentSuccess) {
           onPaymentSuccess({ planTitle: displayTitle, finalPrice, res });
         }
       },
       onError: (err) => {
-        safePosthog("subscription_payment_failed", checkoutProperties);
         console.error("Subscription payment error:", err);
       },
-      onDismiss: () => {
-        safePosthog("subscription_checkout_dismissed", checkoutProperties);
-      },
+      onDismiss: () => {},
     });
   };
 

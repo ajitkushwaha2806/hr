@@ -1,7 +1,6 @@
 import dbConnect from "@/lib/db";
 import Table from "@/models/Table";
 import WebsiteConfig from "@/models/WebsiteConfig";
-import { captureServerEvent } from "@/lib/posthog-server";
 import { getRestaurant } from "@/lib/api/hooks/getRestaurant";
 import { validateRequiredFields } from "@/lib/api/helpers/validator";
 import { getCache, setCache } from "@/services/backend/redis/cache.service";
@@ -72,10 +71,5 @@ export const POST = withErrorHandler(async (req, { params }) => {
   });
 
   await invalidateTableCache(id);
-  await captureServerEvent({
-    distinctId: user.id,
-    event: "table_created",
-    properties: { restaurant_id: id, capacity },
-  });
   return successResponse(newTable, "Table created successfully", 201);
 });

@@ -1,7 +1,6 @@
 import { StaffService } from "@/services/backend/staff";
 import { getRestaurant } from "@/lib/api/hooks/getRestaurant";
 import { withErrorHandler, successResponse } from "@/lib/api/response-handler";
-import { captureServerEvent } from "@/lib/posthog-server";
 
 export const GET = withErrorHandler(async (req, { params }) => {
   const { id: restaurantId } = await params;
@@ -31,15 +30,10 @@ export const GET = withErrorHandler(async (req, { params }) => {
 
 export const POST = withErrorHandler(async (req, { params }) => {
   const { id: restaurantId } = await params;
-  const { user } = await getRestaurant({ restaurantId });
+  await getRestaurant({ restaurantId });
 
   const body = await req.json();
   const newStaff = await StaffService.createStaff(restaurantId, body);
-  await captureServerEvent({
-    distinctId: user.id,
-    event: "staff_member_added",
-    properties: { restaurant_id: restaurantId },
-  });
 
   return successResponse(newStaff, "Staff member added successfully", 201);
 });
