@@ -1,202 +1,272 @@
 export const SYSTEM_PERMISSIONS = [
+  // --- Organization & Company Settings ---
   {
-    code: "RESTAURANT:CREATE",
-    description: "Create new restaurant entities",
-    category: "Restaurant",
+    code: "ORGANIZATION:READ",
+    description: "View organization details, branch locations, and company policies",
+    category: "Organization",
   },
   {
-    code: "RESTAURANT:READ",
-    description: "View restaurant profiles and settings",
-    category: "Restaurant",
-  },
-  {
-    code: "RESTAURANT:UPDATE",
-    description: "Update restaurant profile, timings, branding, and details",
-    category: "Restaurant",
-  },
-  {
-    code: "RESTAURANT:DELETE",
-    description: "Delete restaurant entity",
-    category: "Restaurant",
+    code: "ORGANIZATION:UPDATE",
+    description: "Update company profile, legal details, work week policies, and branding",
+    category: "Organization",
   },
 
+  // --- Department & Designation ---
   {
-    code: "MENU:READ",
-    description: "View categories, items, and addon groups",
-    category: "Menu",
+    code: "DEPARTMENT:READ",
+    description: "View departments, designations, and organizational hierarchy",
+    category: "Departments",
   },
   {
-    code: "MENU:CREATE",
-    description: "Create categories, items, and addon groups",
-    category: "Menu",
+    code: "DEPARTMENT:CREATE",
+    description: "Create new departments, teams, and job designations",
+    category: "Departments",
   },
   {
-    code: "MENU:UPDATE",
-    description: "Edit menu items, categories, pricing, and availability",
-    category: "Menu",
+    code: "DEPARTMENT:UPDATE",
+    description: "Edit department info, reporting structures, and designations",
+    category: "Departments",
   },
   {
-    code: "MENU:DELETE",
-    description: "Delete categories, items, and addon groups",
-    category: "Menu",
-  },
-
-  {
-    code: "ORDER:READ",
-    description: "View live orders, customer tickets, and order history",
-    category: "Orders",
-  },
-  {
-    code: "ORDER:CREATE",
-    description: "Create and place new orders (POS & floor order taking)",
-    category: "Orders",
-  },
-  {
-    code: "ORDER:UPDATE",
-    description: "Update order status, item modifications, and payment status",
-    category: "Orders",
-  },
-  {
-    code: "ORDER:DELETE",
-    description: "Cancel and void orders",
-    category: "Orders",
+    code: "DEPARTMENT:DELETE",
+    description: "Remove departments and designations",
+    category: "Departments",
   },
 
+  // --- Employee Management ---
   {
-    code: "KDS:READ",
-    description: "Access Kitchen Display System (KDS) and view incoming kitchen tickets",
-    category: "Kitchen",
+    code: "EMPLOYEE:READ",
+    description: "View employee directory, profiles, and basic contact details",
+    category: "Employees",
   },
   {
-    code: "KDS:UPDATE",
-    description: "Update kitchen ticket prep status (e.g. Preparing, Ready, Cooked)",
-    category: "Kitchen",
-  },
-
-  {
-    code: "TABLE:READ",
-    description: "View tables, floor layouts, QR codes, and occupancy status",
-    category: "Tables",
+    code: "EMPLOYEE:CREATE",
+    description: "Onboard new employees, generate offer letters, and send invitations",
+    category: "Employees",
   },
   {
-    code: "TABLE:CREATE",
-    description: "Add new tables and floor sections",
-    category: "Tables",
+    code: "EMPLOYEE:UPDATE",
+    description: "Edit employee profile, documents, compensation details, and job details",
+    category: "Employees",
   },
   {
-    code: "TABLE:UPDATE",
-    description: "Update table status (occupy/vacate), reservations, and table info",
-    category: "Tables",
-  },
-  {
-    code: "TABLE:DELETE",
-    description: "Remove tables and sections",
-    category: "Tables",
+    code: "EMPLOYEE:DELETE",
+    description: "Offboard, deactivate, or terminate employee accounts",
+    category: "Employees",
   },
 
+  // --- Attendance & Shifts ---
   {
-    code: "STAFF:READ",
-    description: "View staff members and roles",
-    category: "Staff",
+    code: "ATTENDANCE:READ",
+    description: "View employee attendance records, daily clock-in/out logs, and shifts",
+    category: "Attendance",
   },
   {
-    code: "STAFF:CREATE",
-    description: "Invite and add new staff members",
-    category: "Staff",
+    code: "ATTENDANCE:RECORD",
+    description: "Clock in and out for self attendance and log break times",
+    category: "Attendance",
   },
   {
-    code: "STAFF:UPDATE",
-    description: "Edit staff member roles, profile details, and active status",
-    category: "Staff",
-  },
-  {
-    code: "STAFF:DELETE",
-    description: "Remove staff members",
-    category: "Staff",
+    code: "ATTENDANCE:MANAGE",
+    description: "Approve attendance regularization, assign shifts, and modify attendance records",
+    category: "Attendance",
   },
 
+  // --- Leave & Time Off ---
   {
-    code: "PROMOTION:READ",
-    description: "View active discounts, promo codes, and offers",
-    category: "Promotions",
+    code: "LEAVE:READ",
+    description: "View leave balances, time-off requests, and holiday calendar",
+    category: "Leave Management",
   },
   {
-    code: "PROMOTION:CREATE",
-    description: "Create new discounts and promotional campaigns",
-    category: "Promotions",
+    code: "LEAVE:APPLY",
+    description: "Submit leave and time-off applications for self",
+    category: "Leave Management",
   },
   {
-    code: "PROMOTION:UPDATE",
-    description: "Edit promotional campaigns and voucher limits",
-    category: "Promotions",
+    code: "LEAVE:APPROVE",
+    description: "Review, approve, or reject team leave and time-off applications",
+    category: "Leave Management",
   },
   {
-    code: "PROMOTION:DELETE",
-    description: "Delete promotional campaigns",
-    category: "Promotions",
-  },
-
-  {
-    code: "WEBSITE:MANAGE",
-    description: "Customize storefront branding, banners, and digital menu appearance",
-    category: "Storefront",
-  },
-  {
-    code: "INTEGRATION:MANAGE",
-    description: "Manage social media (Instagram), payment gateways, and external integrations",
-    category: "Integrations",
+    code: "LEAVE:MANAGE",
+    description: "Configure leave types, annual quotas, accrual rules, and holiday schedules",
+    category: "Leave Management",
   },
 
+  // --- Payroll & Compensation ---
   {
-    code: "ANALYTICS:READ",
-    description: "View revenue metrics, sales analytics, and business reports",
-    category: "Analytics",
+    code: "PAYROLL:READ",
+    description: "View payroll summaries, salary slips, tax documents, and compensation history",
+    category: "Payroll",
+  },
+  {
+    code: "PAYROLL:CREATE",
+    description: "Generate and process monthly payroll cycles and payouts",
+    category: "Payroll",
+  },
+  {
+    code: "PAYROLL:UPDATE",
+    description: "Adjust deductions, allowances, bonuses, overtime pay, and reimbursements",
+    category: "Payroll",
+  },
+  {
+    code: "PAYROLL:DELETE",
+    description: "Cancel or recompute draft and processed payroll batches",
+    category: "Payroll",
+  },
+
+  // --- Performance & Appraisals ---
+  {
+    code: "PERFORMANCE:READ",
+    description: "View performance reviews, OKRs, goals, and feedback",
+    category: "Performance",
+  },
+  {
+    code: "PERFORMANCE:MANAGE",
+    description: "Initiate appraisal cycles, submit manager reviews, and set KPIs/OKRs",
+    category: "Performance",
+  },
+
+  // --- Recruitment & Applicant Tracking ---
+  {
+    code: "RECRUITMENT:READ",
+    description: "View open job requisitions, applicant pipelines, and interview schedules",
+    category: "Recruitment",
+  },
+  {
+    code: "RECRUITMENT:MANAGE",
+    description: "Create job postings, schedule interviews, and manage hiring stages",
+    category: "Recruitment",
+  },
+
+  // --- Assets & Equipment ---
+  {
+    code: "ASSET:READ",
+    description: "View company hardware, software licenses, and assigned assets",
+    category: "Assets",
+  },
+  {
+    code: "ASSET:MANAGE",
+    description: "Allocate, track, maintain, and retrieve company equipment",
+    category: "Assets",
+  },
+
+  // --- Roles & Access Control ---
+  {
+    code: "ROLE:READ",
+    description: "View system roles and permission sets",
+    category: "Access Control",
+  },
+  {
+    code: "ROLE:MANAGE",
+    description: "Create and customize user roles and manage access permissions",
+    category: "Access Control",
+  },
+
+  // --- Reports & Analytics ---
+  {
+    code: "REPORTS:READ",
+    description: "Access workforce analytics, headcount reports, attendance rates, and attrition metrics",
+    category: "Reports",
   },
 ];
 
 export const ALL_PERMISSION_CODES = SYSTEM_PERMISSIONS.map((p) => p.code);
 
 export const SYSTEM_ROLES = {
-  OWNER: {
-    name: "OWNER",
-    description: "Complete administrative access to all restaurant settings, operations, staff, and management.",
+  SUPER_ADMIN: {
+    name: "SUPER_ADMIN",
+    description: "Full, unrestricted administrative access across the entire HR platform and all organizational entities.",
     isSystemRole: true,
     permissions: ALL_PERMISSION_CODES,
   },
 
-  MANAGER: {
-    name: "MANAGER",
-    description: "Full restaurant management including menu, tables, staff, orders, and promotions (excluding restaurant creation and deletion).",
+  HR_ADMIN: {
+    name: "HR_ADMIN",
+    description: "Comprehensive HR administrative access across employees, departments, payroll, leaves, attendance, and recruitment.",
     isSystemRole: true,
-    permissions: ALL_PERMISSION_CODES.filter(
-      (code) => code !== "RESTAURANT:CREATE" && code !== "RESTAURANT:DELETE"
-    ),
+    permissions: ALL_PERMISSION_CODES.filter((code) => code !== "ORGANIZATION:UPDATE"),
   },
 
-  CHEF: {
-    name: "CHEF",
-    description: "Kitchen staff with access to the Kitchen Display System (KDS), orders queue, recipe details, and menu items.",
+  HR_MANAGER: {
+    name: "HR_MANAGER",
+    description: "Operational HR management including employee records, onboarding, leave approvals, attendance, recruitment, and assets.",
     isSystemRole: true,
     permissions: [
-      "KDS:READ",
-      "KDS:UPDATE",
-      "ORDER:READ",
-      "MENU:READ",
-      "TABLE:READ",
+      "ORGANIZATION:READ",
+      "DEPARTMENT:READ",
+      "EMPLOYEE:READ",
+      "EMPLOYEE:CREATE",
+      "EMPLOYEE:UPDATE",
+      "ATTENDANCE:READ",
+      "ATTENDANCE:RECORD",
+      "ATTENDANCE:MANAGE",
+      "LEAVE:READ",
+      "LEAVE:APPLY",
+      "LEAVE:APPROVE",
+      "LEAVE:MANAGE",
+      "PERFORMANCE:READ",
+      "PERFORMANCE:MANAGE",
+      "RECRUITMENT:READ",
+      "RECRUITMENT:MANAGE",
+      "ASSET:READ",
+      "ASSET:MANAGE",
+      "REPORTS:READ",
     ],
   },
 
-  WAITER: {
-    name: "WAITER",
-    description: "Floor staff with access to take and place orders, manage table occupancy, and update order statuses.",
+  FINANCE_MANAGER: {
+    name: "FINANCE_MANAGER",
+    description: "Dedicated access to payroll management, compensation records, reimbursements, and financial reports.",
     isSystemRole: true,
     permissions: [
-      "ORDER:READ",
-      "ORDER:CREATE",
-      "ORDER:UPDATE",
-      "TABLE:READ",
-      "TABLE:UPDATE",
-      "MENU:READ",
+      "ORGANIZATION:READ",
+      "EMPLOYEE:READ",
+      "ATTENDANCE:READ",
+      "LEAVE:READ",
+      "PAYROLL:READ",
+      "PAYROLL:CREATE",
+      "PAYROLL:UPDATE",
+      "PAYROLL:DELETE",
+      "REPORTS:READ",
+    ],
+  },
+
+  TEAM_LEAD: {
+    name: "TEAM_LEAD",
+    description: "Department or team manager with access to view team members, approve leaves, manage attendance, and conduct appraisals.",
+    isSystemRole: true,
+    permissions: [
+      "ORGANIZATION:READ",
+      "DEPARTMENT:READ",
+      "EMPLOYEE:READ",
+      "ATTENDANCE:READ",
+      "ATTENDANCE:RECORD",
+      "ATTENDANCE:MANAGE",
+      "LEAVE:READ",
+      "LEAVE:APPLY",
+      "LEAVE:APPROVE",
+      "PERFORMANCE:READ",
+      "PERFORMANCE:MANAGE",
+      "ASSET:READ",
+    ],
+  },
+
+  EMPLOYEE: {
+    name: "EMPLOYEE",
+    description: "Standard employee self-service access to view profile, clock in/out, view payslips, apply for leaves, and track personal goals.",
+    isSystemRole: true,
+    permissions: [
+      "ORGANIZATION:READ",
+      "DEPARTMENT:READ",
+      "EMPLOYEE:READ",
+      "ATTENDANCE:RECORD",
+      "LEAVE:READ",
+      "LEAVE:APPLY",
+      "PAYROLL:READ",
+      "PERFORMANCE:READ",
+      "ASSET:READ",
     ],
   },
 };
