@@ -1,46 +1,58 @@
-"use client";
-import { Phone } from "lucide-react";
-import { Asset } from "@/components/common/Asset";
-import { USER_STATUS_CONFIG } from "./constants";
+import React from "react";
+import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 
-export const UserProfileCell = ({ user }) => (
-    <div className="flex items-center gap-3 min-w-0">
-        <Asset 
-            src={user.image} 
-            type="avatar" 
-            name={user.name || user.phone} 
-            className="w-9 h-9 rounded-md overflow-hidden shrink-0 border border-gray-100 dark:border-zinc-800 shadow-2xs" 
-        />
-        <div className="flex flex-col min-w-0">
-            <span className="font-semibold text-gray-900 dark:text-gray-100 text-xs sm:text-sm truncate">{user.name || "Unnamed Customer"}</span>
-            {user.phone && (
-                <div className="flex items-center gap-1 text-[11px] text-gray-500 dark:text-zinc-400">
-                    <Phone size={10} className="text-emerald-500 shrink-0" />
-                    <span className="truncate">{user.phone}</span>
-                </div>
-            )}
-        </div>
-    </div>
-);
+const STATUS_VARIANTS = {
+  Active: {
+    bg: "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-400 dark:border-emerald-800",
+    dot: "bg-emerald-500",
+  },
+  Probation: {
+    bg: "bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-950/40 dark:text-purple-400 dark:border-purple-800",
+    dot: "bg-purple-500",
+  },
+  "On Leave": {
+    bg: "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/40 dark:text-amber-400 dark:border-amber-800",
+    dot: "bg-amber-500",
+  },
+  Inactive: {
+    bg: "bg-gray-100 text-gray-700 border-gray-200 dark:bg-zinc-800 dark:text-gray-300 dark:border-zinc-700",
+    dot: "bg-gray-400",
+  },
+  Terminated: {
+    bg: "bg-red-50 text-red-700 border-red-200 dark:bg-red-950/40 dark:text-red-400 dark:border-red-800",
+    dot: "bg-red-500",
+  },
+};
 
-export const UserStatusBadge = ({ status }) => {
-    const s = status || "ACTIVE";
-    const cfg = USER_STATUS_CONFIG[s] || {
-        label: s,
-        dot: "bg-gray-400",
-        badge: "bg-gray-100 text-gray-700 border-gray-200 dark:bg-zinc-800 dark:text-zinc-300",
-    };
-    const isActive = s === "ACTIVE";
+export const EmployeeStatusBadge = ({ status = "Active" }) => {
+  const config = STATUS_VARIANTS[status] || STATUS_VARIANTS.Active;
 
-    return (
-        <span className={`inline-flex items-center gap-1.5 text-[11px] font-medium px-2 py-0.5 rounded-md border ${cfg.badge} shadow-2xs`}>
-            <span className="relative flex h-1.5 w-1.5">
-                {isActive && (
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-                )}
-                <span className={`relative inline-flex rounded-full h-1.5 w-1.5 ${cfg.dot}`} />
-            </span>
-            <span>{cfg.label}</span>
-        </span>
-    );
+  return (
+    <span
+      className={cn(
+        "inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold border",
+        config.bg
+      )}
+    >
+      <span className={cn("size-1.5 rounded-full shrink-0", config.dot)} />
+      {status}
+    </span>
+  );
+};
+
+export const DepartmentBadge = ({ department = "General" }) => {
+  return (
+    <span className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-muted/60 text-foreground border border-border/60">
+      {department}
+    </span>
+  );
+};
+
+export const EmploymentTypeBadge = ({ type = "Full-Time" }) => {
+  return (
+    <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium text-muted-foreground bg-secondary/50">
+      {type}
+    </span>
+  );
 };

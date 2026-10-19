@@ -1,114 +1,213 @@
 "use client";
-import { UserFormSheet } from "./fragments";
-import { Plus, RefreshCw } from "lucide-react";
+import { EmployeeFormSheet } from "./fragments";
 import { Button } from "@/components/ui/button";
 import DataTable from "@/components/global/table";
-import { useUsers } from "@/store/hooks/useUsers";
-import { useState, useMemo, useCallback } from "react";
-import { useRestaurant } from "@/store/hooks/useRestaurant";
+import { useEmployees } from "@/store/hooks/useEmployee";
+import React, { useState, useMemo, useCallback } from "react";
 import { ConfirmDeleteAlert } from "@/components/ui/confirm-delete-alert";
-import { USER_STATUS_FILTERS, DEFAULT_PAGE_SIZE, USER_EMPTY_STATE, getUserColumns } from "./helpers";
+import { Plus, RefreshCw, Users, UserCheck, CalendarOff, Clock } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { EMPLOYEE_STATUS_FILTERS, DEPARTMENTS, DEFAULT_PAGE_SIZE, EMPLOYEE_EMPTY_STATE, getEmployeeColumns } from "./helpers";
 
-export default function UserManagement() {
-  const { restaurantId } = useRestaurant();
+export default function EmployeeManagement() {
   const [statusFilter, setStatusFilter] = useState("all");
+  const [departmentFilter, setDepartmentFilter] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [isSheetOpen, setIsSheetOpen] = useState(false);
-  const [editingUser, setEditingUser] = useState(null);
-  const [userToDelete, setUserToDelete] = useState(null);
+  const [editingEmployee, setEditingEmployee] = useState(null);
+  const [employeeToDelete, setEmployeeToDelete] = useState(null);
 
-  const { userList, isLoading, error, deleteUser, isDeleting, refetch } = useUsers(restaurantId, {
+  const { employees, stats, isLoading, isFetching, error, refetch, addEmployee, updateEmployee, deleteEmployee, isDeleting } = useEmployees({
     status: statusFilter,
+    department: departmentFilter,
     search: searchQuery,
   });
 
-  const handleAddUser = useCallback(() => {
-    setEditingUser(null);
+  const handleAddEmployee = useCallback(() => {
+    setEditingEmployee(null);
     setIsSheetOpen(true);
   }, []);
 
-  const handleEditUser = useCallback((user) => {
-    setEditingUser(user);
+  const handleEditEmployee = useCallback((emp) => {
+    setEditingEmployee(emp);
     setIsSheetOpen(true);
   }, []);
+
+  const handleSaveEmployee = async (data) => {
+    try {
+      if (editingEmployee?._id) {
+        await updateEmployee({ id: editingEmployee._id, data });
+      } else {
+        await addEmployee(data);
+      }
+      setIsSheetOpen(false);
+      setEditingEmployee(null);
+    } catch {
+    }
+  };
 
   const handleDelete = useCallback(async () => {
-    if (!userToDelete?._id) return;
-    await deleteUser(userToDelete._id);
-    setUserToDelete(null);
-  }, [userToDelete, deleteUser]);
+    if (!employeeToDelete?._id) return;
+    try {
+      await deleteEmployee(employeeToDelete._id);
+      setEmployeeToDelete(null);
+    } catch {
+    }
+  }, [employeeToDelete, deleteEmployee]);
 
   const columns = useMemo(
     () =>
-      getUserColumns({
-        onEdit: handleEditUser,
-        onDelete: setUserToDelete,
+      getEmployeeColumns({
+        onEdit: handleEditEmployee,
+        onDelete: setEmployeeToDelete,
       }),
-    [handleEditUser]
+    [handleEditEmployee]
   );
 
   return (
-    <div className="flex flex-col bg-white dark:bg-zinc-900 m-2 sm:m-4 p-3 sm:p-4 md:p-5 space-y-4 sm:space-y-6 rounded-md border border-border/40 shadow-xs min-w-0">
-      <DataTable
-        title="Customer Management"
-        subtitle="Track and manage your restaurant's registered customers"
-        columns={columns}
-        data={userList}
-        isLoading={isLoading}
-        error={error}
-        searchable
-        searchPlaceholder="Search customers by name, phone..."
-        searchQuery={searchQuery}
-        onSearchChange={setSearchQuery}
-        filterTabs={USER_STATUS_FILTERS}
-        activeFilterTab={statusFilter}
-        onFilterTabChange={setStatusFilter}
-        actions={
-          <div className="flex items-center gap-2 w-full sm:w-auto">
-            <Button
-              onClick={handleAddUser}
-              size="sm"
-              className="flex-1 sm:flex-none w-full sm:w-auto h-9 sm:h-8.5 rounded-md bg-green-600 hover:bg-green-700 text-white shadow-2xs gap-1.5 font-semibold text-xs shrink-0 cursor-pointer"
-            >
-              <Plus size={14} strokeWidth={2.5} />
-              <span>Add Customer</span>
-            </Button>
-
-            {refetch && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => refetch()}
-                className="h-9 w-9 sm:h-8.5 sm:w-auto px-0 sm:px-3 rounded-md border-gray-200 dark:border-zinc-800 shadow-2xs shrink-0 cursor-pointer flex items-center justify-center"
-                title="Refresh customer list"
-              >
-                <RefreshCw className="h-4 w-4 sm:h-3.5 sm:w-3.5" />
-                <span className="hidden sm:inline text-xs ml-1.5">Refresh</span>
-              </Button>
-            )}
+    <div className="flex flex-col m-2 sm:m-4 space-y-4 sm:space-y-6 min-w-0"> 
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+        <div className="p-4 rounded-xl border border-border/50 bg-white dark:bg-zinc-900 shadow-2xs flex items-center justify-between">
+          <div>
+            <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
+              Total Workforce
+            </span>
+            <p className="text-2xl font-bold text-foreground mt-1">{stats?.total ?? 0}</p>
           </div>
-        }
-        pagination
-        pageSize={DEFAULT_PAGE_SIZE}
-        emptyState={USER_EMPTY_STATE}
-      />
+          <div className="size-10 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
+            <Users className="size-5" />
+          </div>
+        </div>
 
-      <UserFormSheet
+        <div className="p-4 rounded-xl border border-border/50 bg-white dark:bg-zinc-900 shadow-2xs flex items-center justify-between">
+          <div>
+            <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
+              Active Employees
+            </span>
+            <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-400 mt-1">
+              {stats?.active ?? 0}
+            </p>
+          </div>
+          <div className="size-10 rounded-lg bg-emerald-50 text-emerald-600 dark:bg-emerald-950/40 flex items-center justify-center shrink-0">
+            <UserCheck className="size-5" />
+          </div>
+        </div>
+
+        <div className="p-4 rounded-xl border border-border/50 bg-white dark:bg-zinc-900 shadow-2xs flex items-center justify-between">
+          <div>
+            <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
+              On Leave
+            </span>
+            <p className="text-2xl font-bold text-amber-600 dark:text-amber-400 mt-1">
+              {stats?.onLeave ?? 0}
+            </p>
+          </div>
+          <div className="size-10 rounded-lg bg-amber-50 text-amber-600 dark:bg-amber-950/40 flex items-center justify-center shrink-0">
+            <CalendarOff className="size-5" />
+          </div>
+        </div>
+
+        <div className="p-4 rounded-xl border border-border/50 bg-white dark:bg-zinc-900 shadow-2xs flex items-center justify-between">
+          <div>
+            <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
+              On Probation
+            </span>
+            <p className="text-2xl font-bold text-purple-600 dark:text-purple-400 mt-1">
+              {stats?.probation ?? 0}
+            </p>
+          </div>
+          <div className="size-10 rounded-lg bg-purple-50 text-purple-600 dark:bg-purple-950/40 flex items-center justify-center shrink-0">
+            <Clock className="size-5" />
+          </div>
+        </div>
+      </div>
+
+      <div className="bg-white dark:bg-zinc-900 p-3 sm:p-5 rounded-xl border border-border/40 shadow-xs">
+        <DataTable
+          title="Employee Directory"
+          subtitle="View, search, and manage all employees in your organization"
+          columns={columns}
+          data={employees}
+          isLoading={isLoading}
+          error={error}
+          searchable
+          searchPlaceholder="Search employees by name, email, ID, or designation..."
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
+          filterTabs={EMPLOYEE_STATUS_FILTERS}
+          activeFilterTab={statusFilter}
+          onFilterTabChange={setStatusFilter}
+          searchActions={
+            <div className="w-44 shrink-0">
+              <Select value={departmentFilter} onValueChange={setDepartmentFilter}>
+                <SelectTrigger className="h-8.5 text-xs rounded-md bg-muted/40 border-border/60">
+                  <SelectValue placeholder="All Departments" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all" className="text-xs">
+                    All Departments
+                  </SelectItem>
+                  {DEPARTMENTS.map((dept) => (
+                    <SelectItem key={dept} value={dept} className="text-xs">
+                      {dept}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          }
+          actions={
+            <div className="flex items-center gap-2 w-full sm:w-auto">
+              <Button
+                onClick={handleAddEmployee}
+                size="sm"
+                className="flex-1 sm:flex-none h-8.5 rounded-md font-semibold text-xs gap-1.5 cursor-pointer shadow-2xs"
+              >
+                <Plus size={14} strokeWidth={2.5} />
+                <span>Onboard Employee</span>
+              </Button>
+
+              {refetch && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => refetch()}
+                  disabled={isFetching}
+                  className="h-8.5 px-2.5 rounded-md border-border/60 shadow-2xs cursor-pointer flex items-center gap-1.5 text-xs"
+                  title="Refresh employee list"
+                >
+                  <RefreshCw className={`size-3.5 ${isFetching ? "animate-spin" : ""}`} />
+                  <span className="hidden sm:inline">Refresh</span>
+                </Button>
+              )}
+            </div>
+          }
+          pagination
+          pageSize={DEFAULT_PAGE_SIZE}
+          emptyState={EMPLOYEE_EMPTY_STATE}
+        />
+      </div>
+
+      <EmployeeFormSheet
         isOpen={isSheetOpen}
         onClose={() => {
           setIsSheetOpen(false);
-          setEditingUser(null);
+          setEditingEmployee(null);
         }}
-        user={editingUser}
+        employee={editingEmployee}
+        onSave={handleSaveEmployee}
+        isLoading={isLoading}
       />
 
       <ConfirmDeleteAlert
-        isOpen={!!userToDelete}
-        onClose={() => setUserToDelete(null)}
+        isOpen={Boolean(employeeToDelete)}
+        onClose={() => setEmployeeToDelete(null)}
         onConfirm={handleDelete}
         isDeleting={isDeleting}
-        title="Delete Customer?"
-        description={`Are you sure you want to permanently remove ${userToDelete?.name}?`}
+        title="Remove Employee?"
+        description={`Are you sure you want to permanently remove ${
+          employeeToDelete?.name || `${employeeToDelete?.firstName || ""} ${employeeToDelete?.lastName || ""}`
+        } from the organization? This action cannot be undone.`}
       />
     </div>
   );
