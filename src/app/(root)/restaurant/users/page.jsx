@@ -1,9 +1,9 @@
-import UserManagement from "@/components/pages/restaurant/users"
+import EmployeeManagement from "@/components/pages/workspace/employee";
 
 const Page = () => {
     return (
-        <UserManagement />
-    )
-}
+        <EmployeeManagement />
+    );
+};
 
-export default Page
+export default Page;
