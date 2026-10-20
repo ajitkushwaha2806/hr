@@ -1,14 +1,34 @@
 "use client";
-import Link from "next/link";
-import { useClerk } from "@clerk/nextjs";
+import React from "react";
+import { useClerk, useUser, useOrganization } from "@clerk/nextjs";
 import { Asset } from "@/components/common/Asset";
-import { ChevronRightIcon, BadgeCheckIcon, LogOutIcon } from "lucide-react";
+import { ChevronRightIcon, LogOutIcon, UserIcon } from "lucide-react";
 import { SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from "@/components/ui/sidebar";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
-export function NavUser({ user, menuItems }) {
+export function NavUser({ user: propUser }) {
   const { isMobile } = useSidebar();
-  const { signOut } = useClerk();
+  const { signOut, openUserProfile } = useClerk();
+  const { user: clerkUser } = useUser();
+  const { membership } = useOrganization();
+
+  const user = {
+    avatar: propUser?.avatar || clerkUser?.imageUrl || "",
+    name: propUser?.name || clerkUser?.fullName || clerkUser?.firstName || "User",
+    email: propUser?.email || clerkUser?.primaryEmailAddress?.emailAddress || "support@getrepeat.in",
+  };
+
+  const roleKey = membership?.role || clerkUser?.publicMetadata?.role || "org:member";
+  const isAdmin = roleKey === "org:admin";
+  const roleName = isAdmin ? "Admin" : "Employee";
 
   return (
     <SidebarMenu className="group-data-[collapsible=icon]:items-center">
@@ -32,14 +52,22 @@ export function NavUser({ user, menuItems }) {
               className="size-8 rounded-lg border border-border/60 shadow-2xs ring-1 ring-border/20 transition-transform duration-200 group-hover:scale-105 shrink-0"
             />
             <div className="grid flex-1 min-w-0 text-left leading-tight group-data-[collapsible=icon]:hidden">
-              <div className="flex items-center gap-1.5">
+              <div className="flex items-center gap-1.5 min-w-0">
                 <span className="truncate text-xs font-semibold tracking-tight text-foreground group-hover:text-primary transition-colors">
-                  {user?.name || "Account"}
+                  {user?.name}
                 </span>
-                <BadgeCheckIcon className="size-3.5 text-primary fill-primary/10 shrink-0" />
+                <span
+                  className={`shrink-0 px-1.5 py-0.5 rounded text-[9.5px] font-bold tracking-tight border ${
+                    isAdmin
+                      ? "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20"
+                      : "bg-primary/10 text-primary border-primary/20"
+                  }`}
+                >
+                  {roleName}
+                </span>
               </div>
               <span className="truncate text-[11px] font-medium text-muted-foreground/80 mt-0.5">
-                {user?.email || "Signed in"}
+                {user?.email}
               </span>
             </div>
             <ChevronRightIcon className="size-4 shrink-0 text-muted-foreground/50 transition-transform duration-200 group-hover:text-foreground group-data-[state=open]:rotate-90 group-data-[collapsible=icon]:hidden" />
@@ -62,11 +90,19 @@ export function NavUser({ user, menuItems }) {
                     className="size-10 rounded-lg border border-border/60 shadow-xs ring-1 ring-border/20 shrink-0"
                   />
                   <div className="grid flex-1 min-w-0 text-left leading-tight">
-                    <div className="flex items-center gap-1.5">
+                    <div className="flex items-center gap-1.5 min-w-0">
                       <span className="truncate text-xs font-semibold tracking-tight text-foreground">
                         {user?.name}
                       </span>
-                      <BadgeCheckIcon className="size-3.5 text-primary fill-primary/10 shrink-0" />
+                      <span
+                        className={`shrink-0 px-1.5 py-0.5 rounded text-[10px] font-bold tracking-tight border ${
+                          isAdmin
+                            ? "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20"
+                            : "bg-primary/10 text-primary border-primary/20"
+                        }`}
+                      >
+                        {roleName}
+                      </span>
                     </div>
                     <span className="truncate text-[11px] font-medium text-muted-foreground/80 mt-0.5">
                       {user?.email}
@@ -77,29 +113,23 @@ export function NavUser({ user, menuItems }) {
             </DropdownMenuGroup>
             <DropdownMenuSeparator className="my-1 bg-border/40" />
 
-            {menuItems && menuItems?.length > 0 && (
-              <>
-                <DropdownMenuGroup className="space-y-0.5">
-                  {menuItems?.map((item, index) => (
-                    <DropdownMenuItem
-                      key={index}
-                      className="cursor-pointer rounded-lg px-2.5 py-2 text-xs font-medium text-foreground hover:bg-muted/80 focus:bg-muted/80 transition-all"
-                    >
-                      <Link
-                        href={item?.url || "#"}
-                        className="flex w-full items-center gap-2.5"
-                      >
-                        <div className="size-4 text-muted-foreground [&>svg]:size-4">
-                          {item?.icon}
-                        </div>
-                        <span>{item?.title}</span>
-                      </Link>
-                    </DropdownMenuItem>
-                  ))}
-                </DropdownMenuGroup>
-                <DropdownMenuSeparator className="my-1 bg-border/40" />
-              </>
-            )}
+            <DropdownMenuGroup className="space-y-0.5">
+              <DropdownMenuItem
+                onClick={() => {
+                  if (openUserProfile) {
+                    openUserProfile();
+                  }
+                }}
+                className="cursor-pointer rounded-lg px-2.5 py-2 text-xs font-medium text-foreground hover:bg-muted/80 focus:bg-muted/80 transition-all"
+              >
+                <div className="flex w-full items-center gap-2.5">
+                  <UserIcon className="size-4 text-muted-foreground" />
+                  <span>My Profile</span>
+                </div>
+              </DropdownMenuItem>
+            </DropdownMenuGroup>
+
+            <DropdownMenuSeparator className="my-1 bg-border/40" />
 
             <DropdownMenuItem
               onClick={() => signOut({ redirectUrl: "/" })}
@@ -114,3 +144,5 @@ export function NavUser({ user, menuItems }) {
     </SidebarMenu>
   );
 }
+
+export default NavUser;

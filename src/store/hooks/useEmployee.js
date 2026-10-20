@@ -1,6 +1,8 @@
 "use client";
 import useNotification from "@/store/hooks/useNotification";
 import { EmployeeService } from "@/services/frontend/employee";
+import { NOTIFICATION_MESSAGES } from "@/constants/notification";
+import { extractErrorMessage } from "@/lib/helpers/notification";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 export function useEmployees({ status = "all", department = "all", search = "", employmentType = "all", page = 1, limit = 50 } = {}) {
@@ -35,10 +37,10 @@ export function useEmployees({ status = "all", department = "all", search = "", 
     mutationFn: (newEmployee) => EmployeeService.createEmployee(newEmployee),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["employees"] });
-      notification.success("Employee added successfully!");
+      notification.success(NOTIFICATION_MESSAGES.EMPLOYEE.CREATE_SUCCESS);
     },
     onError: (err) => {
-      const msg = err?.response?.data?.message || err?.message || "Failed to add employee";
+      const msg = extractErrorMessage(err, NOTIFICATION_MESSAGES.EMPLOYEE.CREATE_ERROR);
       notification.error(msg);
     },
   });
@@ -47,10 +49,10 @@ export function useEmployees({ status = "all", department = "all", search = "", 
     mutationFn: ({ id, data }) => EmployeeService.updateEmployee(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["employees"] });
-      notification.success("Employee details updated successfully!");
+      notification.success(NOTIFICATION_MESSAGES.EMPLOYEE.UPDATE_SUCCESS);
     },
     onError: (err) => {
-      const msg = err?.response?.data?.message || err?.message || "Failed to update employee";
+      const msg = extractErrorMessage(err, NOTIFICATION_MESSAGES.EMPLOYEE.UPDATE_ERROR);
       notification.error(msg);
     },
   });
@@ -59,10 +61,10 @@ export function useEmployees({ status = "all", department = "all", search = "", 
     mutationFn: (id) => EmployeeService.deleteEmployee(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["employees"] });
-      notification.success("Employee removed successfully!");
+      notification.success(NOTIFICATION_MESSAGES.EMPLOYEE.DELETE_SUCCESS);
     },
     onError: (err) => {
-      const msg = err?.response?.data?.message || err?.message || "Failed to delete employee";
+      const msg = extractErrorMessage(err, NOTIFICATION_MESSAGES.EMPLOYEE.DELETE_ERROR);
       notification.error(msg);
     },
   });

@@ -1,69 +1,66 @@
 "use client";
-import React, { useState, useEffect } from "react";
-import { User, Mail, Phone, Building2, Briefcase, Calendar, DollarSign, MapPin, Loader2, X } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
+import { Spinner } from "@/components/global/loader";
+import useNotification from "@/store/hooks/useNotification";
+import { NOTIFICATION_MESSAGES } from "@/constants/notification";
+import { DEPARTMENTS, EMPLOYMENT_TYPES } from "../../helpers/constants";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
-import { DEPARTMENTS, EMPLOYMENT_TYPES } from "../../helpers/constants";
+import { DatePicker } from "@/components/ui/date-picker";
+
+function getEmployeeFormData(employee) {
+  if (!employee) {
+    return {
+      firstName: "",
+      lastName: "",
+      email: "",
+      phone: "",
+      employeeId: "",
+      department: "Engineering",
+      designation: "",
+      employmentType: "Full-Time",
+      status: "Active",
+      joiningDate: new Date().toISOString().split("T")[0],
+      salary: "",
+      city: "",
+    };
+  }
+
+  return {
+    firstName: employee.firstName || "",
+    lastName: employee.lastName || "",
+    email: employee.email || "",
+    phone: employee.phone || "",
+    employeeId: employee.employeeId || "",
+    department: employee.department || "Engineering",
+    designation: employee.designation || "",
+    employmentType: employee.employmentType || "Full-Time",
+    status: employee.status || "Active",
+    joiningDate: employee.joiningDate
+      ? new Date(employee.joiningDate).toISOString().split("T")[0]
+      : new Date().toISOString().split("T")[0],
+    salary: employee.salary != null ? String(employee.salary) : "",
+    city: employee.address?.city || "",
+  };
+}
 
 export default function EmployeeFormSheet({ isOpen, onClose, employee, onSave, isLoading }) {
   const isEditMode = Boolean(employee);
+  const notify = useNotification();
 
-  const [formData, setFormData] = useState({
-    firstName: "",
-    lastName: "",
-    email: "",
-    phone: "",
-    employeeId: "",
-    department: "Engineering",
-    designation: "",
-    employmentType: "Full-Time",
-    status: "Active",
-    joiningDate: new Date().toISOString().split("T")[0],
-    salary: "",
-    city: "",
-  });
-
+  const [formData, setFormData] = useState(() => getEmployeeFormData(employee));
+  const [prevKey, setPrevKey] = useState("");
   const [errors, setErrors] = useState({});
 
-  useEffect(() => {
-    if (employee) {
-      setFormData({
-        firstName: employee.firstName || "",
-        lastName: employee.lastName || "",
-        email: employee.email || "",
-        phone: employee.phone || "",
-        employeeId: employee.employeeId || "",
-        department: employee.department || "Engineering",
-        designation: employee.designation || "",
-        employmentType: employee.employmentType || "Full-Time",
-        status: employee.status || "Active",
-        joiningDate: employee.joiningDate
-          ? new Date(employee.joiningDate).toISOString().split("T")[0]
-          : new Date().toISOString().split("T")[0],
-        salary: employee.salary != null ? String(employee.salary) : "",
-        city: employee.address?.city || "",
-      });
-    } else {
-      setFormData({
-        firstName: "",
-        lastName: "",
-        email: "",
-        phone: "",
-        employeeId: "",
-        department: "Engineering",
-        designation: "",
-        employmentType: "Full-Time",
-        status: "Active",
-        joiningDate: new Date().toISOString().split("T")[0],
-        salary: "",
-        city: "",
-      });
-    }
+  const currentKey = `${employee?._id || "new"}_${isOpen ? "open" : "closed"}`;
+  if (currentKey !== prevKey) {
+    setPrevKey(currentKey);
+    setFormData(getEmployeeFormData(employee));
     setErrors({});
-  }, [employee, isOpen]);
+  }
 
   const handleChange = (field, value) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -91,7 +88,10 @@ export default function EmployeeFormSheet({ isOpen, onClose, employee, onSave, i
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!validate()) return;
+    if (!validate()) {
+      notify.warning(NOTIFICATION_MESSAGES.EMPLOYEE.VALIDATION_ERROR);
+      return;
+    }
 
     const payload = {
       firstName: formData.firstName.trim(),
@@ -193,7 +193,6 @@ export default function EmployeeFormSheet({ isOpen, onClose, employee, onSave, i
               </div>
             </div>
 
-            {/* Employment Details */}
             <div className="space-y-3.5 pt-3 border-t border-border/40">
               <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground/80">
                 Job & Organization
@@ -281,11 +280,11 @@ export default function EmployeeFormSheet({ isOpen, onClose, employee, onSave, i
                 </div>
                 <div className="space-y-1.5">
                   <Label className="text-xs font-semibold">Date of Joining</Label>
-                  <Input
-                    type="date"
+                  <DatePicker
                     value={formData.joiningDate}
-                    onChange={(e) => handleChange("joiningDate", e.target.value)}
-                    className="h-9 text-xs"
+                    onChange={(val) => handleChange("joiningDate", val)}
+                    placeholder="Select date of joining"
+                    className="h-9"
                   />
                 </div>
               </div>
@@ -337,7 +336,7 @@ export default function EmployeeFormSheet({ isOpen, onClose, employee, onSave, i
               disabled={isLoading}
               className="h-9 text-xs rounded-md font-semibold px-4 gap-1.5"
             >
-              {isLoading && <Loader2 className="size-3.5 animate-spin" />}
+              {isLoading && <Spinner size="xs" className="mr-1" />}
               <span>{isEditMode ? "Save Changes" : "Onboard Employee"}</span>
             </Button>
           </div>

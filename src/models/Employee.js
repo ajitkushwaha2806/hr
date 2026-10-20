@@ -2,10 +2,25 @@ import mongoose from "mongoose";
 
 const EmployeeSchema = new mongoose.Schema(
   {
+    organizationId: {
+      type: String,
+      required: [true, "Organization ID is required"],
+      index: true,
+    },
+    clerkId: {
+      type: String,
+      index: true,
+      default: null,
+    },
+    role: {
+      type: String,
+      enum: ["org:admin", "org:member"],
+      default: "org:member",
+      index: true,
+    },
     employeeId: {
       type: String,
       required: [true, "Employee ID is required"],
-      unique: true,
       trim: true,
       uppercase: true,
     },
@@ -22,7 +37,6 @@ const EmployeeSchema = new mongoose.Schema(
     email: {
       type: String,
       required: [true, "Email is required"],
-      unique: true,
       trim: true,
       lowercase: true,
       match: [/^\S+@\S+\.\S+$/, "Please use a valid email address"],
@@ -67,8 +81,8 @@ const EmployeeSchema = new mongoose.Schema(
     },
     gender: {
       type: String,
-      enum: ["Male", "Female", "Other", "Prefer not to say"],
-      default: "Prefer not to say",
+      enum: ["Male", "Female"],
+      default: "Male",
     },
     dateOfBirth: {
       type: Date,
@@ -80,6 +94,40 @@ const EmployeeSchema = new mongoose.Schema(
       state: { type: String, default: "" },
       postalCode: { type: String, default: "" },
       country: { type: String, default: "India" },
+    },
+    currentAddress: {
+      street: { type: String, default: "" },
+      city: { type: String, default: "" },
+      state: { type: String, default: "" },
+      postalCode: { type: String, default: "" },
+      country: { type: String, default: "India" },
+    },
+    permanentAddress: {
+      street: { type: String, default: "" },
+      city: { type: String, default: "" },
+      state: { type: String, default: "" },
+      postalCode: { type: String, default: "" },
+      country: { type: String, default: "India" },
+      sameAsCurrent: { type: Boolean, default: false },
+    },
+    documents: {
+      aadhar: {
+        number: { type: String, default: "" },
+        frontUrl: { type: String, default: "" },
+        backUrl: { type: String, default: "" },
+      },
+      pan: {
+        number: { type: String, default: "" },
+        fileUrl: { type: String, default: "" },
+      },
+    },
+    bankDetails: {
+      accountHolderName: { type: String, default: "" },
+      bankName: { type: String, default: "" },
+      accountNumber: { type: String, default: "" },
+      ifscCode: { type: String, default: "" },
+      branchName: { type: String, default: "" },
+      upiId: { type: String, default: "" },
     },
     emergencyContact: {
       name: { type: String, default: "" },
@@ -98,6 +146,8 @@ EmployeeSchema.virtual("name").get(function () {
   return `${this.firstName} ${this.lastName}`.trim();
 });
 
+EmployeeSchema.index({ organizationId: 1, employeeId: 1 }, { unique: true });
+EmployeeSchema.index({ organizationId: 1, email: 1 });
 export const Employee =
   mongoose.models.Employee || mongoose.model("Employee", EmployeeSchema);
 

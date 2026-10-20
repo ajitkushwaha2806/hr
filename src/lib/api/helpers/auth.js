@@ -1,23 +1,27 @@
-import jwt from "jsonwebtoken";
+import { auth, currentUser } from "@clerk/nextjs/server";
+import { UnauthorizedError } from "@/lib/api/response-handler";
 
-const JWT_SECRET = process.env.JWT_SECRET;
-export const getAuthUser = (req) => {
-    try {
-        const authHeader = req.headers.get("authorization") || "";
-        const token = authHeader.startsWith("Bearer ") ? authHeader.substring(7) : authHeader;
+export async function getAuthContext({ requireOrg = false } = {}) {
+  const session = await auth();
 
-        if (!token) {
-            return null;
-        }
+  if (!session?.userId) {
+    throw new UnauthorizedError("Authentication required. Please sign in.");
+  }
 
-        const decoded = jwt.verify(token, JWT_SECRET);
-        return {
-            userId: decoded.userId,
-            restaurantId: decoded.restaurantId,
-            phone: decoded.phone,
-            token,
-        };
-    } catch (err) {
-        return null;
-    }
-};
+  if (requireOrg && !session.orgId) {
+    throw new UnauthorizedError("Active organization required. Please select or create an organization.");
+  }
+
+  return {
+    userId: session.userId,
+    orgId: session.orgId || null,
+    orgRole: session.orgRole || "org:member",
+    session,
+  };
+}
+
+export async function getAuthUser() {
+  return await currentUser();
+}
+
+export default getAuthContext;

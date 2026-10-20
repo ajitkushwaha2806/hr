@@ -3,9 +3,9 @@ import dbConnect from "@/lib/db";
 import Employee from "@/models/Employee";
 import { NotFoundError, ConflictError } from "@/lib/api/response-handler";
 
-
 export class EmployeeService {
   static async getEmployees({
+    organizationId = null,
     search = "",
     department = "",
     status = "",
@@ -16,6 +16,10 @@ export class EmployeeService {
     await dbConnect();
 
     const query = {};
+
+    if (organizationId) {
+      query.organizationId = organizationId;
+    }
 
     if (status && status !== "all") {
       query.status = status;
@@ -46,13 +50,15 @@ export class EmployeeService {
     const limitNum = Math.max(1, parseInt(limit, 10) || 50);
     const skip = (pageNum - 1) * limitNum;
 
+    const baseCountFilter = organizationId ? { organizationId } : {};
+
     const [employees, total, totalAll, activeCount, onLeaveCount, probationCount] = await Promise.all([
       Employee.find(query).sort({ createdAt: -1 }).skip(skip).limit(limitNum).lean(),
       Employee.countDocuments(query),
-      Employee.countDocuments({}),
-      Employee.countDocuments({ status: "Active" }),
-      Employee.countDocuments({ status: "On Leave" }),
-      Employee.countDocuments({ status: "Probation" }),
+      Employee.countDocuments(baseCountFilter),
+      Employee.countDocuments({ ...baseCountFilter, status: "Active" }),
+      Employee.countDocuments({ ...baseCountFilter, status: "On Leave" }),
+      Employee.countDocuments({ ...baseCountFilter, status: "Probation" }),
     ]);
 
     const employeesWithFullName = employees.map((emp) => ({
@@ -74,16 +80,23 @@ export class EmployeeService {
     };
   }
 
-  static _buildIdQuery(id) {
+  static _buildIdQuery(id, organizationId = null) {
+    let baseQuery;
     if (mongoose.isValidObjectId(id)) {
-      return { $or: [{ _id: id }, { employeeId: id }] };
+      baseQuery = { $or: [{ _id: id }, { employeeId: id }] };
+    } else {
+      baseQuery = { employeeId: id };
     }
-    return { employeeId: id };
+
+    if (organizationId) {
+      return { $and: [baseQuery, { organizationId }] };
+    }
+    return baseQuery;
   }
 
-  static async getEmployeeById(id) {
+  static async getEmployeeById(id, organizationId = null) {
     await dbConnect();
-    const query = this._buildIdQuery(id);
+    const query = this._buildIdQuery(id, organizationId);
     const employee = await Employee.findOne(query).lean();
     if (!employee) {
       throw new NotFoundError("Employee not found");
@@ -96,17 +109,50 @@ export class EmployeeService {
 
   static async createEmployee(data) {
     await dbConnect();
-    const existingEmail = await Employee.findOne({ email: data.email.toLowerCase().trim() });
+
+    const organizationId = data.organizationId;
+    const emailFilter = { email: data.email.toLowerCase().trim() };
+    if (organizationId) {
+      emailFilter.organizationId = organizationId;
+    }
+
+    const existingEmail = await Employee.findOne(emailFilter);
     if (existingEmail) {
       throw new ConflictError(`An employee with email ${data.email} already exists.`);
     }
 
     let employeeId = data.employeeId?.trim()?.toUpperCase();
     if (!employeeId) {
-      const count = await Employee.countDocuments();
-      employeeId = `EMP-${String(1001 + count).padStart(4, "0")}`;
+      // Find all existing EMP-XXXX to find the true max numeric ID across the collection
+      const existingEmps = await Employee.find(
+        { employeeId: /^EMP-\d+$/ },
+        { employeeId: 1 }
+      ).lean();
+
+      let maxNum = 1000;
+      for (const emp of existingEmps) {
+        const match = emp.employeeId?.match(/^EMP-(\d+)$/);
+        if (match) {
+          const num = parseInt(match[1], 10);
+          if (!isNaN(num) && num > maxNum) {
+            maxNum = num;
+          }
+        }
+      }
+
+      let candidateNum = maxNum + 1;
+      let candidateId = `EMP-${String(candidateNum).padStart(4, "0")}`;
+      while (await Employee.exists({ employeeId: candidateId })) {
+        candidateNum++;
+        candidateId = `EMP-${String(candidateNum).padStart(4, "0")}`;
+      }
+      employeeId = candidateId;
     } else {
-      const existingId = await Employee.findOne({ employeeId });
+      const idFilter = { employeeId };
+      if (organizationId) {
+        idFilter.organizationId = organizationId;
+      }
+      const existingId = await Employee.findOne(idFilter);
       if (existingId) {
         throw new ConflictError(`Employee ID ${employeeId} is already in use.`);
       }
@@ -125,19 +171,23 @@ export class EmployeeService {
     };
   }
 
-  static async updateEmployee(id, data) {
+  static async updateEmployee(id, data, organizationId = null) {
     await dbConnect();
-    const query = this._buildIdQuery(id);
+    const query = this._buildIdQuery(id, organizationId);
     const existing = await Employee.findOne(query);
     if (!existing) {
       throw new NotFoundError("Employee not found");
     }
 
     if (data.email) {
-      const existingEmail = await Employee.findOne({
+      const emailFilter = {
         email: data.email.toLowerCase().trim(),
         _id: { $ne: existing._id },
-      });
+      };
+      if (organizationId || existing.organizationId) {
+        emailFilter.organizationId = organizationId || existing.organizationId;
+      }
+      const existingEmail = await Employee.findOne(emailFilter);
       if (existingEmail) {
         throw new ConflictError(`Another employee with email ${data.email} already exists.`);
       }
@@ -146,10 +196,14 @@ export class EmployeeService {
 
     if (data.employeeId) {
       const formattedId = data.employeeId.trim().toUpperCase();
-      const existingId = await Employee.findOne({
+      const idFilter = {
         employeeId: formattedId,
         _id: { $ne: existing._id },
-      });
+      };
+      if (organizationId || existing.organizationId) {
+        idFilter.organizationId = organizationId || existing.organizationId;
+      }
+      const existingId = await Employee.findOne(idFilter);
       if (existingId) {
         throw new ConflictError(`Employee ID ${formattedId} is already in use.`);
       }
@@ -168,9 +222,9 @@ export class EmployeeService {
     };
   }
 
-  static async deleteEmployee(id) {
+  static async deleteEmployee(id, organizationId = null) {
     await dbConnect();
-    const query = this._buildIdQuery(id);
+    const query = this._buildIdQuery(id, organizationId);
     const deleted = await Employee.findOneAndDelete(query);
     if (!deleted) {
       throw new NotFoundError("Employee not found");

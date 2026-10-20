@@ -44,8 +44,10 @@ const userSchema = new Schema(
         "FINANCE_MANAGER",
         "TEAM_LEAD",
         "EMPLOYEE",
+        "org:admin",
+        "org:member",
       ],
-      default: "EMPLOYEE",
+      default: "org:member",
       index: true,
     },
 

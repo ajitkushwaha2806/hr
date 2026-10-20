@@ -11,7 +11,7 @@ export function NavMain({ title, items }) {
   const isItemActive = (itemUrl) => {
     if (!pathname || !itemUrl) return false;
     if (pathname === itemUrl) return true;
-    if (itemUrl !== "/" && itemUrl !== "/restaurant" && pathname.startsWith(itemUrl)) {
+    if (itemUrl !== "/" && pathname.startsWith(itemUrl)) {
       return true;
     }
     return false;

@@ -1,19 +1,9 @@
 "use client";
 import { cn } from "@/lib/utils";
-import { Loader2 } from "lucide-react";
+import { Spinner } from "@/components/global/loader";
 import { Button as ShadcnButton } from "@/components/ui/button";
 
-export default function Button({
-  variant = "default",
-  size = "default",
-  isLoading = false,
-  disabled = false,
-  icon,
-  text,
-  children,
-  className,
-  ...rest
-}) {
+export default function Button({ variant = "default", size = "default", isLoading = false, disabled = false, icon, text, children, className, ...rest }) {
   const isDisabled = disabled || isLoading;
   return (
     <ShadcnButton
@@ -24,7 +14,7 @@ export default function Button({
       {...rest}
     >
       {isLoading && (
-        <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden="true" />
+        <Spinner size="sm" className="mr-2" aria-hidden="true" />
       )}
       {icon && !isLoading && (
         <span className="mr-2 flex items-center">{icon}</span>
