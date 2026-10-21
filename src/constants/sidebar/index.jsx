@@ -13,10 +13,6 @@ import {
   Settings,
   User,
   Sparkles,
-  Briefcase,
-  FileText,
-  UserCheck,
-  ShieldAlert,
 } from "lucide-react";
 
 export const EMPLOYEE_SIDEBAR_CONFIG = {
@@ -56,7 +52,7 @@ export const EMPLOYEE_SIDEBAR_CONFIG = {
     },
     {
       title: "Onboarding Checklist",
-      url: "/onboarding",
+      url: "/employee/onboarding",
       icon: <Sparkles />,
     },
   ],

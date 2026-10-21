@@ -6,18 +6,16 @@ import {
   CheckCircle2,
   XCircle,
   Clock,
-  Filter,
-  User,
   Search,
   Check,
   X,
-  AlertCircle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { toast } from "sonner";
+import useNotification from "@/store/hooks/useNotification";
 
 export default function AdminLeavesPage() {
+  const notify = useNotification();
   const [filterStatus, setFilterStatus] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -80,14 +78,14 @@ export default function AdminLeavesPage() {
     setRequests((prev) =>
       prev.map((r) => (r.id === id ? { ...r, status: "APPROVED" } : r))
     );
-    toast.success("Leave request approved successfully!");
+    notify.success("Leave request approved successfully!");
   };
 
   const handleReject = (id) => {
     setRequests((prev) =>
       prev.map((r) => (r.id === id ? { ...r, status: "REJECTED" } : r))
     );
-    toast.error("Leave request marked as rejected.");
+    notify.error("Leave request marked as rejected.");
   };
 
   const filteredRequests = requests.filter((r) => {

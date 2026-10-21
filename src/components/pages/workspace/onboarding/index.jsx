@@ -8,7 +8,7 @@ import { STEPS, DRAFT_STORAGE_KEY_PREFIX } from "./constants";
 import { NOTIFICATION_MESSAGES } from "@/constants/notification";
 import { useClerk, useOrganization, useUser } from "@clerk/nextjs";
 import { getInitialFormData, buildOnboardingPayload, validateStep } from "./helpers";
-import { OnboardingHeader, FormFooter, ReviewProfile, Step1Personal, Step2Role, Step3Addresses, Step4Documents } from "./fragments";
+import { OnboardingHeader, FormFooter, Step1Personal, Step2Role, Step3Addresses, Step4Documents } from "./fragments";
 
 export default function EmployeeOnboarding() {
   const router = useRouter();
@@ -16,12 +16,10 @@ export default function EmployeeOnboarding() {
   const { user: clerkUser } = useUser();
   const { organization } = useOrganization();
   const notify = useNotification();
-  const { user, employee, isOnboarded, isLoading, isSubmitting, submitOnboarding } = useOnboarding();
+  const { user, isOnboarded, isLoading, isSubmitting, submitOnboarding } = useOnboarding();
 
   const [activeStep, setActiveStep] = useState(1);
-  const [isEditing, setIsEditing] = useState(false);
-
-  const [formData, setFormData] = useState(() => getInitialFormData(clerkUser, user, employee));
+  const [formData, setFormData] = useState(() => getInitialFormData(clerkUser, user));
   const [prevUserKey, setPrevUserKey] = useState("");
 
   const [isDraftLoaded, setIsDraftLoaded] = useState(false);
@@ -137,25 +135,17 @@ export default function EmployeeOnboarding() {
       } catch {
       }
     }
-  }, [isOnboarded, isEditing, clerkUser?.id]);
-
-  useEffect(() => {
-    if (typeof window === "undefined" || !isOnboarded || isEditing) return;
-    const isReviewExplicit = new URLSearchParams(window.location.search).get("review") === "true";
-    if (!isReviewExplicit) {
-      router.replace("/dashboard");
-    }
-  }, [isOnboarded, isEditing, router]);
+  }, [isOnboarded, clerkUser?.id]);
 
   const clerkEmail = clerkUser?.primaryEmailAddress?.emailAddress || clerkUser?.emailAddresses?.[0]?.emailAddress || "";
   const clerkPhone = clerkUser?.primaryPhoneNumber?.phoneNumber || clerkUser?.phoneNumbers?.[0]?.phoneNumber || "";
   const clerkName = `${clerkUser?.firstName || ""} ${clerkUser?.lastName || ""}`.trim();
-  const currentUserKey = `${clerkUser?.id || ""}_${clerkEmail}_${clerkPhone}_${clerkName}_${user?.id || ""}_${employee?._id || ""}`;
+  const currentUserKey = `${clerkUser?.id || ""}_${clerkEmail}_${clerkPhone}_${clerkName}_${user?.id || ""}`;
 
   if (currentUserKey && currentUserKey !== prevUserKey) {
     setPrevUserKey(currentUserKey);
     setFormData((prev) => {
-      const initial = getInitialFormData(clerkUser, user, employee);
+      const initial = getInitialFormData(clerkUser, user);
       return {
         ...initial,
         firstName: prev.firstName || initial.firstName,
@@ -248,8 +238,7 @@ export default function EmployeeOnboarding() {
           console.error("Failed to clear onboarding draft from localStorage:", err);
         }
       }
-      setIsEditing(false);
-      router.push("/dashboard");
+      router.push("/employee/dashboard");
     } catch {
       isSubmittedRef.current = false;
     }
@@ -260,28 +249,14 @@ export default function EmployeeOnboarding() {
     router.push("/sign-in");
   };
 
-  if (isLoading) {
-    return <Loader fullScreen />;
-  }
+  useEffect(() => {
+    if (isOnboarded) {
+      router.replace("/employee/dashboard");
+    }
+  }, [isOnboarded, router]);
 
-  if (isOnboarded && !isEditing) {
-    return (
-      <div className="min-h-screen w-full bg-slate-50/60 dark:bg-zinc-950 flex flex-col">
-        <OnboardingHeader
-          organization={organization}
-          user={user}
-          isOnboarded={isOnboarded}
-          isEditing={isEditing}
-          onEdit={() => setIsEditing(true)}
-          onSignOut={handleSignOut}
-        />
-        <ReviewProfile
-          user={user}
-          employee={employee}
-          organization={organization}
-        />
-      </div>
-    );
+  if (isLoading || isOnboarded) {
+    return <Loader fullScreen />;
   }
 
   return (
@@ -290,7 +265,6 @@ export default function EmployeeOnboarding() {
         organization={organization}
         user={user}
         isOnboarded={isOnboarded}
-        isEditing={isEditing}
         onSignOut={handleSignOut}
       />
 

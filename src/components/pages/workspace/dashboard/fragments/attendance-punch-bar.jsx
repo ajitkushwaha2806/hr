@@ -241,15 +241,24 @@ export default function AttendancePunchBar({
           )}
 
           {hasCheckedIn && !hasCheckedOut && (
-            <button
-              type="button"
-              onClick={handleOpenCheckOut}
-              className="w-full h-12 rounded-md bg-rose-600 hover:bg-rose-700 active:bg-rose-800 text-white font-bold text-sm sm:text-base flex items-center justify-center gap-2 transition-colors cursor-pointer group shadow-xs"
-            >
-              <LogOut className="w-4 h-4 text-white" />
-              <span>Check Out (End Shift)</span>
-              <ChevronRight className="w-4 h-4 text-white/80 transition-transform group-hover:translate-x-0.5" />
-            </button>
+            <div className="space-y-2">
+              <button
+                type="button"
+                onClick={handleOpenCheckOut}
+                className="w-full h-12 rounded-md bg-rose-600 hover:bg-rose-700 active:bg-rose-800 text-white font-bold text-sm sm:text-base flex items-center justify-center gap-2 transition-colors cursor-pointer group shadow-xs"
+              >
+                <LogOut className="w-4 h-4 text-white" />
+                <span>Check Out (End Shift)</span>
+                <ChevronRight className="w-4 h-4 text-white/80 transition-transform group-hover:translate-x-0.5" />
+              </button>
+
+              <div className="flex items-center justify-center gap-1.5 text-center px-1 pt-0.5">
+                <AlertCircle className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                <p className="text-[11px] sm:text-xs text-muted-foreground leading-tight">
+                  <strong className="text-foreground font-semibold">Important:</strong> Remember to check out before leaving. Missing punch-out is automatically marked as <span className="text-rose-600 dark:text-rose-400 font-semibold">Full-Day Absent</span>.
+                </p>
+              </div>
+            </div>
           )}
 
           {hasCheckedOut && (

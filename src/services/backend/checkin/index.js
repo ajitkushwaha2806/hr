@@ -4,14 +4,7 @@ import AttendancePunch from "@/models/AttendancePunch";
 import { OfficeLocationService } from "@/services/backend/location";
 import { FaceMatchService } from "@/services/backend/facematch";
 import { BadRequestError, NotFoundError, UnauthorizedError } from "@/lib/api/response-handler";
-
-function getTodayDateString() {
-  const d = new Date();
-  const year = d.getFullYear();
-  const month = String(d.getMonth() + 1).padStart(2, "0");
-  const day = String(d.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
-}
+import { getTodayDateString } from "@/lib/utils";
 
 export class CheckInService {
   static async getEmployeeForUser(clerkUser, organizationId) {
@@ -67,11 +60,14 @@ export class CheckInService {
       employee.organizationId || organizationId
     );
 
+    const empObj = employee.toObject ? employee.toObject() : { ...employee };
+
     return {
       hasEmployee: true,
       employee: {
+        ...empObj,
         id: employee._id,
-        name: `${employee.firstName} ${employee.lastName}`.trim(),
+        name: `${employee.firstName || ""} ${employee.lastName || ""}`.trim() || empObj.name,
         avatar: employee.avatar,
         employeeId: employee.employeeId,
         hasEnrolledFace: Boolean(employee.avatar),

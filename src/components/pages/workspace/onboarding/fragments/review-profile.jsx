@@ -44,7 +44,7 @@ export default function ReviewProfile({ user, employee, organization }) {
 
           <div className="flex items-center gap-3 shrink-0">
             <Button
-              onClick={() => router.push("/dashboard")}
+              onClick={() => router.push("/employee/dashboard")}
               className="h-11 px-6 rounded-xl font-bold text-xs gap-2 shadow-md bg-primary hover:bg-primary/90 text-white cursor-pointer"
             >
               <span>Go to Dashboard</span>

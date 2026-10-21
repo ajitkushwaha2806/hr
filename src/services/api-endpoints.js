@@ -1,5 +1,6 @@
 export const API_ENDPOINTS = {
   EMPLOYEE: {
+    PROFILE: "/api/employee/profile",
     GET_ALL: "/api/employees",
     CREATE: "/api/employees",
     GET_BY_ID: (id) => `/api/employees/${id}`,

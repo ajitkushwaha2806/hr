@@ -392,7 +392,9 @@ export default function BiometricCheckInModal({
                 {mode === "check-in" ? "Biometric Attendance Check-In" : "Attendance Check-Out"}
               </h2>
               <p className="text-xs text-muted-foreground">
-                Live Face Match + Office GPS Geofence Verification
+                {mode === "check-in"
+                  ? "Live Face Match + Office GPS Geofence Verification"
+                  : "Punch out to record and finalize your shift attendance"}
               </p>
             </div>
           </div>

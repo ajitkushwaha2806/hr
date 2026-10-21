@@ -1,10 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { CalendarDays, Plus, Clock, CheckCircle2, XCircle, AlertCircle, Sparkles } from "lucide-react";
-import { toast } from "sonner";
+import { CalendarDays, Plus, Clock, CheckCircle2, XCircle, Sparkles } from "lucide-react";
+import useNotification from "@/store/hooks/useNotification";
 
 export default function EmployeeLeavesPage() {
+  const notify = useNotification();
   const [isApplyModalOpen, setIsApplyModalOpen] = useState(false);
   const [leaveType, setLeaveType] = useState("Casual Leave");
   const [startDate, setStartDate] = useState("");
@@ -37,7 +38,7 @@ export default function EmployeeLeavesPage() {
   const handleApplyLeave = (e) => {
     e.preventDefault();
     if (!startDate || !endDate || !reason) {
-      toast.error("Please fill in all required leave details");
+      notify.error("Please fill in all required leave details");
       return;
     }
 
@@ -57,7 +58,7 @@ export default function EmployeeLeavesPage() {
     setReason("");
     setStartDate("");
     setEndDate("");
-    toast.success("Leave request submitted for manager approval!");
+    notify.success("Leave request submitted for manager approval!");
   };
 
   return (

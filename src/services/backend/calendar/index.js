@@ -1,16 +1,14 @@
 import dbConnect from "@/lib/db";
+import Employee from "@/models/Employee";
+import { formatDateString } from "@/lib/utils";
 import CalendarDay from "@/models/CalendarDay";
 import AttendancePunch from "@/models/AttendancePunch";
-import Employee from "@/models/Employee";
 
 const DAY_NAMES = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
 export class CalendarService {
   static formatDateString(d) {
-    const year = d.getFullYear();
-    const month = String(d.getMonth() + 1).padStart(2, "0");
-    const day = String(d.getDate()).padStart(2, "0");
-    return `${year}-${month}-${day}`;
+    return formatDateString(d);
   }
 
   static getDefaultDayInfo(date) {
@@ -19,9 +17,6 @@ export class CalendarService {
     return { type: "WORKING_DAY", title: "Working Day", dayOfWeek };
   }
 
-  /**
-   * Seed days from Oct 1, 2026 till Dec 31, 2027 (Every day is a working day by default)
-   */
   static async seedOrganizationCalendar({ organizationId, force = false }) {
     await dbConnect();
 

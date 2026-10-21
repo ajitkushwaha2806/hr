@@ -5,10 +5,11 @@ const config: CapacitorConfig = {
   appName: 'EDGE HR',
   webDir: 'public',
   server: {
-    url: 'https://app.getrepeat.in',
+    url: 'https://hr-ten-lime.vercel.app',
     errorPath: 'offline.html',
     cleartext: true,
     allowNavigation: [
+      '*.vercel.app',
       '*.getrepeat.in',
       '*.clerk.accounts.dev',
       'accounts.google.com',

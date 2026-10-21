@@ -1,43 +1,23 @@
 "use client";
-
+import Link from "next/link";
+import { useUser } from "@clerk/nextjs";
 import { useCalendar } from "@/store/hooks/useCalendar";
 import { useAttendance } from "@/store/hooks/useAttendance";
-import { useUser } from "@clerk/nextjs";
-import Link from "next/link";
 import AttendanceCalendar from "./fragments/attendance-calendar";
 import AttendancePunchBar from "./fragments/attendance-punch-bar";
-import {
-  CalendarDays,
-  Clock,
-  Palmtree,
-  Award,
-  FileText,
-  ShieldCheck,
-} from "lucide-react";
+import { CalendarDays, Clock, Palmtree, Award, FileText, ShieldCheck } from "lucide-react";
 
 export default function EmployeeDashboard() {
   const { user } = useUser();
-  const {
-    year,
-    month,
-    days = [],
-    todayString,
-    isLoading: isCalendarLoading,
-    nextMonth,
-    prevMonth,
-    jumpToToday,
-  } = useCalendar();
+  const { year, month, days = [], todayString, isLoading: isCalendarLoading, nextMonth, prevMonth, jumpToToday } = useCalendar();
 
   const { todayStatus, refreshAttendance } = useAttendance();
 
   const employee = todayStatus?.employee;
   const displayName = employee?.name || user?.firstName || user?.fullName || "Employee";
-
-  // Calculate glanceable monthly attendance metrics
   const presentDays = days.filter((d) => d.attendanceStatus === "PRESENT").length || 0;
   const workingDays = days.filter((d) => d.type === "WORKING_DAY").length || 22;
 
-  // Time-based dynamic greeting
   const getGreeting = () => {
     const hour = new Date().getHours();
     if (hour < 12) return "Good morning";
@@ -47,7 +27,6 @@ export default function EmployeeDashboard() {
 
   return (
     <div className="w-full min-h-screen bg-slate-50/60 dark:bg-zinc-950 px-3 sm:px-6 py-3 sm:py-6 space-y-4 sm:space-y-6 max-w-4xl mx-auto pb-24 sm:pb-10">
-      {/* Mobile-First Header Greeting & Profile Chip */}
       <div className="flex items-center justify-between gap-3 pt-1">
         <div className="min-w-0">
           <div className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
@@ -62,7 +41,6 @@ export default function EmployeeDashboard() {
         <div className="flex items-center gap-2 shrink-0">
           <div className="size-10 sm:size-11 rounded-md bg-primary/10 border border-primary/25 text-primary flex items-center justify-center font-bold text-sm shadow-xs overflow-hidden">
             {employee?.avatar || user?.imageUrl ? (
-              // eslint-disable-next-line @next/next/no-img-element
               <img
                 src={employee?.avatar || user?.imageUrl}
                 alt={displayName}
@@ -75,15 +53,12 @@ export default function EmployeeDashboard() {
         </div>
       </div>
 
-      {/* Main Attendance Biometric & Geofence Punch Hero */}
       <AttendancePunchBar
         todayStatus={todayStatus}
         onRefresh={refreshAttendance}
       />
 
-      {/* Mobile Glanceable Quick Stats Grid (2x2) */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3">
-        {/* Present Days */}
         <div className="p-3.5 rounded-md bg-white dark:bg-zinc-900 border border-border/70 shadow-2xs flex flex-col justify-between">
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-semibold text-muted-foreground">This Month</span>
@@ -101,7 +76,6 @@ export default function EmployeeDashboard() {
           </div>
         </div>
 
-        {/* Average Hours */}
         <div className="p-3.5 rounded-md bg-white dark:bg-zinc-900 border border-border/70 shadow-2xs flex flex-col justify-between">
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-semibold text-muted-foreground">Avg Time</span>
@@ -119,7 +93,6 @@ export default function EmployeeDashboard() {
           </div>
         </div>
 
-        {/* Leave Balance */}
         <div className="p-3.5 rounded-md bg-white dark:bg-zinc-900 border border-border/70 shadow-2xs flex flex-col justify-between">
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-semibold text-muted-foreground">Leave Bal.</span>
@@ -137,7 +110,6 @@ export default function EmployeeDashboard() {
           </div>
         </div>
 
-        {/* On-Time Rate */}
         <div className="p-3.5 rounded-md bg-white dark:bg-zinc-900 border border-border/70 shadow-2xs flex flex-col justify-between">
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-semibold text-muted-foreground">Punctuality</span>
@@ -156,7 +128,6 @@ export default function EmployeeDashboard() {
         </div>
       </div>
 
-      {/* Quick Action Pills for Mobile */}
       <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-0.5">
         <Link
           href="/employee/leaves"
@@ -183,7 +154,6 @@ export default function EmployeeDashboard() {
         </Link>
       </div>
 
-      {/* Attendance Calendar Card */}
       <div className="pt-1">
         <AttendanceCalendar
           year={year}

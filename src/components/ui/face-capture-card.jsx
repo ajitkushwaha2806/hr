@@ -8,6 +8,7 @@ export default function FaceCaptureCard({
   value,
   onChange,
   error,
+  allowRetake = false,
   label = "Biometric Face Registration",
   description = "Take a clear live selfie facing the camera in good lighting. This photo is used to verify your daily attendance.",
 }) {
@@ -146,42 +147,42 @@ export default function FaceCaptureCard({
   };
 
   return (
-    <div className="rounded-xl border border-border bg-card p-5 sm:p-6 shadow-sm space-y-4">
+    <div className="rounded-md border border-border bg-card p-4 sm:p-5 shadow-xs space-y-4">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
         <div>
-          <div className="flex items-center gap-2">
-            <h3 className="font-semibold text-base text-foreground tracking-tight">{label}</h3>
-            <span className="inline-flex items-center gap-1 text-[11px] font-medium bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 px-2 py-0.5 rounded-full">
-              <Sparkles className="w-3 h-3" /> 100% Live Camera Verification
+          <div className="flex items-center gap-2 flex-wrap">
+            <h3 className="font-semibold text-sm sm:text-base text-foreground tracking-tight">{label}</h3>
+            <span className="inline-flex items-center gap-1 text-[11px] font-medium bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 px-2 py-0.5 rounded-md border border-emerald-500/20">
+              <Sparkles className="w-3 h-3 text-emerald-600 dark:text-emerald-400" /> Live Face ID
             </span>
           </div>
           <p className="text-xs text-muted-foreground mt-0.5">{description}</p>
         </div>
 
         {value && !isCameraActive && (
-          <div className="inline-flex items-center gap-1.5 text-xs font-medium text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-2.5 py-1 rounded-md border border-emerald-200 dark:border-emerald-800">
-            <CheckCircle2 className="w-3.5 h-3.5" />
+          <div className="inline-flex items-center gap-1.5 text-xs font-medium text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/40 px-2.5 py-1 rounded-md border border-emerald-200 dark:border-emerald-800 self-start sm:self-auto">
+            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
             Face Registered
           </div>
         )}
       </div>
 
       {cameraError && (
-        <div className="flex items-start gap-2.5 p-3 rounded-lg bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-900 text-xs text-rose-700 dark:text-rose-300">
+        <div className="flex items-start gap-2.5 p-3 rounded-md bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-900 text-xs text-rose-700 dark:text-rose-300">
           <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-rose-500" />
           <p>{cameraError}</p>
         </div>
       )}
 
       {error && !cameraError && (
-        <div className="flex items-start gap-2.5 p-3 rounded-lg bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-900 text-xs text-rose-700 dark:text-rose-300">
+        <div className="flex items-start gap-2.5 p-3 rounded-md bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-900 text-xs text-rose-700 dark:text-rose-300">
           <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-rose-500" />
           <p>{error}</p>
         </div>
       )}
 
       {/* Main View Area */}
-      <div className="relative mx-auto w-full max-w-sm aspect-square sm:aspect-[4/3] rounded-xl overflow-hidden bg-slate-900 border border-slate-800 flex items-center justify-center shadow-inner">
+      <div className="relative mx-auto w-full aspect-square sm:aspect-[4/3] rounded-md overflow-hidden bg-slate-900 border border-slate-800 flex items-center justify-center">
         {/* Permanently mounted video element */}
         <video
           ref={(el) => {
@@ -201,88 +202,95 @@ export default function FaceCaptureCard({
         {/* Face Oval Overlay Guide */}
         {isCameraActive && (
           <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
-            <div className="w-48 h-60 rounded-[50%] border-2 border-dashed border-emerald-400/80 shadow-[0_0_20px_rgba(52,211,153,0.3)] flex items-center justify-center animate-pulse">
-              <span className="text-[11px] font-medium text-emerald-300 bg-black/60 px-2.5 py-0.5 rounded-full backdrop-blur-sm">
-                Align face here
+            <div className="w-44 h-56 rounded-[50%] border-2 border-dashed border-emerald-400/90 shadow-[0_0_15px_rgba(5,147,72,0.4)] flex items-center justify-center">
+              <span className="text-[11px] font-medium text-emerald-300 bg-black/75 px-2.5 py-0.5 rounded-md">
+                Align face inside
               </span>
             </div>
           </div>
         )}
 
-        {/* If Photo is enrolled and camera not active */}
         {!isCameraActive && value && (
           <div className="relative w-full h-full">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={value}
               alt="Registered Biometric Face"
               className="w-full h-full object-cover"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent flex items-end p-4">
-              <span className="text-xs text-white/90 font-medium flex items-center gap-1.5">
-                <CheckCircle2 className="w-4 h-4 text-emerald-400" /> Biometric Reference Active
+            <div className="absolute bottom-0 inset-x-0 bg-black/70 p-3 flex items-center justify-between">
+              <span className="text-xs text-white font-medium flex items-center gap-1.5">
+                <CheckCircle2 className="w-4 h-4 text-emerald-400" /> Live Reference Active
               </span>
             </div>
           </div>
         )}
 
-        {/* Placeholder state when no photo and camera inactive */}
         {!isCameraActive && !value && (
           <div className="text-center p-6 space-y-3">
-            <div className="w-16 h-16 rounded-full bg-slate-800/80 border border-slate-700/60 mx-auto flex items-center justify-center text-slate-400">
-              <Camera className="w-8 h-8 stroke-[1.5]" />
+            <div className="w-14 h-14 rounded-md bg-slate-800 border border-slate-700 mx-auto flex items-center justify-center text-slate-300">
+              <Camera className="w-7 h-7" />
             </div>
             <div className="space-y-1">
               <p className="text-sm font-medium text-slate-200">No Face Photo Enrolled</p>
               <p className="text-xs text-slate-400 max-w-[240px] mx-auto">
-                Open camera to take a live frontal selfie for attendance verification
+                Open camera to capture a live selfie for attendance verification
               </p>
             </div>
           </div>
         )}
 
-        {/* Uploading Spinner Overlay */}
         {isUploading && (
-          <div className="absolute inset-0 bg-black/70 backdrop-blur-sm flex flex-col items-center justify-center gap-2.5 text-white z-20">
-            <RefreshCw className="w-7 h-7 animate-spin text-emerald-400" />
-            <p className="text-xs font-medium">Processing & Enrolling Face Biometric...</p>
+          <div className="absolute inset-0 bg-black/80 flex flex-col items-center justify-center gap-2 text-white z-20">
+            <RefreshCw className="w-6 h-6 animate-spin text-emerald-400" />
+            <p className="text-xs font-medium">Enrolling Face Biometric...</p>
           </div>
         )}
       </div>
-
-      {/* Action Controls */}
-      <div className="flex flex-wrap items-center justify-center gap-3 pt-1">
-        {isCameraActive ? (
-          <>
+      
+      {(isCameraActive || !value || allowRetake) && (
+        <div className="flex flex-wrap items-center justify-center gap-2 pt-1">
+          {isCameraActive ? (
+            <>
+              <button
+                type="button"
+                onClick={handleCapture}
+                disabled={isUploading}
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-md bg-emerald-600 hover:bg-emerald-700 text-white font-medium text-xs transition-colors disabled:opacity-50"
+              >
+                <Camera className="w-4 h-4" />
+                Capture Photo
+              </button>
+              <button
+                type="button"
+                onClick={stopCamera}
+                className="px-3.5 py-2 rounded-md border border-border hover:bg-accent text-muted-foreground hover:text-foreground text-xs font-medium transition-colors"
+              >
+                Cancel
+              </button>
+            </>
+          ) : !value ? (
             <button
               type="button"
-              onClick={handleCapture}
+              onClick={startCamera}
               disabled={isUploading}
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-medium text-xs shadow-sm transition-colors disabled:opacity-50"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-md bg-slate-900 hover:bg-slate-800 dark:bg-zinc-100 dark:hover:bg-zinc-200 text-white dark:text-zinc-900 font-medium text-xs transition-colors"
             >
               <Camera className="w-4 h-4" />
-              Capture Photo
+              Open Camera & Take Selfie
             </button>
+          ) : allowRetake ? (
             <button
               type="button"
-              onClick={stopCamera}
-              className="px-4 py-2.5 rounded-lg border border-border hover:bg-accent text-muted-foreground hover:text-foreground text-xs font-medium transition-colors"
+              onClick={startCamera}
+              disabled={isUploading}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-md bg-slate-900 hover:bg-slate-800 dark:bg-zinc-100 dark:hover:bg-zinc-200 text-white dark:text-zinc-900 font-medium text-xs transition-colors"
             >
-              Cancel
+              <Camera className="w-4 h-4" />
+              Retake Live Selfie
             </button>
-          </>
-        ) : (
-          <button
-            type="button"
-            onClick={startCamera}
-            disabled={isUploading}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground font-medium text-xs shadow-sm transition-colors"
-          >
-            <Camera className="w-4 h-4" />
-            {value ? "Retake Live Selfie" : "Open Camera & Take Selfie"}
-          </button>
-        )}
-      </div>
+          ) : null}
+        </div>
+      )}
     </div>
   );
 }

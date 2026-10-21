@@ -14,6 +14,7 @@ const HIDE_SIDEBAR_ROUTES = [
   "/sign-in",
   "/sign-up",
   "/onboarding",
+  "/employee/onboarding",
 ];
 
 export function SidebarLayout({ children }) {
@@ -26,7 +27,7 @@ export function SidebarLayout({ children }) {
 
   // Centralized Professional-Grade Role & Auth Routing:
   // - Admin is ALWAYS migrated to Admin Portal (/admin/...)
-  // - Employee is ALWAYS routed to Employee Portal (/employee/...) or /onboarding (if pending)
+  // - Employee is ALWAYS routed to Employee Portal (/employee/...) or /employee/onboarding (if pending)
   useEffect(() => {
     if (isLoading || isAuthRoute) return;
 
@@ -36,13 +37,18 @@ export function SidebarLayout({ children }) {
       }
     } else {
       if (pathname?.startsWith("/admin")) {
-        router.replace(isOnboarded ? "/employee/dashboard" : "/onboarding");
+        router.replace(isOnboarded ? "/employee/dashboard" : "/employee/onboarding");
       } else if (!isOnboarded) {
-        if (pathname !== "/onboarding") {
-          router.replace("/onboarding");
+        if (pathname !== "/employee/onboarding" && pathname !== "/onboarding") {
+          router.replace("/employee/onboarding");
         }
       } else {
-        if (pathname === "/" || pathname === "/dashboard" || pathname === "/onboarding") {
+        if (
+          pathname === "/" ||
+          pathname === "/dashboard" ||
+          pathname === "/onboarding" ||
+          pathname === "/employee/onboarding"
+        ) {
           router.replace("/employee/dashboard");
         }
       }
@@ -59,11 +65,19 @@ export function SidebarLayout({ children }) {
       return <Loader fullscreen />;
     }
 
-    if (!isAdmin && !isOnboarded && pathname !== "/onboarding") {
+    if (!isAdmin && !isOnboarded && pathname !== "/employee/onboarding" && pathname !== "/onboarding") {
       return <Loader fullscreen />;
     }
 
-    if (!isAdmin && isOnboarded && (pathname === "/" || pathname === "/dashboard" || pathname === "/onboarding" || pathname?.startsWith("/admin"))) {
+    if (
+      !isAdmin &&
+      isOnboarded &&
+      (pathname === "/" ||
+        pathname === "/dashboard" ||
+        pathname === "/onboarding" ||
+        pathname === "/employee/onboarding" ||
+        pathname?.startsWith("/admin"))
+    ) {
       return <Loader fullscreen />;
     }
   }

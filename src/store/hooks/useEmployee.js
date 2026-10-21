@@ -90,4 +90,47 @@ export function useEmployees({ status = "all", department = "all", search = "", 
   };
 }
 
+export function useEmployeeProfile() {
+  const queryClient = useQueryClient();
+  const notification = useNotification();
+
+  const queryKey = ["employee-profile"];
+
+  const { data, isLoading, isFetching, error, refetch } = useQuery({
+    queryKey,
+    queryFn: () => EmployeeService.getProfile(),
+    select: (res) => res?.data || res || {},
+  });
+
+  const employee = data?.employee || null;
+  const officeLocation = data?.officeLocation || null;
+  const todayPunch = data?.todayPunch || null;
+
+  const updateMutation = useMutation({
+    mutationFn: (updateData) => EmployeeService.updateProfile(updateData),
+    onSuccess: (res) => {
+      queryClient.invalidateQueries({ queryKey: ["employee-profile"] });
+      queryClient.invalidateQueries({ queryKey: ["attendance-status"] });
+      notification.success(res?.message || "Profile updated successfully");
+    },
+    onError: (err) => {
+      const msg = extractErrorMessage(err, "Failed to update profile");
+      notification.error(msg);
+    },
+  });
+
+  return {
+    employee,
+    officeLocation,
+    todayPunch,
+    profileData: data,
+    isLoading,
+    isFetching,
+    error,
+    refetch,
+    updateProfile: updateMutation.mutateAsync,
+    isUpdating: updateMutation.isPending,
+  };
+}
+
 export default useEmployees;

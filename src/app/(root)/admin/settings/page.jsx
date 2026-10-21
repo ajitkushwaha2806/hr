@@ -6,19 +6,18 @@ import {
   MapPin,
   ShieldCheck,
   Clock,
-  Building,
   Save,
   Navigation,
   Sparkles,
-  RefreshCw,
   CheckCircle2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { toast } from "sonner";
+import useNotification from "@/store/hooks/useNotification";
 import { AttendanceService } from "@/services/frontend/attendance";
 
 export default function AdminSettingsPage() {
+  const notify = useNotification();
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [isDetectingLocation, setIsDetectingLocation] = useState(false);
@@ -56,7 +55,7 @@ export default function AdminSettingsPage() {
 
   const handleDetectGPS = () => {
     if (!navigator.geolocation) {
-      toast.error("Geolocation is not supported by your browser");
+      notify.error("Geolocation is not supported by your browser");
       return;
     }
 
@@ -66,11 +65,11 @@ export default function AdminSettingsPage() {
         setLatitude(pos.coords.latitude.toFixed(6));
         setLongitude(pos.coords.longitude.toFixed(6));
         setIsDetectingLocation(false);
-        toast.success(`Current GPS detected: ${pos.coords.latitude.toFixed(4)}, ${pos.coords.longitude.toFixed(4)}`);
+        notify.success(`Current GPS detected: ${pos.coords.latitude.toFixed(4)}, ${pos.coords.longitude.toFixed(4)}`);
       },
       (err) => {
         setIsDetectingLocation(false);
-        toast.error(`GPS Error: ${err.message}`);
+        notify.error(`GPS Error: ${err.message}`);
       },
       { enableHighAccuracy: true, timeout: 15000 }
     );
@@ -86,9 +85,9 @@ export default function AdminSettingsPage() {
         longitude: parseFloat(longitude),
         radiusMeters: parseInt(radiusMeters, 10),
       });
-      toast.success("Company & Geofence settings saved successfully!");
+      notify.success("Company & Geofence settings saved successfully!");
     } catch (err) {
-      toast.error(err.response?.data?.message || "Failed to update settings");
+      notify.error(err.response?.data?.message || "Failed to update settings");
     } finally {
       setIsSaving(false);
     }

@@ -88,57 +88,6 @@ export class OnboardingService {
       if (needsSave) await user.save();
     }
 
-    let employee = null;
-    if (user.employeeProfile) {
-      employee = await Employee.findById(user.employeeProfile).lean();
-    }
-
-    if (!employee && clerkUser.id) {
-      employee = await Employee.findOne({ clerkId: clerkUser.id }).lean();
-    }
-
-    if (!employee && email) {
-      if (orgId) {
-        employee = await Employee.findOne({
-          email: { $regex: new RegExp(`^${email}$`, "i") },
-          organizationId: orgId,
-        }).lean();
-      }
-      if (!employee) {
-        employee = await Employee.findOne({
-          email: { $regex: new RegExp(`^${email}$`, "i") },
-        }).lean();
-      }
-    }
-
-    if (employee) {
-      let needsSave = false;
-      if (!user.employeeProfile || String(user.employeeProfile) !== String(employee._id)) {
-        user.employeeProfile = employee._id;
-        needsSave = true;
-      }
-      if (!user.isOnboarded) {
-        user.isOnboarded = true;
-        needsSave = true;
-      }
-      if (needsSave) {
-        await user.save();
-      }
-
-      // Sync employee clerkId and organizationId if missing
-      const empUpdates = {};
-      if (!employee.clerkId && clerkUser.id) {
-        empUpdates.clerkId = clerkUser.id;
-      }
-      if (!employee.organizationId && orgId) {
-        empUpdates.organizationId = orgId;
-      }
-      if (Object.keys(empUpdates).length > 0) {
-        await Employee.findByIdAndUpdate(employee._id, { $set: empUpdates });
-        Object.assign(employee, empUpdates);
-      }
-    }
-
     const isFinalAdmin =
       orgRole === "org:admin" ||
       orgRole?.toLowerCase()?.includes("admin") ||
@@ -146,6 +95,23 @@ export class OnboardingService {
       user.role === "SUPER_ADMIN" ||
       user.role === "HR_ADMIN" ||
       user.role?.toLowerCase()?.includes("admin");
+
+    if (!user.isOnboarded && !isFinalAdmin) {
+      const empExists = await Employee.exists({
+        $or: [
+          ...(user.employeeProfile ? [{ _id: user.employeeProfile }] : []),
+          { clerkId: clerkUser.id },
+          ...(email ? [{ email: { $regex: new RegExp(`^${email}$`, "i") }, ...(orgId ? { organizationId: orgId } : {}) }] : []),
+        ],
+      });
+      if (empExists) {
+        user.isOnboarded = true;
+        user.employeeProfile = empExists._id;
+        await user.save();
+      }
+    }
+
+    const isOnboardedStatus = isFinalAdmin ? true : Boolean(user.isOnboarded);
 
     return {
       user: {
@@ -159,14 +125,11 @@ export class OnboardingService {
         role: orgRole || user.role || "org:member",
         avatar: user.avatar || avatar,
         isAdmin: isFinalAdmin,
-        isOnboarded: isFinalAdmin ? true : Boolean(user.isOnboarded && employee),
+        isOnboarded: isOnboardedStatus,
       },
-      employee: employee
-        ? {
-            ...employee,
-            name: `${employee.firstName || ""} ${employee.lastName || ""}`.trim(),
-          }
-        : null,
+      isOnboarded: isOnboardedStatus,
+      isAdmin: isFinalAdmin,
+      role: orgRole || user.role || "org:member",
     };
   }
 

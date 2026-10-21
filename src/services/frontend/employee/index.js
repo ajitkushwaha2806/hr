@@ -2,6 +2,16 @@ import api from "@/lib/api/axiosInstance";
 import { API_ENDPOINTS } from "@/services/api-endpoints";
 
 export const EmployeeService = {
+  getProfile: async () => {
+    const response = await api.get(API_ENDPOINTS.EMPLOYEE.PROFILE);
+    return response.data;
+  },
+
+  updateProfile: async (data) => {
+    const response = await api.patch(API_ENDPOINTS.EMPLOYEE.PROFILE, data);
+    return response.data;
+  },
+
   getEmployees: async (params = {}) => {
     const response = await api.get(API_ENDPOINTS.EMPLOYEE.GET_ALL, { params });
     return response.data;

@@ -15,6 +15,8 @@ export function useOnboarding() {
   const { data, isLoading, isFetching, error, refetch } = useQuery({
     queryKey: ["onboarding-status", organization?.id || "personal"],
     queryFn: () => OnboardingFrontendService.getStatus(),
+    staleTime: 5 * 60 * 1000,
+    refetchOnWindowFocus: false,
     select: (res) => res?.data || res || {},
   });
 
@@ -23,6 +25,7 @@ export function useOnboarding() {
     onSuccess: (res) => {
       queryClient.invalidateQueries({ queryKey: ["onboarding-status"] });
       queryClient.invalidateQueries({ queryKey: ["employees"] });
+      queryClient.invalidateQueries({ queryKey: ["employee-profile"] });
       notification.success(res?.message || NOTIFICATION_MESSAGES.ONBOARDING.SUBMIT_SUCCESS);
     },
     onError: (err) => {
@@ -48,7 +51,6 @@ export function useOnboarding() {
 
   return {
     user: data?.user || null,
-    employee: data?.employee || null,
     isOnboarded: isAdmin ? true : Boolean(data?.user?.isOnboarded),
     isAdmin,
     role: rawRole,
