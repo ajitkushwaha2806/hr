@@ -2,7 +2,7 @@ import { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
   appId: 'com.getrepeat.app',
-  appName: 'GetRepeat',
+  appName: 'EDGE HR',
   webDir: 'public',
   server: {
     url: 'https://app.getrepeat.in',
@@ -19,12 +19,12 @@ const config: CapacitorConfig = {
     SplashScreen: {
       launchShowDuration: 3000,
       launchAutoHide: true,
-      backgroundColor: "#ee694f",
+      backgroundColor: "#ffffff",
       androidSplashResourceName: "splash",
       androidScaleType: "FIT_CENTER",
       showSpinner: true,
       androidSpinnerStyle: "large",
-      spinnerColor: "#ffffff",
+      spinnerColor: "#059348",
       splashFullScreen: true,
       splashImmersive: true
     }

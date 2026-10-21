@@ -1,4 +1,5 @@
 "use client";
+
 import { useEffect } from "react";
 import { AppSidebar } from "./index";
 import { MobileNav } from "./mobile-nav";
@@ -18,17 +19,54 @@ const HIDE_SIDEBAR_ROUTES = [
 export function SidebarLayout({ children }) {
   const pathname = usePathname();
   const router = useRouter();
-  const shouldHideSidebar = HIDE_SIDEBAR_ROUTES.some(route => pathname?.startsWith(route));
+  const { isOnboarded, isLoading, isAdmin } = useOnboarding();
 
-  const { isOnboarded, isLoading } = useOnboarding();
+  const isAuthRoute = pathname?.startsWith("/sign-in") || pathname?.startsWith("/sign-up");
+  const shouldHideSidebar = HIDE_SIDEBAR_ROUTES.some((route) => pathname?.startsWith(route));
 
+  // Centralized Professional-Grade Role & Auth Routing:
+  // - Admin is ALWAYS migrated to Admin Portal (/admin/...)
+  // - Employee is ALWAYS routed to Employee Portal (/employee/...) or /onboarding (if pending)
   useEffect(() => {
-    if (shouldHideSidebar || isLoading) return;
+    if (isLoading || isAuthRoute) return;
 
-    if (!isOnboarded) {
-      router.replace("/onboarding");
+    if (isAdmin) {
+      if (!pathname?.startsWith("/admin")) {
+        router.replace("/admin/dashboard");
+      }
+    } else {
+      if (pathname?.startsWith("/admin")) {
+        router.replace(isOnboarded ? "/employee/dashboard" : "/onboarding");
+      } else if (!isOnboarded) {
+        if (pathname !== "/onboarding") {
+          router.replace("/onboarding");
+        }
+      } else {
+        if (pathname === "/" || pathname === "/dashboard" || pathname === "/onboarding") {
+          router.replace("/employee/dashboard");
+        }
+      }
     }
-  }, [shouldHideSidebar, isLoading, isOnboarded, router]);
+  }, [isLoading, isAuthRoute, isAdmin, isOnboarded, pathname, router]);
+
+  // Loading / Transition Guard
+  if (!isAuthRoute) {
+    if (isLoading) {
+      return <Loader fullscreen />;
+    }
+
+    if (isAdmin && !pathname?.startsWith("/admin")) {
+      return <Loader fullscreen />;
+    }
+
+    if (!isAdmin && !isOnboarded && pathname !== "/onboarding") {
+      return <Loader fullscreen />;
+    }
+
+    if (!isAdmin && isOnboarded && (pathname === "/" || pathname === "/dashboard" || pathname === "/onboarding" || pathname?.startsWith("/admin"))) {
+      return <Loader fullscreen />;
+    }
+  }
 
   if (shouldHideSidebar) {
     return (
@@ -38,10 +76,6 @@ export function SidebarLayout({ children }) {
         </main>
       </div>
     );
-  }
-
-  if (isLoading || !isOnboarded) {
-    return <Loader fullscreen />;
   }
 
   return (
@@ -76,17 +110,17 @@ export function SidebarLayout({ children }) {
                   </div>
                   <p className="font-semibold text-xs text-foreground">Employee Onboarding</p>
                   <p className="text-[11px] text-muted-foreground mt-1 leading-relaxed">
-                    Multi-step onboarding wizard, personal & employment profile setup, emergency contact capture, and profile persistence.
+                    Multi-step onboarding wizard, personal &amp; employment profile setup, emergency contact capture, and profile persistence.
                   </p>
                 </div>
               </div>
             </div>
           </div>
 
-          <div className="flex items-center gap-3 shrink-0">
+          <div className="hidden md:flex items-center gap-3 shrink-0">
             <OrganizationSwitcher
               hidePersonal={false}
-              afterCreateOrganizationUrl="/onboarding"
+              afterCreateOrganizationUrl="/dashboard"
               afterSelectOrganizationUrl="/dashboard"
               appearance={{
                 elements: {

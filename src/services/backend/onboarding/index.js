@@ -32,6 +32,11 @@ export class OnboardingService {
       $or: [{ clerkId: clerkUser.id }, ...(email ? [{ email }] : [])],
     });
 
+    const isRoleAdmin =
+      orgRole === "org:admin" ||
+      orgRole?.toLowerCase()?.includes("admin") ||
+      false;
+
     if (!user) {
       user = await User.create({
         clerkId: clerkUser.id,
@@ -40,7 +45,7 @@ export class OnboardingService {
         phone,
         avatar,
         role: orgRole || "org:member",
-        isOnboarded: false,
+        isOnboarded: Boolean(isRoleAdmin),
       });
     } else {
       let needsSave = false;
@@ -66,6 +71,18 @@ export class OnboardingService {
       }
       if (orgRole && user.role !== orgRole) {
         user.role = orgRole;
+        needsSave = true;
+      }
+      const isUserAdmin =
+        orgRole === "org:admin" ||
+        orgRole?.toLowerCase()?.includes("admin") ||
+        user.role === "org:admin" ||
+        user.role === "SUPER_ADMIN" ||
+        user.role === "HR_ADMIN" ||
+        user.role?.toLowerCase()?.includes("admin");
+
+      if (isUserAdmin && !user.isOnboarded) {
+        user.isOnboarded = true;
         needsSave = true;
       }
       if (needsSave) await user.save();
@@ -122,6 +139,14 @@ export class OnboardingService {
       }
     }
 
+    const isFinalAdmin =
+      orgRole === "org:admin" ||
+      orgRole?.toLowerCase()?.includes("admin") ||
+      user.role === "org:admin" ||
+      user.role === "SUPER_ADMIN" ||
+      user.role === "HR_ADMIN" ||
+      user.role?.toLowerCase()?.includes("admin");
+
     return {
       user: {
         id: user._id,
@@ -133,7 +158,8 @@ export class OnboardingService {
         phone: user.phone || phone,
         role: orgRole || user.role || "org:member",
         avatar: user.avatar || avatar,
-        isOnboarded: Boolean(user.isOnboarded && employee),
+        isAdmin: isFinalAdmin,
+        isOnboarded: isFinalAdmin ? true : Boolean(user.isOnboarded && employee),
       },
       employee: employee
         ? {
@@ -265,7 +291,7 @@ export class OnboardingService {
         relation: data.emergencyContact?.relation?.trim() || "",
         phone: data.emergencyContact?.phone?.trim() || "",
       },
-      avatar: clerkUser.imageUrl || "",
+      avatar: data.avatar?.trim() || data.facePhoto?.trim() || clerkUser.imageUrl || "",
     };
 
     if (employee) {
@@ -283,6 +309,9 @@ export class OnboardingService {
     user.phone = phone || user.phone;
     user.name = `${firstName} ${lastName}`.trim();
     user.role = orgRole || user.role || "org:member";
+    if (employeePayload.avatar) {
+      user.avatar = employeePayload.avatar;
+    }
     await user.save();
 
     return {

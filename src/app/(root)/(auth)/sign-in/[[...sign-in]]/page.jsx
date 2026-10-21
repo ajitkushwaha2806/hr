@@ -5,8 +5,8 @@ export default function Page() {
     <SignIn
       routing="path"
       path="/sign-in"
-      fallbackRedirectUrl="/onboarding"
-      forceRedirectUrl="/onboarding"
+      fallbackRedirectUrl="/dashboard"
+      forceRedirectUrl="/dashboard"
       appearance={{
         layout: {
           logoImageUrl: "/logo.png",

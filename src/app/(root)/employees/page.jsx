@@ -1,6 +1,14 @@
 "use client";
-import EmployeeManagement from "@/components/pages/workspace/employee";
 
-export default function EmployeesPage() {
-  return <EmployeeManagement />;
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+
+export default function EmployeesRedirectPage() {
+  const router = useRouter();
+
+  useEffect(() => {
+    router.replace("/admin/employees");
+  }, [router]);
+
+  return null;
 }

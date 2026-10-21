@@ -5,6 +5,7 @@ import { FloatingDatePicker } from "@/components/ui/date-picker";
 import { GENDER_OPTIONS } from "../../constants";
 import FloatingField from "../floating-field";
 import FloatingRadioGroup from "../floating-radio-group";
+import FaceCaptureCard from "@/components/ui/face-capture-card";
 
 export default function Step1Personal({ formData, handleChange, errors = {} }) {
   return (
@@ -76,6 +77,16 @@ export default function Step1Personal({ formData, handleChange, errors = {} }) {
           maxYear={new Date().getFullYear()}
         />
       </div>
+
+      {/* Biometric Face Registration for Attendance */}
+      <FaceCaptureCard
+        value={formData.facePhoto || formData.avatar}
+        onChange={(url) => {
+          handleChange("facePhoto", url);
+          handleChange("avatar", url);
+        }}
+        error={errors.facePhoto}
+      />
     </div>
   );
 }

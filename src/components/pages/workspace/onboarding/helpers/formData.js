@@ -83,6 +83,10 @@ export function getInitialFormData(clerkUser, user, employee) {
     aadharBackUrl: employee?.documents?.aadhar?.backUrl || "",
     panNumber: employee?.documents?.pan?.number || "",
     panFileUrl: employee?.documents?.pan?.fileUrl || "",
+
+    // Biometric Face Photo
+    facePhoto: employee?.avatar || user?.avatar || clerkUser?.imageUrl || "",
+    avatar: employee?.avatar || user?.avatar || clerkUser?.imageUrl || "",
   };
 }
 
@@ -99,6 +103,8 @@ export function buildOnboardingPayload(formData) {
     designation: formData.designation.trim(),
     employmentType: formData.employmentType,
     workLocation: formData.workLocation,
+    avatar: (formData.facePhoto || formData.avatar || "").trim(),
+    facePhoto: (formData.facePhoto || formData.avatar || "").trim(),
 
     currentAddress: {
       street: formData.currentStreet.trim(),

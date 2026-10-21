@@ -238,7 +238,6 @@ export default function EmployeeOnboarding() {
       isSubmittedRef.current = true;
       await submitOnboarding(payload);
 
-      // Successfully submitted: clear persisted onboarding draft from localStorage
       if (typeof window !== "undefined") {
         try {
           if (clerkUser?.id) {
@@ -253,7 +252,6 @@ export default function EmployeeOnboarding() {
       router.push("/dashboard");
     } catch {
       isSubmittedRef.current = false;
-      // Error notifications handled in useOnboarding
     }
   };
 

@@ -6,6 +6,9 @@ export function validateStep(step, formData) {
     if (!formData.firstName?.trim()) errs.firstName = "First name is required";
     if (!formData.lastName?.trim()) errs.lastName = "Last name is required";
     if (!formData.phone?.trim()) errs.phone = "Phone number is required";
+    if (!formData.facePhoto?.trim() && !formData.avatar?.trim()) {
+      errs.facePhoto = "Biometric face registration is required for office attendance check-in";
+    }
   } else if (step === 2) {
     if (!formData.department) errs.department = "Department is required";
     if (!formData.designation?.trim()) errs.designation = "Job designation is required";

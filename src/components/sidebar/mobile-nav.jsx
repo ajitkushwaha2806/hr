@@ -5,32 +5,53 @@ import { cn } from "@/lib/utils";
 import { Menu } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { useSidebar } from "@/components/ui/sidebar";
-import { APP_SIDEBAR_CONFIG } from "@/constants/sidebar";
+import { ADMIN_SIDEBAR_CONFIG, EMPLOYEE_SIDEBAR_CONFIG } from "@/constants/sidebar";
 
 export function MobileNav() {
   const pathname = usePathname();
   const { toggleSidebar } = useSidebar();
 
-  const items = APP_SIDEBAR_CONFIG?.navMain?.items || [];
+  const isAdmin = pathname?.startsWith("/admin");
+  const activeConfig = isAdmin ? ADMIN_SIDEBAR_CONFIG : EMPLOYEE_SIDEBAR_CONFIG;
+  const items = activeConfig?.navMain?.items || [];
   
-  const navItems = [
-    {
-      item: items.find((i) => i.title === "Dashboard") || { title: "Dashboard", url: "/dashboard" },
-      label: "Dashboard",
-    },
-    {
-      item: items.find((i) => i.title === "Employees") || { title: "Employees", url: "/employees" },
-      label: "Employees",
-    },
-    {
-      item: items.find((i) => i.title === "Attendance") || { title: "Attendance", url: "/attendance" },
-      label: "Attendance",
-    },
-    {
-      item: items.find((i) => i.title === "Leave Management" || i.title === "Leaves") || { title: "Leaves", url: "/leaves" },
-      label: "Leaves",
-    },
-  ];
+  const navItems = isAdmin
+    ? [
+        {
+          item: items.find((i) => i.title.includes("Dashboard")) || { title: "Dashboard", url: "/admin/dashboard" },
+          label: "Dashboard",
+        },
+        {
+          item: items.find((i) => i.title === "Employees") || { title: "Employees", url: "/admin/employees" },
+          label: "Employees",
+        },
+        {
+          item: items.find((i) => i.title.includes("Attendance")) || { title: "Attendance", url: "/admin/attendance" },
+          label: "Attendance",
+        },
+        {
+          item: items.find((i) => i.title.includes("Leave")) || { title: "Leaves", url: "/admin/leaves" },
+          label: "Leaves",
+        },
+      ]
+    : [
+        {
+          item: items.find((i) => i.title.includes("Dashboard")) || { title: "Dashboard", url: "/employee/dashboard" },
+          label: "Dashboard",
+        },
+        {
+          item: items.find((i) => i.title.includes("Attendance")) || { title: "Attendance", url: "/employee/attendance" },
+          label: "Attendance",
+        },
+        {
+          item: items.find((i) => i.title.includes("Leave")) || { title: "Leaves", url: "/employee/leaves" },
+          label: "Leaves",
+        },
+        {
+          item: items.find((i) => i.title.includes("Profile")) || { title: "Profile", url: "/employee/profile" },
+          label: "Profile",
+        },
+      ];
 
   return (
     <nav 
