@@ -1,30 +1,35 @@
 "use client";
-
 import { useState, useEffect } from "react";
-import {
-  LogOut,
-  MapPin,
-  CheckCircle2,
-  Clock,
-  Camera,
-  Calendar,
-  ShieldCheck,
-  ChevronRight,
-  Timer,
-  AlertCircle,
-  Building2,
-} from "lucide-react";
 import BiometricCheckInModal from "./biometric-checkin-modal";
+import { LogOut, MapPin, CheckCircle2, Clock, Camera, Calendar, ChevronRight, Timer, AlertCircle } from "lucide-react";
 
-export default function AttendancePunchBar({
-  todayStatus,
-  onRefresh,
-}) {
+function calculateHaversineDistance(lat1, lon1, lat2, lon2) {
+  const R = 6371e3; 
+  const φ1 = (Number(lat1) * Math.PI) / 180;
+  const φ2 = (Number(lat2) * Math.PI) / 180;
+  const Δφ = ((Number(lat2) - Number(lat1)) * Math.PI) / 180;
+  const Δλ = ((Number(lon2) - Number(lon1)) * Math.PI) / 180;
+
+  const a =
+    Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
+    Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+  return Math.round(R * c);
+}
+
+export default function AttendancePunchBar({ todayStatus, onRefresh }) {
   const [isCheckInModalOpen, setIsCheckInModalOpen] = useState(false);
-  const [punchMode, setPunchMode] = useState("check-in"); // "check-in" | "check-out"
+  const [punchMode, setPunchMode] = useState("check-in"); 
   const [now, setNow] = useState(new Date());
+  const [locationStatus, setLocationStatus] = useState(() => ({
+    isChecking: typeof window !== "undefined" && typeof navigator !== "undefined" && Boolean(navigator?.geolocation),
+    isInside: false,
+    coords: null,
+    distance: null,
+    error: null,
+  }));
 
-  // Real-time ticking clock for live punch accuracy
   useEffect(() => {
     const timer = setInterval(() => {
       setNow(new Date());
@@ -34,7 +39,103 @@ export default function AttendancePunchBar({
 
   const punch = todayStatus?.todayPunch;
   const officeLocation = todayStatus?.officeLocation;
+  const officeDisplayName = officeLocation?.officeName?.trim() || "Headquarters";
   const employee = todayStatus?.employee;
+
+  useEffect(() => {
+    if (typeof window === "undefined" || !navigator.geolocation) {
+      return;
+    }
+
+    let isMounted = true;
+    let watchId = null;
+
+    const checkPosition = (pos) => {
+      if (!isMounted) return;
+      const { latitude, longitude, accuracy } = pos.coords;
+      const officeLat = officeLocation?.latitude;
+      const officeLon = officeLocation?.longitude;
+      const allowedRadius = officeLocation?.radiusMeters || 200;
+
+      if (officeLat != null && officeLon != null) {
+        const dist = calculateHaversineDistance(latitude, longitude, officeLat, officeLon);
+        const isInside = dist <= allowedRadius;
+        setLocationStatus({
+          isChecking: false,
+          isInside,
+          coords: { latitude, longitude, accuracy },
+          distance: dist,
+          error: null,
+        });
+      } else {
+        setLocationStatus({
+          isChecking: false,
+          isInside: true,
+          coords: { latitude, longitude, accuracy },
+          distance: 0,
+          error: null,
+        });
+      }
+    };
+
+    const handleError = (err) => {
+      if (!isMounted) return;
+      // If high accuracy failed or timed out, try standard accuracy fallback
+      if (err?.code !== 1 && navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          checkPosition,
+          (fallbackErr) => {
+            if (!isMounted) return;
+            setLocationStatus({
+              isChecking: false,
+              isInside: false,
+              coords: null,
+              distance: null,
+              error: fallbackErr?.message || "Location access unavailable",
+            });
+          },
+          {
+            enableHighAccuracy: false,
+            timeout: 10000,
+            maximumAge: 60000,
+          }
+        );
+        return;
+      }
+      setLocationStatus({
+        isChecking: false,
+        isInside: false,
+        coords: null,
+        distance: null,
+        error: err?.message || "Location access unavailable",
+      });
+    };
+
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        checkPosition(pos);
+        if (isMounted && navigator.geolocation?.watchPosition) {
+          watchId = navigator.geolocation.watchPosition(checkPosition, handleError, {
+            enableHighAccuracy: false,
+            maximumAge: 20000,
+          });
+        }
+      },
+      handleError,
+      {
+        enableHighAccuracy: true,
+        timeout: 4000,
+        maximumAge: 30000,
+      }
+    );
+
+    return () => {
+      isMounted = false;
+      if (watchId != null && navigator.geolocation?.clearWatch) {
+        navigator.geolocation.clearWatch(watchId);
+      }
+    };
+  }, [officeLocation?.latitude, officeLocation?.longitude, officeLocation?.radiusMeters]);
 
   const hasCheckedIn = Boolean(punch?.checkIn?.status === "SUCCESS");
   const hasCheckedOut = Boolean(punch?.checkOut?.status === "SUCCESS");
@@ -62,7 +163,6 @@ export default function AttendancePunchBar({
   const checkInTime = punch?.checkIn?.time ? formatTime(punch.checkIn.time) : null;
   const checkOutTime = punch?.checkOut?.time ? formatTime(punch.checkOut.time) : null;
 
-  // Real-time live elapsed duration when checked in
   const calculateLiveDuration = () => {
     if (!punch?.checkIn?.time) return null;
     const start = new Date(punch.checkIn.time).getTime();
@@ -85,12 +185,10 @@ export default function AttendancePunchBar({
     ? `${Math.floor(punch.durationMinutes / 60)}h ${punch.durationMinutes % 60}m`
     : liveDuration ? `${liveDuration.hours}h ${liveDuration.minutes}m` : null;
 
-  // Percentage for standard 9-hour work shift (540 minutes)
   const shiftProgressPercent = liveDuration
     ? Math.min(100, Math.round((liveDuration.totalMinutes / 540) * 100))
     : 0;
 
-  // Format current live time elements
   const hoursRaw = now.getHours();
   const ampm = hoursRaw >= 12 ? "PM" : "AM";
   const hours12 = hoursRaw % 12 || 12;
@@ -106,7 +204,6 @@ export default function AttendancePunchBar({
   return (
     <>
       <div className="w-full rounded-md border border-border/80 bg-white dark:bg-zinc-900 p-4 sm:p-5 shadow-xs transition-all relative overflow-hidden">
-        {/* Top Mobile Bar: Status Badge + Date Pill */}
         <div className="flex items-center justify-between gap-2 pb-3 border-b border-border/50">
           <div className="flex items-center gap-2">
             {hasCheckedOut ? (
@@ -135,14 +232,12 @@ export default function AttendancePunchBar({
           </div>
         </div>
 
-        {/* Center Live Hero: Real-Time Punch Clock & Shift Overview */}
         <div className="py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div className="space-y-1">
             <span className="text-[10.5px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
               <Clock className="w-3 h-3" /> Real-time Punch Clock
             </span>
 
-            {/* Live Ticking Time Display */}
             <div className="flex items-baseline gap-1 font-mono tracking-tight text-foreground select-none">
               <span className="text-3xl sm:text-4xl font-extrabold font-sans">
                 {String(hours12).padStart(2, "0")}:{minutesFormatted}
@@ -170,31 +265,48 @@ export default function AttendancePunchBar({
             </p>
           </div>
 
-          {/* Location & Biometric Badges */}
-          <div className="flex flex-wrap sm:flex-col items-start sm:items-end gap-2 text-xs">
-            {officeLocation?.officeName ? (
-              <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-slate-100 dark:bg-zinc-800/80 border border-border/60 text-foreground font-medium text-[11.5px]">
-                <MapPin className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
-                <span className="truncate max-w-[160px] sm:max-w-[200px]">
-                  {officeLocation.officeName}
-                </span>
-                <span className="size-1.5 rounded-full bg-emerald-500" title="Within Allowed Radius" />
-              </div>
-            ) : (
-              <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-slate-100 dark:bg-zinc-800/80 border border-border/60 text-muted-foreground text-[11.5px]">
-                <Building2 className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
-                <span>Headquarters</span>
-              </div>
-            )}
-
-            <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-slate-100 dark:bg-zinc-800/80 border border-border/60 text-muted-foreground text-[11px]">
-              <ShieldCheck className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
-              <span>Face ID Geofence</span>
+          <div className="flex items-center sm:items-end text-xs">
+            <div
+              className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-md border font-medium text-[11.5px] transition-colors ${
+                locationStatus.isChecking
+                  ? "bg-slate-100 dark:bg-zinc-800/80 border-border/60 text-muted-foreground"
+                  : locationStatus.isInside
+                  ? "bg-emerald-50/60 dark:bg-emerald-950/20 border-emerald-500/25 text-foreground"
+                  : "bg-rose-50/60 dark:bg-rose-950/20 border-rose-500/25 text-foreground"
+              }`}
+              title={
+                locationStatus.isChecking
+                  ? "Detecting location..."
+                  : locationStatus.isInside
+                  ? `Inside ${officeDisplayName}${locationStatus.distance != null ? ` (${locationStatus.distance}m)` : ""}`
+                  : `Outside ${officeDisplayName}${locationStatus.distance != null ? ` (${locationStatus.distance}m away)` : ""}`
+              }
+            >
+              <MapPin
+                className={`w-3.5 h-3.5 shrink-0 transition-colors ${
+                  locationStatus.isChecking
+                    ? "text-muted-foreground"
+                    : locationStatus.isInside
+                    ? "text-emerald-500"
+                    : "text-rose-500"
+                }`}
+              />
+              <span className="truncate max-w-[160px] sm:max-w-[200px]">
+                {officeDisplayName}
+              </span>
+              <span
+                className={`size-2 rounded-full shrink-0 transition-colors ${
+                  locationStatus.isChecking
+                    ? "bg-muted-foreground/40 animate-pulse"
+                    : locationStatus.isInside
+                    ? "bg-emerald-500"
+                    : "bg-rose-500"
+                }`}
+              />
             </div>
           </div>
         </div>
 
-        {/* Active Shift Progress Bar (Shown while clocked in) */}
         {hasCheckedIn && !hasCheckedOut && (
           <div className="pt-1 pb-3">
             <div className="flex items-center justify-between text-[11px] font-semibold text-muted-foreground mb-1.5">
@@ -212,7 +324,6 @@ export default function AttendancePunchBar({
           </div>
         )}
 
-        {/* Shift Completed Timestamp Summary Grid */}
         {hasCheckedOut && (
           <div className="grid grid-cols-2 gap-2 pt-1 pb-3">
             <div className="p-2.5 rounded-md bg-muted/40 dark:bg-zinc-800/40 border border-border/50 flex flex-col">
@@ -226,7 +337,6 @@ export default function AttendancePunchBar({
           </div>
         )}
 
-        {/* Action Button - rounded-md with solid single color, no gradients */}
         <div className="pt-2">
           {!hasCheckedIn && (
             <button
@@ -269,7 +379,6 @@ export default function AttendancePunchBar({
           )}
         </div>
 
-        {/* Warning if no face enrolled */}
         {employee && !employee.hasEnrolledFace && (
           <div className="mt-3 p-2.5 rounded-md bg-amber-500/10 border border-amber-500/25 text-xs text-amber-700 dark:text-amber-300 font-medium flex items-center gap-2">
             <AlertCircle className="w-4 h-4 text-amber-500 shrink-0" />
@@ -278,13 +387,13 @@ export default function AttendancePunchBar({
         )}
       </div>
 
-      {/* Biometric Check-In / Check-Out Modal */}
       <BiometricCheckInModal
         isOpen={isCheckInModalOpen}
         onClose={() => setIsCheckInModalOpen(false)}
         mode={punchMode}
         officeLocation={officeLocation}
         employee={employee}
+        initialCoords={locationStatus.coords}
         onSuccess={onRefresh}
       />
     </>

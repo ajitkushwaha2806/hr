@@ -1,26 +1,11 @@
 "use client";
-
-import { useState, useEffect } from "react";
 import Link from "next/link";
-import {
-  Users,
-  Clock,
-  ShieldCheck,
-  MapPin,
-  CalendarDays,
-  Plus,
-  ArrowRight,
-  Sparkles,
-  Building2,
-  RefreshCw,
-  CheckCircle2,
-  AlertTriangle,
-  Sliders,
-} from "lucide-react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { useEmployees } from "@/store/hooks/useEmployee";
 import { AttendanceService } from "@/services/frontend/attendance";
-import OfficeLocationModal from "@/components/pages/workspace/dashboard/fragments/office-location-modal";
+import OfficeLocationModal from "@/components/pages/admin/modals/office-location-modal";
+import { Users, Clock, ShieldCheck, MapPin, CalendarDays, ArrowRight, Sparkles, Building2, RefreshCw, CheckCircle2, Sliders } from "lucide-react";
 
 export default function AdminDashboardPage() {
   const { employees, isLoading: isEmpLoading, refetch: refetchEmployees } = useEmployees({ status: "all" });
@@ -56,14 +41,12 @@ export default function AdminDashboardPage() {
   const totalEmployees = employees?.length || 0;
   const activeEmployees = employees?.filter((e) => e.status === "ACTIVE")?.length || totalEmployees;
   
-  // Count how many distinct employees checked in today
   const todayStr = new Date().toISOString().slice(0, 10);
   const todayPunches = logs.filter((l) => l.date === todayStr);
   const presentCount = new Set(todayPunches.map((l) => (typeof l.employeeId === "object" ? l.employeeId?._id : l.employeeId))).size;
 
   return (
     <div className="w-full min-h-screen bg-slate-50/50 dark:bg-zinc-950 p-3 sm:p-5 lg:p-6 space-y-6 max-w-7xl mx-auto">
-      {/* Top Banner */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
           <div className="flex items-center gap-2">
@@ -104,9 +87,7 @@ export default function AdminDashboardPage() {
         </div>
       </div>
 
-      {/* KPI Cards Strip */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-        {/* Total Workforce */}
         <div className="p-4 rounded-xl border border-border bg-card shadow-xs relative overflow-hidden">
           <div className="flex items-center justify-between text-muted-foreground mb-1.5">
             <span className="text-xs font-semibold">Total Employees</span>
@@ -123,7 +104,6 @@ export default function AdminDashboardPage() {
           </div>
         </div>
 
-        {/* Present Today */}
         <div className="p-4 rounded-xl border border-border bg-card shadow-xs">
           <div className="flex items-center justify-between text-muted-foreground mb-1.5">
             <span className="text-xs font-semibold">Present Today</span>
@@ -140,7 +120,6 @@ export default function AdminDashboardPage() {
           </div>
         </div>
 
-        {/* Biometric Integrity */}
         <div className="p-4 rounded-xl border border-border bg-card shadow-xs">
           <div className="flex items-center justify-between text-muted-foreground mb-1.5">
             <span className="text-xs font-semibold">Biometric Engine</span>
@@ -154,7 +133,6 @@ export default function AdminDashboardPage() {
           </p>
         </div>
 
-        {/* Geofence Office Radius */}
         <div className="p-4 rounded-xl border border-border bg-card shadow-xs">
           <div className="flex items-center justify-between text-muted-foreground mb-1.5">
             <span className="text-xs font-semibold">Office Geofence</span>
@@ -169,9 +147,7 @@ export default function AdminDashboardPage() {
         </div>
       </div>
 
-      {/* Main Content Grid: Live Attendance Feed + Admin Quick Actions */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left 2 Cols: Live Attendance Feed */}
         <div className="lg:col-span-2 space-y-4">
           <div className="bg-card border border-border rounded-xl shadow-xs p-4 sm:p-5">
             <div className="flex items-center justify-between pb-3 border-b border-border">
@@ -245,7 +221,6 @@ export default function AdminDashboardPage() {
             )}
           </div>
 
-          {/* Biometric AWS Rekognition Security Notice */}
           <div className="p-4 rounded-xl border border-emerald-500/30 bg-emerald-500/5 flex items-start gap-3 text-xs">
             <ShieldCheck className="w-5 h-5 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
             <div>
@@ -259,7 +234,6 @@ export default function AdminDashboardPage() {
           </div>
         </div>
 
-        {/* Right 1 Col: Quick Links & Modules */}
         <div className="space-y-4">
           <div className="bg-card border border-border rounded-xl shadow-xs p-4 sm:p-5">
             <h2 className="font-semibold text-sm text-foreground mb-3 flex items-center gap-2">
@@ -352,7 +326,6 @@ export default function AdminDashboardPage() {
         </div>
       </div>
 
-      {/* Geofence Location Calibration Modal */}
       <OfficeLocationModal
         isOpen={isLocationModalOpen}
         onClose={() => setIsLocationModalOpen(false)}

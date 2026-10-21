@@ -1,8 +1,11 @@
 "use client";
 import axios from "axios";
-import { useState, useEffect, useRef, useCallback } from "react";
+import { createPortal } from "react-dom";
 import { AttendanceService } from "@/services/frontend/attendance";
+import { useState, useEffect, useRef, useCallback, useSyncExternalStore } from "react";
 import { X, MapPin, Camera, CheckCircle2, AlertTriangle, RefreshCw, Sparkles, ShieldAlert, Compass, VideoOff, Eye } from "lucide-react";
+
+const emptySubscribe = () => () => {};
 
 function calculateHaversineDistanceClient(lat1, lon1, lat2, lon2) {
   const R = 6371e3;
@@ -25,11 +28,45 @@ export default function BiometricCheckInModal({
   mode = "check-in", 
   officeLocation,
   employee,
+  initialCoords,
   onSuccess,
 }) {
-  const [coords, setCoords] = useState(null);
-  const [locationStatus, setLocationStatus] = useState("LOCATING");
-  const [distanceFromOffice, setDistanceFromOffice] = useState(null);
+  const mounted = useSyncExternalStore(
+    emptySubscribe,
+    () => true,
+    () => false
+  );
+  const officeLat = officeLocation?.latitude;
+  const officeLon = officeLocation?.longitude;
+  const officeRadius = officeLocation?.radiusMeters;
+
+  const [coords, setCoords] = useState(initialCoords || null);
+  const [distanceFromOffice, setDistanceFromOffice] = useState(() => {
+    if (initialCoords?.latitude != null && officeLat != null && officeLon != null) {
+      return calculateHaversineDistanceClient(
+        initialCoords.latitude,
+        initialCoords.longitude,
+        officeLat,
+        officeLon
+      );
+    }
+    return null;
+  });
+  const [locationStatus, setLocationStatus] = useState(() => {
+    if (initialCoords?.latitude != null) {
+      if (officeLat != null && officeLon != null) {
+        const dist = calculateHaversineDistanceClient(
+          initialCoords.latitude,
+          initialCoords.longitude,
+          officeLat,
+          officeLon
+        );
+        return dist <= (officeRadius || 200) ? "INSIDE" : "OUTSIDE";
+      }
+      return "INSIDE";
+    }
+    return "LOCATING";
+  });
   const [gpsError, setGpsError] = useState(null);
 
   const [isCameraActive, setIsCameraActive] = useState(false);
@@ -63,12 +100,14 @@ export default function BiometricCheckInModal({
         if (videoRef.current.srcObject !== stream) {
           videoRef.current.srcObject = stream;
         }
-        const playPromise = videoRef.current.play();
-        if (playPromise !== undefined) {
-          playPromise.catch((err) => {
-            console.warn("Video play error:", err);
+        videoRef.current.onloadedmetadata = () => {
+          videoRef.current?.play().catch((err) => {
+            console.warn("Video play error on metadata:", err);
           });
-        }
+        };
+        videoRef.current.play().catch((err) => {
+          console.warn("Video play error direct:", err);
+        });
       } catch (err) {
         console.error("Error attaching stream to video:", err);
       }
@@ -90,21 +129,22 @@ export default function BiometricCheckInModal({
 
     try {
       if (streamRef.current) {
-        stopCamera();
+        streamRef.current.getTracks().forEach((t) => t.stop());
+        streamRef.current = null;
       }
 
       let stream;
       try {
         stream = await navigator.mediaDevices.getUserMedia({
           video: {
-            width: { ideal: 720 },
-            height: { ideal: 720 },
+            width: { ideal: 640 },
+            height: { ideal: 480 },
             facingMode: "user",
           },
           audio: false,
         });
       } catch (err1) {
-        console.warn("Ideal video constraint failed, attempting fallback:", err1);
+        console.warn("Ideal video constraint failed, attempting basic fallback:", err1);
         stream = await navigator.mediaDevices.getUserMedia({
           video: true,
           audio: false,
@@ -116,7 +156,9 @@ export default function BiometricCheckInModal({
       setCameraPermissionBlocked(false);
       setErrorMessage(null);
 
-      attachStream(stream);
+      if (videoRef.current) {
+        attachStream(stream);
+      }
     } catch (err) {
       console.error("Camera access failed:", err);
       setCameraPermissionBlocked(true);
@@ -125,65 +167,91 @@ export default function BiometricCheckInModal({
       );
       setIsCameraActive(false);
     }
-  }, [stopCamera, attachStream]);
+  }, [attachStream]);
 
   useEffect(() => {
-    if (isCameraActive && streamRef.current) {
+    if (isCameraActive && streamRef.current && videoRef.current) {
       attachStream(streamRef.current);
     }
   }, [isCameraActive, attachStream]);
 
-  const officeLat = officeLocation?.latitude;
-  const officeLon = officeLocation?.longitude;
-  const officeRadius = officeLocation?.radiusMeters;
-
   const detectLocation = useCallback(() => {
-    setLocationStatus("LOCATING");
     setGpsError(null);
+    setLocationStatus((current) => (current === "INSIDE" || current === "OUTSIDE" ? current : "LOCATING"));
 
-    if (!navigator.geolocation) {
+    if (typeof window === "undefined" || !navigator?.geolocation) {
       setGpsError("Geolocation is not supported by your browser");
       setLocationStatus("ERROR");
       return;
     }
 
+    const processPosition = (pos) => {
+      const { latitude, longitude, accuracy } = pos.coords;
+      setCoords({ latitude, longitude, accuracy });
+
+      if (officeLat != null && officeLon != null) {
+        const dist = calculateHaversineDistanceClient(
+          latitude,
+          longitude,
+          officeLat,
+          officeLon
+        );
+        setDistanceFromOffice(dist);
+        const allowedRadius = officeRadius || 200;
+        if (dist <= allowedRadius) {
+          setLocationStatus("INSIDE");
+        } else {
+          setLocationStatus("OUTSIDE");
+        }
+      } else {
+        setLocationStatus("INSIDE");
+        setDistanceFromOffice(0);
+      }
+      setGpsError(null);
+    };
+
+    const handleFailure = (err) => {
+      console.warn("Geolocation failure:", err);
+
+      let msg = "Failed to obtain current GPS location.";
+      if (err?.code === 1) {
+        msg = "Location permission denied. Click the lock/site settings icon in your browser address bar and set Location to Allow.";
+      } else if (err?.code === 2) {
+        msg = "GPS position unavailable. Please ensure Location Services are turned ON on your computer/phone.";
+      } else if (err?.code === 3) {
+        msg = "GPS request timed out. Please click Retry GPS below.";
+      }
+      setGpsError(msg);
+      setLocationStatus((curr) => (curr === "INSIDE" ? curr : "ERROR"));
+    };
+
+    // Fast 2-tier acquisition: First try high accuracy with 4s timeout and cache
     navigator.geolocation.getCurrentPosition(
       (pos) => {
-        const { latitude, longitude, accuracy } = pos.coords;
-        setCoords({ latitude, longitude, accuracy });
-
-        if (officeLat != null && officeLon != null) {
-          const dist = calculateHaversineDistanceClient(
-            latitude,
-            longitude,
-            officeLat,
-            officeLon
-          );
-          setDistanceFromOffice(dist);
-          const allowedRadius = officeRadius || 200;
-          if (dist <= allowedRadius) {
-            setLocationStatus("INSIDE");
-          } else {
-            setLocationStatus("OUTSIDE");
-          }
-        } else {
-          setLocationStatus("INSIDE");
-          setDistanceFromOffice(0);
-        }
+        processPosition(pos);
       },
       (err) => {
-        console.error("Geolocation error:", err);
-        setGpsError(
-          err.code === 1
-            ? "Location permission denied. Please allow location access to mark attendance."
-            : "Failed to obtain current GPS location. Please check your GPS settings."
+        if (err?.code === 1) {
+          handleFailure(err);
+          return;
+        }
+        console.warn("High-accuracy GPS timed out/unavailable, falling back to standard accuracy...");
+        navigator.geolocation.getCurrentPosition(
+          (fallbackPos) => {
+            processPosition(fallbackPos);
+          },
+          handleFailure,
+          {
+            enableHighAccuracy: false,
+            timeout: 10000,
+            maximumAge: 60000,
+          }
         );
-        setLocationStatus("ERROR");
       },
       {
         enableHighAccuracy: true,
-        timeout: 10000,
-        maximumAge: 0,
+        timeout: 4000,
+        maximumAge: 30000,
       }
     );
   }, [officeLat, officeLon, officeRadius]);
@@ -254,9 +322,9 @@ export default function BiometricCheckInModal({
   useEffect(() => {
     if (!isOpen) return;
 
-    let mounted = true;
-    queueMicrotask(() => {
-      if (!mounted) return;
+    let active = true;
+    Promise.resolve().then(() => {
+      if (!active) return;
       setVerificationResult(null);
       setErrorMessage(null);
       setHasBlinked(false);
@@ -265,9 +333,8 @@ export default function BiometricCheckInModal({
     });
 
     return () => {
-      mounted = false;
+      active = false;
       stopCamera();
-      setHasBlinked(false);
     };
   }, [isOpen, detectLocation, startCamera, stopCamera]);
 
@@ -373,25 +440,25 @@ export default function BiometricCheckInModal({
     }
   };
 
-  if (!isOpen) return null;
+  if (!isOpen || !mounted) return null;
 
   const allowedRadius = officeLocation?.radiusMeters || 200;
   const isOutside = locationStatus === "OUTSIDE";
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
-      <div className="relative w-full max-w-lg bg-card rounded-t-[32px] sm:rounded-3xl border-t sm:border border-border/80 shadow-2xl overflow-hidden flex flex-col max-h-[92vh]">
-        <div className="w-12 h-1.5 rounded-full bg-muted-foreground/30 mx-auto mt-2.5 mb-1 sm:hidden" />
-        <div className="flex items-center justify-between px-5 py-3.5 sm:py-4 border-b border-border bg-muted/40">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
+  return createPortal(
+    <div className="fixed inset-0 bottom-0 left-0 right-0 top-0 z-[9999] flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
+      <div className="relative w-full max-w-lg bg-card rounded-t-[28px] sm:rounded-3xl border-t sm:border border-border/80 shadow-2xl overflow-hidden flex flex-col max-h-[90dvh] sm:max-h-[90vh] bottom-0 mb-0">
+        <div className="w-10 h-1 rounded-full bg-muted-foreground/30 mx-auto mt-2 sm:hidden shrink-0" />
+        <div className="flex items-center justify-between px-4 sm:px-5 py-3 sm:py-3.5 border-b border-border bg-muted/40 shrink-0">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
               <Camera className="w-4 h-4" />
             </div>
-            <div>
-              <h2 className="font-semibold text-sm sm:text-base text-foreground tracking-tight">
+            <div className="min-w-0">
+              <h2 className="font-semibold text-sm sm:text-base text-foreground tracking-tight truncate">
                 {mode === "check-in" ? "Biometric Attendance Check-In" : "Attendance Check-Out"}
               </h2>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-[11px] sm:text-xs text-muted-foreground truncate">
                 {mode === "check-in"
                   ? "Live Face Match + Office GPS Geofence Verification"
                   : "Punch out to record and finalize your shift attendance"}
@@ -401,13 +468,13 @@ export default function BiometricCheckInModal({
           <button
             type="button"
             onClick={onClose}
-            className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+            className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors shrink-0 ml-2"
           >
             <X className="w-4 h-4" />
           </button>
         </div>
 
-        <div className="p-5 space-y-4 max-h-[80vh] overflow-y-auto">
+        <div className="p-3.5 sm:p-5 space-y-3 sm:space-y-4 overflow-y-auto flex-1 min-h-0">
           <div
             className={`p-3.5 rounded-xl border text-xs flex items-center justify-between gap-3 ${
               locationStatus === "INSIDE"
@@ -425,7 +492,7 @@ export default function BiometricCheckInModal({
               {locationStatus === "LOCATING" && <RefreshCw className="w-4 h-4 shrink-0 animate-spin text-blue-600 dark:text-blue-400" />}
               {locationStatus === "ERROR" && <AlertTriangle className="w-4 h-4 shrink-0 text-amber-600 dark:text-amber-400" />}
 
-              <div>
+              <div className="min-w-0">
                 <p className="font-semibold">
                   {locationStatus === "INSIDE" && `Inside Office Perimeter (${distanceFromOffice ?? 0}m away)`}
                   {locationStatus === "OUTSIDE" && `Outside Office Boundary (${distanceFromOffice}m away)`}
@@ -438,6 +505,33 @@ export default function BiometricCheckInModal({
                   {locationStatus === "LOCATING" && "Determining distance from office coordinates..."}
                   {locationStatus === "ERROR" && (gpsError || "Enable GPS location permissions.")}
                 </p>
+                {locationStatus === "ERROR" && (
+                  <div className="mt-2 flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={detectLocation}
+                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-amber-600 hover:bg-amber-500 text-white font-medium text-[11px] transition-colors"
+                    >
+                      <RefreshCw className="w-3 h-3" />
+                      Retry GPS
+                    </button>
+                    {process.env.NODE_ENV === "development" && officeLat != null && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const mockCoords = { latitude: officeLat, longitude: officeLon, accuracy: 10 };
+                          setCoords(mockCoords);
+                          setDistanceFromOffice(0);
+                          setLocationStatus("INSIDE");
+                          setGpsError(null);
+                        }}
+                        className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-white/80 dark:bg-zinc-800 border border-border text-[11px] font-medium text-foreground hover:bg-muted transition-colors"
+                      >
+                        Simulate Office (Dev)
+                      </button>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
 
@@ -500,7 +594,7 @@ export default function BiometricCheckInModal({
           )}
 
           {!verificationResult?.success && (
-            <div className="relative mx-auto w-full aspect-square rounded-2xl overflow-hidden bg-slate-950 border border-slate-800 flex items-center justify-center shadow-inner">
+            <div className="relative mx-auto w-full aspect-[4/3] sm:aspect-square max-h-[36vh] sm:max-h-none rounded-2xl overflow-hidden bg-slate-950 border border-slate-800 flex items-center justify-center shadow-inner shrink-0">
               <video
                 ref={(el) => {
                   videoRef.current = el;
@@ -517,40 +611,32 @@ export default function BiometricCheckInModal({
               />
 
               {isCameraActive && (
-                <div className="absolute top-3 left-1/2 -translate-x-1/2 z-20 pointer-events-none">
+                <div className="absolute top-2.5 sm:top-3 left-1/2 -translate-x-1/2 z-20 pointer-events-none w-max max-w-[92%]">
                   {hasBlinked ? (
-                    <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-950/90 border border-emerald-500/50 text-emerald-300 text-[11px] font-semibold shadow-lg backdrop-blur-md animate-in fade-in zoom-in-95">
-                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-                      <span>Live Human Verified (Blink Confirmed)</span>
+                    <div className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1 rounded-full bg-emerald-950/90 border border-emerald-500/50 text-emerald-300 text-[10.5px] sm:text-[11px] font-semibold shadow-lg backdrop-blur-md animate-in fade-in zoom-in-95">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                      <span className="truncate">Live Human Verified (Blink Confirmed)</span>
                     </div>
                   ) : (
-                    <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-950/85 border border-amber-500/40 text-amber-300 text-[11px] font-medium shadow-lg backdrop-blur-md animate-pulse">
-                      <Eye className="w-3.5 h-3.5 text-amber-400 animate-pulse" />
-                      <span>Anti-Spoofing: Please blink your eyes</span>
+                    <div className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1 rounded-full bg-slate-950/85 border border-amber-500/40 text-amber-300 text-[10.5px] sm:text-[11px] font-medium shadow-lg backdrop-blur-md animate-pulse">
+                      <Eye className="w-3.5 h-3.5 text-amber-400 shrink-0 animate-pulse" />
+                      <span className="truncate">Anti-Spoofing: Please blink your eyes</span>
                     </div>
                   )}
                 </div>
               )}
 
               {isCameraActive && (
-                <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
+                <div className="absolute inset-0 pointer-events-none flex items-center justify-center p-2">
                   <div
-                    className={`w-52 h-64 rounded-[50%] border-2 flex items-center justify-center transition-all ${
+                    className={`w-36 h-48 sm:w-52 sm:h-64 rounded-[50%] border-2 transition-all ${
                       isOutside
                         ? "border-rose-500/80 shadow-[0_0_20px_rgba(244,63,94,0.3)] border-dashed"
                         : hasBlinked
                         ? "border-emerald-400 shadow-[0_0_25px_rgba(52,211,153,0.45)] border-solid"
                         : "border-amber-400/80 border-dashed shadow-[0_0_20px_rgba(251,191,36,0.3)] animate-pulse"
                     }`}
-                  >
-                    <span className="text-[11px] font-medium text-white bg-black/70 px-3 py-1 rounded-full backdrop-blur-sm">
-                      {isOutside
-                        ? "Attendance Blocked (Outside)"
-                        : hasBlinked
-                        ? "Liveness Confirmed • Ready"
-                        : "Position Face & Blink"}
-                    </span>
-                  </div>
+                  />
                 </div>
               )}
 
@@ -596,24 +682,24 @@ export default function BiometricCheckInModal({
             </div>
           )}
 
-          <div className="text-[11px] text-muted-foreground flex items-center justify-between px-1">
-            <span className="flex items-center gap-1">
-              <MapPin className="w-3 h-3 text-muted-foreground" />
+          <div className="text-[10.5px] sm:text-[11px] text-muted-foreground flex flex-wrap items-center justify-between gap-1.5 px-1 shrink-0">
+            <span className="flex items-center gap-1 truncate max-w-[200px] sm:max-w-none">
+              <MapPin className="w-3 h-3 text-muted-foreground shrink-0" />
               Office: {officeLocation?.officeName || "Headquarters"} ({allowedRadius}m radius)
             </span>
-            <span className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400">
-              <Sparkles className="w-3 h-3" />
+            <span className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400 shrink-0">
+              <Sparkles className="w-3 h-3 shrink-0" />
               Anti-Spoof Liveness Verified
             </span>
           </div>
         </div>
 
-        <div className="flex items-center justify-end gap-3 px-5 py-4 border-t border-border bg-muted/20">
-          <div className="flex items-center gap-3">
+        <div className="flex items-center justify-end gap-2.5 sm:gap-3 px-4 sm:px-5 py-3.5 sm:py-3.5 border-t border-border bg-card shrink-0 pb-6 sm:pb-3.5">
+          <div className="flex items-center gap-2.5 sm:gap-3 w-full sm:w-auto">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 rounded-lg border border-border text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+              className="flex-1 sm:flex-initial px-4 py-2.5 rounded-lg border border-border text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted transition-colors text-center"
             >
               Close
             </button>
@@ -623,7 +709,7 @@ export default function BiometricCheckInModal({
                 type="button"
                 onClick={handleCaptureAndPunch}
                 disabled={isVerifying || isOutside || locationStatus === "LOCATING"}
-                className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-xs font-semibold text-white shadow-sm transition-all ${
+                className={`flex-2 sm:flex-initial inline-flex items-center justify-center gap-2 px-4 sm:px-5 py-2.5 rounded-lg text-xs font-semibold text-white shadow-sm transition-all text-center ${
                   isOutside
                     ? "bg-rose-600 opacity-60 cursor-not-allowed"
                     : hasBlinked
@@ -631,17 +717,20 @@ export default function BiometricCheckInModal({
                     : "bg-emerald-600 hover:bg-emerald-500 active:scale-[0.99] disabled:opacity-50"
                 }`}
               >
-                <Camera className="w-4 h-4" />
-                {isOutside
-                  ? "Outside Office (Blocked)"
-                  : mode === "check-in"
-                  ? "Verify Face & Check In"
-                  : "Verify Face & Check Out"}
+                <Camera className="w-4 h-4 shrink-0" />
+                <span className="truncate">
+                  {isOutside
+                    ? "Outside Office (Blocked)"
+                    : mode === "check-in"
+                    ? "Verify Face & Check In"
+                    : "Verify Face & Check Out"}
+                </span>
               </button>
             )}
           </div>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

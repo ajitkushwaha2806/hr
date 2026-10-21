@@ -1,23 +1,10 @@
 "use client";
-
-import { useState, useEffect, useMemo } from "react";
-import {
-  Clock,
-  ShieldCheck,
-  MapPin,
-  RefreshCw,
-  Search,
-  Filter,
-  CheckCircle2,
-  AlertCircle,
-  Sliders,
-  ExternalLink,
-  User,
-} from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { useState, useEffect, useMemo } from "react";
 import { AttendanceService } from "@/services/frontend/attendance";
-import OfficeLocationModal from "@/components/pages/workspace/dashboard/fragments/office-location-modal";
+import OfficeLocationModal from "@/components/pages/admin/modals/office-location-modal";
+import { ShieldCheck, MapPin, RefreshCw, Search, CheckCircle2, Sliders } from "lucide-react";
 
 export default function AdminAttendancePage() {
   const [logs, setLogs] = useState([]);
@@ -72,7 +59,6 @@ export default function AdminAttendancePage() {
 
   return (
     <div className="w-full min-h-screen bg-slate-50/50 dark:bg-zinc-950 p-3 sm:p-5 lg:p-6 space-y-6 max-w-7xl mx-auto">
-      {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
           <div className="flex items-center gap-2">
@@ -111,7 +97,6 @@ export default function AdminAttendancePage() {
         </div>
       </div>
 
-      {/* Filter and Search Bar */}
       <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-card border border-border p-3 rounded-xl shadow-xs">
         <div className="relative w-full sm:w-80">
           <Search className="w-4 h-4 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2" />
@@ -151,7 +136,6 @@ export default function AdminAttendancePage() {
         </div>
       </div>
 
-      {/* Attendance Logs Table */}
       <div className="bg-card border border-border rounded-xl shadow-xs overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">

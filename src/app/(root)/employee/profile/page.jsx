@@ -4,7 +4,7 @@ import { useState } from "react";
 import useNotification from "@/store/hooks/useNotification";
 import { useEmployeeProfile } from "@/store/hooks/useEmployee";
 import { RefreshCw, AlertCircle, ArrowRight } from "lucide-react";
-import EmployeeProfileView from "@/components/pages/workspace/employee/profile";
+import EmployeeProfileView from "@/components/pages/employee/profile";
 
 export default function EmployeeProfilePage() {
   const notify = useNotification();

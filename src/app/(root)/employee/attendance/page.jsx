@@ -2,31 +2,19 @@
 
 import { useCalendar } from "@/store/hooks/useCalendar";
 import { useAttendance } from "@/store/hooks/useAttendance";
-import AttendanceCalendar from "@/components/pages/workspace/dashboard/fragments/attendance-calendar";
+import AttendanceCalendar from "@/components/pages/employee/dashboard/fragments/attendance-calendar";
 import { Clock, CheckCircle2, ShieldCheck, Sparkles, MapPin, Calendar, Award } from "lucide-react";
 
 export default function EmployeeAttendancePage() {
-  const {
-    year,
-    month,
-    days,
-    todayString,
-    isLoading: isCalendarLoading,
-    nextMonth,
-    prevMonth,
-    jumpToToday,
-  } = useCalendar();
+  const { year, month, days, todayString, isLoading: isCalendarLoading, nextMonth, prevMonth, jumpToToday } = useCalendar();
 
   const { todayStatus } = useAttendance();
   const punch = todayStatus?.todayPunch;
   const officeLocation = todayStatus?.officeLocation;
-
-  // Compute monthly summary from days
   const presentDays = days?.filter((d) => d.attendanceStatus === "PRESENT" || d.attendanceStatus === "HALF_DAY")?.length || 0;
   const lateDays = days?.filter((d) => {
     if (!d.punch?.checkInTime) return false;
     const checkIn = new Date(d.punch.checkInTime);
-    // Late if check in is after 9:30 AM IST (04:00 UTC)
     return checkIn.getUTCHours() > 4 || (checkIn.getUTCHours() === 4 && checkIn.getUTCMinutes() > 0);
   })?.length || 0;
   const totalWorkedMinutes = days?.reduce((acc, d) => acc + (d.punch?.durationMinutes || 0), 0) || 0;
@@ -34,7 +22,6 @@ export default function EmployeeAttendancePage() {
 
   return (
     <div className="w-full min-h-screen bg-slate-50/50 dark:bg-zinc-950 p-3 sm:p-5 lg:p-6 space-y-6 max-w-7xl mx-auto">
-      {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
           <div className="flex items-center gap-2">
@@ -58,7 +45,6 @@ export default function EmployeeAttendancePage() {
         </div>
       </div>
 
-      {/* KPI Stats Strip */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
         <div className="p-4 rounded-xl border border-border bg-card shadow-xs">
           <div className="flex items-center justify-between text-muted-foreground mb-1.5">
@@ -97,7 +83,6 @@ export default function EmployeeAttendancePage() {
         </div>
       </div>
 
-      {/* Full Monthly Attendance Calendar */}
       <AttendanceCalendar
         year={year}
         month={month}

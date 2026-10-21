@@ -18,39 +18,52 @@ export default function EmployeeDashboard() {
   const presentDays = days.filter((d) => d.attendanceStatus === "PRESENT").length || 0;
   const workingDays = days.filter((d) => d.type === "WORKING_DAY").length || 22;
 
-  const getGreeting = () => {
+  const getGreetingData = () => {
     const hour = new Date().getHours();
-    if (hour < 12) return "Good morning";
-    if (hour < 17) return "Good afternoon";
-    return "Good evening";
+    if (hour < 12) return { text: "Good morning", emoji: "☀️" };
+    if (hour < 17) return { text: "Good afternoon", emoji: "👋" };
+    if (hour < 21) return { text: "Good evening", emoji: "🌆" };
+    return { text: "Good night", emoji: "🌙" };
   };
+
+  const { text: greetingText, emoji: greetingEmoji } = getGreetingData();
 
   return (
     <div className="w-full min-h-screen bg-slate-50/60 dark:bg-zinc-950 px-3 sm:px-6 py-3 sm:py-6 space-y-4 sm:space-y-6 max-w-4xl mx-auto pb-24 sm:pb-10">
-      <div className="flex items-center justify-between gap-3 pt-1">
-        <div className="min-w-0">
-          <div className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
-            <span>{getGreeting()}</span>
-            <span>👋</span>
+      <div className="flex items-center justify-between gap-3 px-2 pt-1">
+        <div className="min-w-0 space-y-0.5">
+          <div className="flex items-center gap-1.5 text-xs sm:text-sm font-medium text-muted-foreground">
+            <span>{greetingText}</span>
+            <span className="text-sm select-none">{greetingEmoji}</span>
           </div>
-          <h1 className="text-xl sm:text-2xl font-black tracking-tight text-foreground truncate">
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground truncate">
             {displayName}
           </h1>
         </div>
 
-        <div className="flex items-center gap-2 shrink-0">
-          <div className="size-10 sm:size-11 rounded-md bg-primary/10 border border-primary/25 text-primary flex items-center justify-center font-bold text-sm shadow-xs overflow-hidden">
-            {employee?.avatar || user?.imageUrl ? (
-              <img
-                src={employee?.avatar || user?.imageUrl}
-                alt={displayName}
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              displayName.slice(0, 2).toUpperCase()
-            )}
+        <Link
+          href="/employee/profile"
+          className="relative shrink-0 block group transition-transform active:scale-95"
+          title="View Employee Profile"
+        >
+          <div className="size-11 sm:size-12 rounded-xl border border-border/80 overflow-hidden bg-muted group-hover:border-emerald-500/60 shadow-2xs transition-colors">
+            <img
+              src={employee?.avatar || user?.imageUrl || "/placeholder.png"}
+              alt={displayName}
+              onError={(e) => {
+                e.currentTarget.onerror = null;
+                e.currentTarget.src = "/placeholder.png";
+              }}
+              className="w-full h-full object-cover"
+            />
           </div>
-        </div>
+          {todayStatus?.hasCheckedIn && (
+            <span
+              className="absolute -bottom-0.5 -right-0.5 size-3 rounded-full bg-emerald-500 border-2 border-background"
+              title="Checked in today"
+            />
+          )}
+        </Link>
       </div>
 
       <AttendancePunchBar
