@@ -90,7 +90,7 @@ const AttendancePunchSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ["IN_PROGRESS", "COMPLETED", "FAILED"],
+      enum: ["IN_PROGRESS", "COMPLETED", "FAILED", "NO_PUNCH_OUT"],
       default: "IN_PROGRESS",
       index: true,
     },

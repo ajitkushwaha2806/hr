@@ -1,29 +1,11 @@
 "use client";
 import Link from "next/link";
-import { useState } from "react";
-import useNotification from "@/store/hooks/useNotification";
 import { useEmployeeProfile } from "@/store/hooks/useEmployee";
 import { RefreshCw, AlertCircle, ArrowRight } from "lucide-react";
 import EmployeeProfileView from "@/components/pages/employee/profile";
 
 export default function EmployeeProfilePage() {
-  const notify = useNotification();
-  const { employee, officeLocation, todayPunch, isLoading, error, refetch, updateProfile } = useEmployeeProfile();
-
-  const [avatarOverride, setAvatarOverride] = useState("");
-  const handleFaceChange = async (newUrl) => {
-    setAvatarOverride(newUrl);
-    try {
-      await updateProfile({
-        avatar: newUrl,
-        facePhoto: newUrl,
-      });
-      notify.success("Biometric face photo updated successfully!");
-    } catch (err) {
-      console.warn("Profile face update fallback:", err);
-      notify.error("Failed to update face biometric photo.");
-    }
-  };
+  const { employee, officeLocation, todayPunch, isLoading, error, refetch } = useEmployeeProfile();
 
   if (isLoading) {
     return (
@@ -98,8 +80,7 @@ export default function EmployeeProfilePage() {
       employee={employee}
       officeLocation={officeLocation}
       todayPunch={todayPunch}
-      avatar={avatarOverride || employee?.avatar}
-      onFaceChange={handleFaceChange}
+      avatar={employee?.avatar}
     />
   );
 }

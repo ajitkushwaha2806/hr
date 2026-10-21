@@ -125,7 +125,7 @@ export class CalendarService {
       } else if (d.title?.toLowerCase().includes("leave") || d.type === "LEAVE") {
         attendanceStatus = "CASUAL_LEAVE";
       } else if (punch && punch.checkIn?.status === "SUCCESS") {
-        if (!punch.checkOut?.time && d.dateString < todayStr) {
+        if (punch.status === "NO_PUNCH_OUT" || (!punch.checkOut?.time && d.dateString < todayStr)) {
           attendanceStatus = "NOT_CHECKED_OUT";
         } else if (punch.durationMinutes && punch.durationMinutes > 0 && punch.durationMinutes < 240) {
           attendanceStatus = "HALF_DAY";

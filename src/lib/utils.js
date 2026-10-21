@@ -14,6 +14,16 @@ export function formatDateString(d = new Date()) {
   return `${year}-${month}-${day}`;
 }
 
-export function getTodayDateString() {
-  return formatDateString(new Date());
+export function getTodayDateString(timeZone = "Asia/Kolkata") {
+  try {
+    const formatter = new Intl.DateTimeFormat("en-CA", {
+      timeZone,
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    });
+    return formatter.format(new Date());
+  } catch {
+    return formatDateString(new Date());
+  }
 }

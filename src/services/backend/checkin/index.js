@@ -13,7 +13,6 @@ export class CheckInService {
     }
 
     await dbConnect();
-
     const query = {
       $or: [
         { clerkId: clerkUser.id },
@@ -37,7 +36,7 @@ export class CheckInService {
     return employee;
   }
 
-  static async getTodayStatus(clerkUser, organizationId) {
+  static async getTodayStatus(clerkUser, organizationId, clientDate = null) {
     await dbConnect();
     const employee = await this.getEmployeeForUser(clerkUser, organizationId);
     if (!employee) {
@@ -49,7 +48,21 @@ export class CheckInService {
       };
     }
 
-    const todayDate = getTodayDateString();
+    const todayDate = clientDate || getTodayDateString();
+    await AttendancePunch.updateMany(
+      {
+        organizationId: employee.organizationId || organizationId,
+        employeeId: employee._id,
+        date: { $lt: todayDate },
+        status: "IN_PROGRESS",
+      },
+      {
+        $set: {
+          status: "NO_PUNCH_OUT",
+        },
+      }
+    );
+
     const todayPunch = await AttendancePunch.findOne({
       organizationId: employee.organizationId || organizationId,
       employeeId: employee._id,
@@ -83,7 +96,7 @@ export class CheckInService {
   }
 
   static async checkIn(clerkUser, organizationId, payload) {
-    const { latitude, longitude, accuracyMeters = 0, selfieUrl } = payload;
+    const { latitude, longitude, accuracyMeters = 0, selfieUrl, clientDate } = payload || {};
 
     if (latitude === undefined || longitude === undefined) {
       throw new BadRequestError("Device GPS coordinates are required for check-in");
@@ -142,7 +155,22 @@ export class CheckInService {
       );
     }
 
-    const todayDate = getTodayDateString();
+    const todayDate = clientDate || getTodayDateString();
+
+    await AttendancePunch.updateMany(
+      {
+        organizationId: orgId,
+        employeeId: employee._id,
+        date: { $lt: todayDate },
+        status: "IN_PROGRESS",
+      },
+      {
+        $set: {
+          status: "NO_PUNCH_OUT",
+        },
+      }
+    );
+
     let punch = await AttendancePunch.findOne({
       organizationId: orgId,
       employeeId: employee._id,
@@ -191,7 +219,7 @@ export class CheckInService {
   }
 
   static async checkOut(clerkUser, organizationId, payload) {
-    const { latitude, longitude, accuracyMeters = 0, selfieUrl } = payload;
+    const { latitude, longitude, accuracyMeters = 0, selfieUrl, clientDate } = payload || {};
 
     if (latitude === undefined || longitude === undefined) {
       throw new BadRequestError("Device GPS coordinates are required for check-out");
@@ -207,7 +235,7 @@ export class CheckInService {
     }
 
     const orgId = employee.organizationId || organizationId;
-    const todayDate = getTodayDateString();
+    const todayDate = clientDate || getTodayDateString();
 
     const punch = await AttendancePunch.findOne({
       organizationId: orgId,

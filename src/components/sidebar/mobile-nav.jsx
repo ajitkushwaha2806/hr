@@ -40,10 +40,6 @@ export function MobileNav() {
           label: "Dashboard",
         },
         {
-          item: items.find((i) => i.title.includes("Attendance")) || { title: "Attendance", url: "/employee/attendance" },
-          label: "Attendance",
-        },
-        {
           item: items.find((i) => i.title.includes("Leave")) || { title: "Leaves", url: "/employee/leaves" },
           label: "Leaves",
         },

@@ -28,11 +28,6 @@ export const EMPLOYEE_SIDEBAR_CONFIG = {
         icon: <LayoutDashboard />,
       },
       {
-        title: "My Attendance",
-        url: "/employee/attendance",
-        icon: <Clock />,
-      },
-      {
         title: "My Leaves",
         url: "/employee/leaves",
         icon: <CalendarDays />,

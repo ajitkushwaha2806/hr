@@ -29,6 +29,15 @@ export const CALENDAR_LEGENDS = [
     badgeClass: "bg-amber-500/10 text-amber-700 dark:text-amber-300",
   },
   {
+    id: "no-punch-out",
+    name: "No Punch Out",
+    label: "No Punch Out",
+    icon: Clock,
+    iconClass: "text-orange-600 dark:text-orange-400",
+    dotColor: "bg-orange-500",
+    badgeClass: "bg-orange-500/10 text-orange-700 dark:text-orange-300",
+  },
+  {
     id: "leave",
     name: "Leave",
     label: "Leave",

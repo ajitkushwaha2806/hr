@@ -355,11 +355,15 @@ export default function BiometricCheckInModal({
       );
     }
 
+    const d = new Date();
+    const clientDate = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+
     const punchPayload = {
       latitude: coords.latitude,
       longitude: coords.longitude,
       accuracyMeters: coords.accuracy || 0,
       selfieUrl,
+      clientDate,
     };
 
     let res;

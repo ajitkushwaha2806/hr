@@ -40,7 +40,15 @@ export default function AttendancePunchBar({ todayStatus, onRefresh, isLoading =
     return () => clearInterval(timer);
   }, []);
 
-  const punch = todayStatus?.todayPunch;
+  const clientTodayDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+  useEffect(() => {
+    if (todayStatus?.todayDate && todayStatus.todayDate !== clientTodayDate && onRefresh) {
+      onRefresh();
+    }
+  }, [clientTodayDate, todayStatus?.todayDate, onRefresh]);
+
+  const rawPunch = todayStatus?.todayPunch;
+  const punch = rawPunch?.date === clientTodayDate ? rawPunch : null;
   const employee = todayStatus?.employee;
 
   const hasCheckedIn = Boolean(punch?.checkIn?.status === "SUCCESS");

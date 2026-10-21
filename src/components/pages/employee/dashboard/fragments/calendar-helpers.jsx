@@ -21,7 +21,7 @@ export function resolveDayCategory(dayItem, todayString) {
     return "HALF_DAY";
   }
 
-  if (dayItem.attendanceStatus === "NOT_CHECKED_OUT") {
+  if (dayItem.attendanceStatus === "NOT_CHECKED_OUT" || dayItem.attendanceStatus === "NO_PUNCH_OUT") {
     return "NOT_CHECKED_OUT";
   }
 
@@ -157,10 +157,11 @@ export function getStatusBadge(statusOrDay, customTitle, extra) {
       );
 
     case "NOT_CHECKED_OUT":
+    case "NO_PUNCH_OUT":
       return (
         <div className={`${baseBadgeClass} bg-orange-500/10 text-orange-700 dark:text-orange-300`}>
           <Clock className="size-3 shrink-0 text-orange-600 dark:text-orange-400" />
-          <span className="truncate">{title || "Not Checked Out"}</span>
+          <span className="truncate">{title || "No Punch Out"}</span>
         </div>
       );
 
