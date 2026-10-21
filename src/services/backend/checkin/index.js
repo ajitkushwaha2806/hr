@@ -1,10 +1,10 @@
 import dbConnect from "@/lib/db";
 import Employee from "@/models/Employee";
-import AttendancePunch from "@/models/AttendancePunch";
-import { OfficeLocationService } from "@/services/backend/location";
-import { FaceMatchService } from "@/services/backend/facematch";
-import { BadRequestError, NotFoundError, UnauthorizedError } from "@/lib/api/response-handler";
 import { getTodayDateString } from "@/lib/utils";
+import AttendancePunch from "@/models/AttendancePunch";
+import { FaceMatchService } from "@/services/backend/facematch";
+import { OfficeLocationService } from "@/services/backend/location";
+import { BadRequestError, NotFoundError, UnauthorizedError } from "@/lib/api/response-handler";
 
 export class CheckInService {
   static async getEmployeeForUser(clerkUser, organizationId) {
@@ -60,16 +60,18 @@ export class CheckInService {
       employee.organizationId || organizationId
     );
 
-    const empObj = employee.toObject ? employee.toObject() : { ...employee };
-
     return {
       hasEmployee: true,
       employee: {
-        ...empObj,
         id: employee._id,
-        name: `${employee.firstName || ""} ${employee.lastName || ""}`.trim() || empObj.name,
-        avatar: employee.avatar,
+        _id: employee._id,
+        name: `${employee.firstName || ""} ${employee.lastName || ""}`.trim() || employee.name,
+        firstName: employee.firstName,
+        lastName: employee.lastName,
         employeeId: employee.employeeId,
+        department: employee.department,
+        designation: employee.designation,
+        avatar: employee.avatar,
         hasEnrolledFace: Boolean(employee.avatar),
       },
       todayDate,
@@ -97,18 +99,14 @@ export class CheckInService {
     }
 
     const orgId = employee.organizationId || organizationId;
-
-    // 1. Verify Face is Enrolled
     if (!employee.avatar) {
       throw new BadRequestError(
         "Face biometric photo is not enrolled yet. Please capture and save your profile photo in onboarding first."
       );
     }
 
-    // 2. Fetch Office Location & Verify Geofence
     let officeLocation = await OfficeLocationService.getOfficeLocation(orgId);
     if (!officeLocation) {
-      // If no office location has been configured yet, calibrate to current location for first time setup
       officeLocation = await OfficeLocationService.setOfficeLocation(orgId, {
         latitude,
         longitude,
@@ -131,7 +129,6 @@ export class CheckInService {
       );
     }
 
-    // 3. Verify Live Face Match
     const faceMatchResult = await FaceMatchService.compareFaces(
       selfieUrl,
       employee.avatar,
@@ -145,7 +142,6 @@ export class CheckInService {
       );
     }
 
-    // 4. Save Approved Check-In Punch
     const todayDate = getTodayDateString();
     let punch = await AttendancePunch.findOne({
       organizationId: orgId,
@@ -227,7 +223,6 @@ export class CheckInService {
       throw new BadRequestError("You have already checked out for today!");
     }
 
-    // Geofence check for check-out
     const officeLocation = await OfficeLocationService.getOfficeLocation(orgId);
     const geofenceResult = OfficeLocationService.verifyGeofence(
       latitude,
@@ -241,7 +236,6 @@ export class CheckInService {
       );
     }
 
-    // Face Match for check-out
     const faceMatchResult = await FaceMatchService.compareFaces(
       selfieUrl,
       employee.avatar,

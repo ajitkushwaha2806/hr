@@ -29,9 +29,8 @@ export class CalendarService {
       await CalendarDay.deleteMany({ organizationId });
     }
 
-    // Seed from Oct 1, 2026 to Dec 31, 2027
-    const startDate = new Date(2026, 9, 1); // Month 9 = October (0-indexed)
-    const endDate = new Date(2027, 11, 31); // Month 11 = December
+    const startDate = new Date(2026, 9, 1); 
+    const endDate = new Date(2027, 11, 31); 
 
     const records = [];
     const curr = new Date(startDate);
@@ -69,18 +68,12 @@ export class CalendarService {
     };
   }
 
-  /**
-   * Fetch calendar days for a given month & year, enriched with employee punches
-   */
   static async getMonthlyCalendar({ organizationId, year, month, userId }) {
     await dbConnect();
-
-    // Auto-seed if empty
     const count = await CalendarDay.countDocuments({ organizationId });
     if (count === 0) {
       await this.seedOrganizationCalendar({ organizationId });
     } else {
-      // Ensure existing default days are all WORKING_DAY
       await CalendarDay.updateMany(
         { organizationId, isCustom: false, type: { $ne: "WORKING_DAY" } },
         { $set: { type: "WORKING_DAY", title: "Working Day" } }
@@ -98,7 +91,6 @@ export class CalendarService {
       .sort({ day: 1 })
       .lean();
 
-    // Fetch employee attendance punches for this month
     let employeePunches = [];
     if (userId) {
       const emp = await Employee.findOne({
@@ -124,7 +116,7 @@ export class CalendarService {
 
     const enrichedDays = days.map((d) => {
       const punch = punchMap[d.dateString];
-      let attendanceStatus = null; // "PRESENT" | "ABSENT" | "HALF_DAY" | "WEEKLY_OFF" | "HOLIDAY"
+      let attendanceStatus = null;
 
       if (d.type === "HOLIDAY") {
         attendanceStatus = "HOLIDAY";
@@ -140,8 +132,6 @@ export class CalendarService {
         } else {
           attendanceStatus = "PRESENT";
         }
-      } else if (d.type === "WORKING_DAY" && d.dateString <= todayStr) {
-        attendanceStatus = "ABSENT";
       }
 
       return {

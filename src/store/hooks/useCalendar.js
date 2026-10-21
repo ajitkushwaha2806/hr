@@ -1,24 +1,23 @@
 "use client";
-
 import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { CalendarFrontendService } from "@/services/frontend/calendar";
 import useNotification from "@/store/hooks/useNotification";
 import { extractErrorMessage } from "@/lib/helpers/notification";
+import { CalendarFrontendService } from "@/services/frontend/calendar";
+import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 
 export function useCalendar() {
   const queryClient = useQueryClient();
   const notification = useNotification();
 
-  // Range starts Oct 2026 to Dec 2027
   const [year, setYear] = useState(2026);
-  const [month, setMonth] = useState(10); // October
+  const [month, setMonth] = useState(10); 
 
   const { data, isLoading, isFetching, error, refetch } = useQuery({
     queryKey: ["organization-calendar", year, month],
     queryFn: () => CalendarFrontendService.getMonthlyDays({ year, month }),
     select: (res) => res?.data || res || {},
-    staleTime: 1000 * 60 * 3, // 3 minutes
+    placeholderData: keepPreviousData,
+    staleTime: 1000 * 60 * 3, 
   });
 
   const updateDayMutation = useMutation({
@@ -58,7 +57,7 @@ export function useCalendar() {
   });
 
   const nextMonth = () => {
-    if (year === 2027 && month === 12) return; // End of range
+    if (year === 2027 && month === 12) return; 
     if (month === 12) {
       setYear((prev) => prev + 1);
       setMonth(1);
@@ -68,7 +67,7 @@ export function useCalendar() {
   };
 
   const prevMonth = () => {
-    if (year === 2026 && month === 10) return; // Start of range
+    if (year === 2026 && month === 10) return; 
     if (month === 1) {
       setYear((prev) => prev - 1);
       setMonth(12);

@@ -1,17 +1,30 @@
 "use client";
 import { Button } from "@/components/ui/button";
 import { CalendarLegend } from "./calendar-legend";
-import { Spinner } from "@/components/global/loader";
+import { Skeleton } from "@/components/ui/skeleton";
 import { CALENDAR_LEGENDS } from "../helpers/constants";
 import { MONTH_NAMES, WEEKDAYS, resolveDayCategory, getDayCellStyles, getStatusBadge } from "./calendar-helpers";
 import { ChevronLeft, ChevronRight, Calendar, Sparkles, Coffee, CheckCircle2, CalendarDays } from "lucide-react";
 
-export function AttendanceCalendar({ year = 2026, month = 10, days = [], todayString = "2026-10-20", onNextMonth, onPrevMonth, onJumpToday, isLoading = false, legends = CALENDAR_LEGENDS }) {
+export function AttendanceCalendar({
+  year = 2026,
+  month = 10,
+  days = [],
+  todayString = "2026-10-20",
+  onNextMonth,
+  onPrevMonth,
+  onJumpToday,
+  isLoading = false,
+  isFetching = false,
+  legends = CALENDAR_LEGENDS,
+}) {
   const monthName = MONTH_NAMES[month - 1] || "Month";
 
   const firstDayOfMonth = new Date(year, month - 1, 1);
   const sundayBasedDay = firstDayOfMonth.getDay();
   const mondayBasedOffset = (sundayBasedDay + 6) % 7;
+  const totalCells = mondayBasedOffset + days.length;
+  const trailingBlanks = totalCells % 7 === 0 ? 0 : 7 - (totalCells % 7);
 
   const isCurrentMonthView = () => year === 2026 && month === 10;
   const presentCount = days.filter((d) => d.attendanceStatus === "PRESENT").length;
@@ -34,11 +47,6 @@ export function AttendanceCalendar({ year = 2026, month = 10, days = [], todaySt
                 <h2 className="text-lg sm:text-xl font-bold tracking-tight text-foreground truncate">
                   {monthName} {year}
                 </h2>
-                {year === 2027 && (
-                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20 shrink-0">
-                    2027
-                  </span>
-                )}
               </div>
               <p className="text-xs text-muted-foreground truncate">
                 Monthly Work Days &amp; Attendance
@@ -85,31 +93,39 @@ export function AttendanceCalendar({ year = 2026, month = 10, days = [], todaySt
           </div>
         </div>
 
-        <div className="flex items-center gap-1.5 sm:gap-2 pt-3 overflow-x-auto no-scrollbar pb-0.5">
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-sm text-[11px] font-semibold bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 shrink-0 whitespace-nowrap">
-            <CheckCircle2 className="size-3 shrink-0 text-emerald-600 dark:text-emerald-400" />
-            <span>{presentCount} Present</span>
-          </span>
-
-          {holidaysCount > 0 && (
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-sm text-[11px] font-semibold bg-purple-500/10 text-purple-700 dark:text-purple-300 shrink-0 whitespace-nowrap">
-              <Sparkles className="size-3 shrink-0 text-purple-600 dark:text-purple-400" />
-              <span>{holidaysCount} Holiday{holidaysCount > 1 ? "s" : ""}</span>
+        {isLoading && days.length === 0 ? (
+          <div className="flex items-center gap-2 pt-3">
+            <Skeleton className="h-6 w-20 rounded-sm" />
+            <Skeleton className="h-6 w-24 rounded-sm" />
+            <Skeleton className="h-6 w-24 rounded-sm" />
+          </div>
+        ) : (
+          <div className="flex items-center gap-1.5 sm:gap-2 pt-3 overflow-x-auto no-scrollbar pb-0.5">
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-sm text-[11px] font-semibold bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 shrink-0 whitespace-nowrap">
+              <CheckCircle2 className="size-3 shrink-0 text-emerald-600 dark:text-emerald-400" />
+              <span>{presentCount} Present</span>
             </span>
-          )}
 
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-sm text-[11px] font-semibold bg-slate-500/10 text-slate-700 dark:text-slate-300 shrink-0 whitespace-nowrap">
-            <Coffee className="size-3 shrink-0 text-slate-500 dark:text-slate-400" />
-            <span>{weeklyOffCount} {weeklyOffCount === 1 ? "Weekly Off" : "Weekly Offs"}</span>
-          </span>
+            {holidaysCount > 0 && (
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-sm text-[11px] font-semibold bg-purple-500/10 text-purple-700 dark:text-purple-300 shrink-0 whitespace-nowrap">
+                <Sparkles className="size-3 shrink-0 text-purple-600 dark:text-purple-400" />
+                <span>{holidaysCount} Holiday{holidaysCount > 1 ? "s" : ""}</span>
+              </span>
+            )}
 
-          {leavesCount > 0 && (
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-sm text-[11px] font-semibold bg-amber-500/10 text-amber-700 dark:text-amber-300 shrink-0 whitespace-nowrap">
-              <CalendarDays className="size-3 shrink-0 text-amber-600 dark:text-amber-400" />
-              <span>{leavesCount} Leave{leavesCount > 1 ? "s" : ""}</span>
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-sm text-[11px] font-semibold bg-slate-500/10 text-slate-700 dark:text-slate-300 shrink-0 whitespace-nowrap">
+              <Coffee className="size-3 shrink-0 text-slate-500 dark:text-slate-400" />
+              <span>{weeklyOffCount} {weeklyOffCount === 1 ? "Weekly Off" : "Weekly Offs"}</span>
             </span>
-          )}
-        </div>
+
+            {leavesCount > 0 && (
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-sm text-[11px] font-semibold bg-amber-500/10 text-amber-700 dark:text-amber-300 shrink-0 whitespace-nowrap">
+                <CalendarDays className="size-3 shrink-0 text-amber-600 dark:text-amber-400" />
+                <span>{leavesCount} Leave{leavesCount > 1 ? "s" : ""}</span>
+              </span>
+            )}
+          </div>
+        )}
       </div>
 
       <div className="hidden sm:grid grid-cols-7 border-b border-border/40 bg-muted/20 text-center">
@@ -123,23 +139,41 @@ export function AttendanceCalendar({ year = 2026, month = 10, days = [], todaySt
         ))}
       </div>
 
-      <div className="relative">
-        {isLoading && (
-          <div className="absolute inset-0 bg-white/70 dark:bg-zinc-900/70 backdrop-blur-xs flex items-center justify-center z-20">
-            <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white dark:bg-zinc-800 shadow-md border border-border/60 text-xs font-semibold">
-              <Spinner size="sm" className="text-primary" />
-              <span>Loading calendar days...</span>
-            </div>
+      <div className={`relative min-h-[420px] sm:min-h-[500px] transition-opacity duration-200 ${isFetching ? "opacity-75" : "opacity-100"}`}>
+        {(isLoading || isFetching) && days.length > 0 && (
+          <div className="absolute top-0 left-0 right-0 h-0.5 bg-primary/30 overflow-hidden z-20">
+            <div className="h-full bg-primary animate-pulse w-full" />
           </div>
         )}
 
-        <div className="grid grid-cols-4 sm:grid-cols-7 auto-rows-fr divide-x divide-y divide-border/30 border-b border-border/30">
-          {Array.from({ length: mondayBasedOffset }).map((_, i) => (
-            <div
-              key={`blank-${i}`}
-              className="hidden sm:block min-h-[80px] sm:min-h-[105px] p-2 bg-slate-50/20 dark:bg-zinc-950/20 opacity-30 select-none"
-            />
-          ))}
+        {isLoading && days.length === 0 ? (
+          <div className="grid grid-cols-4 sm:grid-cols-7 auto-rows-fr divide-x divide-y divide-border/30 border-b border-border/30">
+            {Array.from({ length: 35 }).map((_, i) => (
+              <div
+                key={`calendar-cell-skeleton-${i}`}
+                className="min-h-[85px] sm:min-h-[105px] p-2 sm:p-2.5 flex flex-col justify-between"
+              >
+                <div className="flex items-start justify-between gap-1">
+                  <div className="flex items-center gap-1.5">
+                    <Skeleton className="size-6 sm:size-7 rounded-full" />
+                    <Skeleton className="sm:hidden h-2.5 w-6 rounded" />
+                  </div>
+                </div>
+                <div className="mt-auto pt-2 space-y-1">
+                  {i % 4 === 1 && <Skeleton className="h-4.5 w-16 rounded-sm" />}
+                  {i % 7 === 5 && <Skeleton className="h-4.5 w-20 rounded-sm" />}
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="grid grid-cols-4 sm:grid-cols-7 auto-rows-fr divide-x divide-y divide-border/30 border-b border-border/30">
+            {Array.from({ length: mondayBasedOffset }).map((_, i) => (
+              <div
+                key={`blank-${i}`}
+                className="hidden sm:block min-h-[80px] sm:min-h-[105px] p-2 bg-slate-50/20 dark:bg-zinc-950/20 opacity-30 select-none"
+              />
+            ))}
 
           {days.map((dayItem) => {
             const category = resolveDayCategory(dayItem, todayString);
@@ -175,7 +209,15 @@ export function AttendanceCalendar({ year = 2026, month = 10, days = [], todaySt
               </div>
             );
           })}
+
+            {Array.from({ length: trailingBlanks }).map((_, i) => (
+              <div
+                key={`trailing-blank-${i}`}
+                className="hidden sm:block min-h-[80px] sm:min-h-[105px] p-2 bg-slate-50/20 dark:bg-zinc-950/20 opacity-30 select-none"
+              />
+            ))}
         </div>
+      )}
       </div>
 
       <CalendarLegend legends={legends} />

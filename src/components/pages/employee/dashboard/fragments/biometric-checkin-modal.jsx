@@ -401,8 +401,6 @@ export default function BiometricCheckInModal({
     try {
       setIsVerifying(true);
       setErrorMessage(null);
-
-      // 1. Capture frame to blob
       const canvas = document.createElement("canvas");
       canvas.width = video.videoWidth || 720;
       canvas.height = video.videoHeight || 720;
@@ -415,7 +413,6 @@ export default function BiometricCheckInModal({
 
       if (!blob) throw new Error("Could not capture camera frame");
 
-      // 2. Upload snapshot
       const file = new File([blob], `punch-${Date.now()}.jpg`, { type: "image/jpeg" });
       const uploadFormData = new FormData();
       uploadFormData.append("file", file);

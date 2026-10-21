@@ -1,25 +1,9 @@
 import { CheckCircle2, XCircle, Clock, CalendarDays, Sparkles, Coffee } from "lucide-react";
 
-export const MONTH_NAMES = [
-  "January",
-  "February",
-  "March",
-  "April",
-  "May",
-  "June",
-  "July",
-  "August",
-  "September",
-  "October",
-  "November",
-  "December",
-];
+export const MONTH_NAMES = [ "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December" ];
 
 export const WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
-/**
- * Resolve the state category for a day
- */
 export function resolveDayCategory(dayItem, todayString) {
   if (dayItem.dateString === todayString) {
     return "TODAY";
@@ -57,9 +41,6 @@ export function resolveDayCategory(dayItem, todayString) {
   }
 }
 
-/**
- * Returns clean styling configuration for a day cell using switch statement
- */
 export function getDayCellStyles(category) {
   switch (category) {
     case "TODAY":
@@ -128,12 +109,6 @@ export function getDayCellStyles(category) {
   }
 }
 
-/**
- * Returns a standardized badge element based on day status or dayItem
- * @param {string|object} statusOrDay - Attendance status, type, or day item object
- * @param {string} [customTitle] - Optional title override
- * @param {object} [extra] - Optional extra metadata like isCustom
- */
 export function getStatusBadge(statusOrDay, customTitle, extra) {
   if (!statusOrDay) return null;
 
@@ -169,7 +144,7 @@ export function getStatusBadge(statusOrDay, customTitle, extra) {
       return (
         <div className={`${baseBadgeClass} bg-rose-500/10 text-rose-700 dark:text-rose-300`}>
           <XCircle className="size-3 shrink-0 text-rose-600 dark:text-rose-400" />
-          <span className="truncate">{title || "Absent"}</span>
+          <span className="truncate">{title && title !== "Working Day" ? title : "Absent"}</span>
         </div>
       );
 
