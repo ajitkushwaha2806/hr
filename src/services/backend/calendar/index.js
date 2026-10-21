@@ -1,4 +1,5 @@
 import dbConnect from "@/lib/db";
+import Leave from "@/models/Leave";
 import Employee from "@/models/Employee";
 import { formatDateString } from "@/lib/utils";
 import CalendarDay from "@/models/CalendarDay";
@@ -92,6 +93,7 @@ export class CalendarService {
       .lean();
 
     let employeePunches = [];
+    let approvedLeaves = [];
     if (userId) {
       const emp = await Employee.findOne({
         $or: [{ clerkId: userId }, { organizationId }],
@@ -103,6 +105,14 @@ export class CalendarService {
         employeePunches = await AttendancePunch.find({
           employeeId: emp._id,
           date: { $gte: startOfMonth, $lte: endOfMonth },
+        }).lean();
+
+        approvedLeaves = await Leave.find({
+          employeeId: emp._id,
+          status: "APPROVED",
+          $or: [
+            { startDate: { $lte: endOfMonth }, endDate: { $gte: startOfMonth } },
+          ],
         }).lean();
       }
     }
@@ -116,10 +126,16 @@ export class CalendarService {
 
     const enrichedDays = days.map((d) => {
       const punch = punchMap[d.dateString];
+      const leaveForDay = approvedLeaves.find(
+        (l) => l.startDate <= d.dateString && l.endDate >= d.dateString
+      );
+
       let attendanceStatus = null;
 
       if (d.type === "HOLIDAY") {
         attendanceStatus = "HOLIDAY";
+      } else if (leaveForDay) {
+        attendanceStatus = "CASUAL_LEAVE";
       } else if (d.type === "WEEKLY_OFF") {
         attendanceStatus = "WEEKLY_OFF";
       } else if (d.title?.toLowerCase().includes("leave") || d.type === "LEAVE") {
@@ -168,9 +184,6 @@ export class CalendarService {
     };
   }
 
-  /**
-   * Admin decides if a day is Holiday, Weekly Off, or Working Day
-   */
   static async updateDay({ organizationId, dateString, type, title = null, description = null, updatedBy = null }) {
     await dbConnect();
 
@@ -194,9 +207,6 @@ export class CalendarService {
     return record.toObject();
   }
 
-  /**
-   * Reset / clear day back to default (Working day or default holiday/weekly off)
-   */
   static async clearDay({ organizationId, dateString }) {
     await dbConnect();
 

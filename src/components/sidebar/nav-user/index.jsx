@@ -1,22 +1,15 @@
 "use client";
-import React from "react";
-import { useClerk, useUser, useOrganization } from "@clerk/nextjs";
+import { useRouter } from "next/navigation";
 import { Asset } from "@/components/common/Asset";
+import { useClerk, useUser, useOrganization } from "@clerk/nextjs";
 import { ChevronRightIcon, LogOutIcon, UserIcon } from "lucide-react";
 import { SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from "@/components/ui/sidebar";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
 export function NavUser({ user: propUser }) {
+  const router = useRouter();
   const { isMobile } = useSidebar();
-  const { signOut, openUserProfile } = useClerk();
+  const { signOut } = useClerk();
   const { user: clerkUser } = useUser();
   const { membership } = useOrganization();
 
@@ -116,9 +109,7 @@ export function NavUser({ user: propUser }) {
             <DropdownMenuGroup className="space-y-0.5">
               <DropdownMenuItem
                 onClick={() => {
-                  if (openUserProfile) {
-                    openUserProfile();
-                  }
+                  router.push("/employee/profile");
                 }}
                 className="cursor-pointer rounded-lg px-2.5 py-2 text-xs font-medium text-foreground hover:bg-muted/80 focus:bg-muted/80 transition-all"
               >

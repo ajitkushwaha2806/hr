@@ -75,6 +75,10 @@ const EmployeeSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
+    monthlyCasualLeavesQuota: {
+      type: Number,
+      default: 4,
+    },
     avatar: {
       type: String,
       default: "",
