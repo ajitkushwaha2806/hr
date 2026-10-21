@@ -1,8 +1,8 @@
 import { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'com.getrepeat.app',
-  appName: 'EDGE HR',
+  appId: 'com.truehr.hrms',
+  appName: 'trueHr',
   webDir: 'public',
   server: {
     url: 'https://hr-ten-lime.vercel.app',
@@ -10,7 +10,7 @@ const config: CapacitorConfig = {
     cleartext: true,
     allowNavigation: [
       '*.vercel.app',
-      '*.getrepeat.in',
+      '*.truehr.app',
       '*.clerk.accounts.dev',
       'accounts.google.com',
       '*'
@@ -20,12 +20,12 @@ const config: CapacitorConfig = {
     SplashScreen: {
       launchShowDuration: 3000,
       launchAutoHide: true,
-      backgroundColor: "#ffffff",
+      backgroundColor: "#FBF9F3",
       androidSplashResourceName: "splash",
       androidScaleType: "FIT_CENTER",
       showSpinner: true,
       androidSpinnerStyle: "large",
-      spinnerColor: "#059348",
+      spinnerColor: "#f65340",
       splashFullScreen: true,
       splashImmersive: true
     }

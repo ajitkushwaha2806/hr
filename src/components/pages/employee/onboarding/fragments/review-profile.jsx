@@ -89,7 +89,7 @@ export default function ReviewProfile({ user, employee, organization }) {
         {/* Role & Team */}
         <div className="bg-white dark:bg-zinc-900 p-6 rounded-3xl border border-border/50 shadow-xs space-y-4">
           <div className="flex items-center gap-3 border-b border-border/40 pb-3">
-            <div className="size-10 rounded-xl bg-orange-500/10 text-orange-500 flex items-center justify-center font-bold text-sm">
+            <div className="size-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center font-bold text-sm">
               <Briefcase className="size-5" />
             </div>
             <div>

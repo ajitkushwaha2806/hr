@@ -1,13 +1,15 @@
 "use client";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { Asset } from "@/components/common/Asset";
 import { useClerk, useUser, useOrganization } from "@clerk/nextjs";
-import { ChevronRightIcon, LogOutIcon, UserIcon } from "lucide-react";
+import { ChevronRightIcon, LogOutIcon, UserIcon, ShieldCheckIcon, Shield, UserCheck } from "lucide-react";
 import { SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from "@/components/ui/sidebar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
 export function NavUser({ user: propUser }) {
   const router = useRouter();
+  const pathname = usePathname();
+  const isCurrentPathAdmin = pathname?.startsWith("/admin");
   const { isMobile } = useSidebar();
   const { signOut } = useClerk();
   const { user: clerkUser } = useUser();
@@ -116,6 +118,18 @@ export function NavUser({ user: propUser }) {
                 <div className="flex w-full items-center gap-2.5">
                   <UserIcon className="size-4 text-muted-foreground" />
                   <span>My Profile</span>
+                </div>
+              </DropdownMenuItem>
+
+              <DropdownMenuItem
+                onClick={() => {
+                  router.push("/privacy-policy");
+                }}
+                className="cursor-pointer rounded-lg px-2.5 py-2 text-xs font-medium text-foreground hover:bg-muted/80 focus:bg-muted/80 transition-all"
+              >
+                <div className="flex w-full items-center gap-2.5">
+                  <ShieldCheckIcon className="size-4 text-muted-foreground" />
+                  <span>Privacy Policy</span>
                 </div>
               </DropdownMenuItem>
             </DropdownMenuGroup>

@@ -13,13 +13,13 @@ export default function OnboardingHeader({
   return (
     <header className="h-16 w-full border-b border-border/40 bg-white/90 dark:bg-zinc-900/90 backdrop-blur-md px-4 sm:px-8 lg:px-12 flex items-center justify-between sticky top-0 z-30">
       <div className="flex items-center gap-3 min-w-0">
-        <div className="size-9 sm:size-10 rounded-xl bg-gradient-to-tr from-primary to-orange-500 text-white flex items-center justify-center font-bold text-sm sm:text-base shadow-sm shrink-0">
-          HR
+        <div className="size-9 sm:size-10 rounded-xl bg-primary text-primary-foreground flex items-center justify-center font-bold text-sm sm:text-base shadow-sm shrink-0">
+          t
         </div>
         <div className="min-w-0">
           <div className="flex items-center gap-1.5 sm:gap-2">
             <span className="font-bold text-sm text-foreground tracking-tight whitespace-nowrap">
-              HR Portal
+              trueHr Portal
             </span>
             {isOnboarded && !isEditing ? (
               <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 whitespace-nowrap">

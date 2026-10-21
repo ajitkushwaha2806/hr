@@ -22,7 +22,7 @@ export function EmployeeLeavesView() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isApplyModalOpen, setIsApplyModalOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState("all"); // "all", "pending", "approved", "rejected"
+  const [activeTab, setActiveTab] = useState("all"); 
   const [cancellingId, setCancellingId] = useState(null);
 
   const fetchLeaves = useCallback(

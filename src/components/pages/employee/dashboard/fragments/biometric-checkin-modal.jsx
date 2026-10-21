@@ -661,7 +661,7 @@ export default function BiometricCheckInModal({
                       <button
                         type="button"
                         onClick={startCamera}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-medium text-xs transition-colors"
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground font-medium text-xs transition-colors"
                       >
                         <RefreshCw className="w-3 h-3" />
                         Retry Camera
@@ -714,8 +714,8 @@ export default function BiometricCheckInModal({
                   isOutside
                     ? "bg-rose-600 opacity-60 cursor-not-allowed"
                     : hasBlinked
-                    ? "bg-emerald-600 hover:bg-emerald-500 shadow-md shadow-emerald-500/30 active:scale-[0.99] disabled:opacity-50"
-                    : "bg-emerald-600 hover:bg-emerald-500 active:scale-[0.99] disabled:opacity-50"
+                    ? "bg-primary hover:bg-primary/90 shadow-md shadow-primary/30 active:scale-[0.99] disabled:opacity-50"
+                    : "bg-primary hover:bg-primary/90 active:scale-[0.99] disabled:opacity-50"
                 }`}
               >
                 <Camera className="w-4 h-4 shrink-0" />

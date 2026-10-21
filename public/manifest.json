@@ -1,51 +1,51 @@
 {
-  "name": "GetRepeat",
-  "short_name": "GetRepeat",
-  "description": "All-in-one restaurant management platform with POS, QR ordering, Kitchen Display System (KDS), menu management, table reservations, and social integrations.",
+  "name": "trueHr",
+  "short_name": "trueHr",
+  "description": "trueHr - Track Attendance. Track Employees. Modern HR & workforce management platform.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#ee694f",
-  "theme_color": "#000000",
+  "background_color": "#FBF9F3",
+  "theme_color": "#f65340",
   "icons": [
     {
       "src": "assets/icons/icon-48.webp",
-      "type": "image/png",
+      "type": "image/webp",
       "sizes": "48x48",
       "purpose": "any maskable"
     },
     {
       "src": "assets/icons/icon-72.webp",
-      "type": "image/png",
+      "type": "image/webp",
       "sizes": "72x72",
       "purpose": "any maskable"
     },
     {
       "src": "assets/icons/icon-96.webp",
-      "type": "image/png",
+      "type": "image/webp",
       "sizes": "96x96",
       "purpose": "any maskable"
     },
     {
       "src": "assets/icons/icon-128.webp",
-      "type": "image/png",
+      "type": "image/webp",
       "sizes": "128x128",
       "purpose": "any maskable"
     },
     {
       "src": "assets/icons/icon-192.webp",
-      "type": "image/png",
+      "type": "image/webp",
       "sizes": "192x192",
       "purpose": "any maskable"
     },
     {
       "src": "assets/icons/icon-256.webp",
-      "type": "image/png",
+      "type": "image/webp",
       "sizes": "256x256",
       "purpose": "any maskable"
     },
     {
       "src": "assets/icons/icon-512.webp",
-      "type": "image/png",
+      "type": "image/webp",
       "sizes": "512x512",
       "purpose": "any maskable"
     }

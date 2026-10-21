@@ -5,8 +5,18 @@ import NextTopLoader from "nextjs-toploader";
 import { fontPoppins } from "@/constants/fonts";
 
 export const metadata = {
-  title: "HR Platform",
-  description: "Human Resource Management Platform",
+  title: "trueHr - Track Attendance. Track Employees.",
+  description: "Modern HR Management Platform for attendance tracking, leave requests, employee records, and payroll.",
+  icons: {
+    icon: "/favicon.png",
+    apple: "/apple-touch-icon.png",
+  },
+  manifest: "/manifest.json",
+  openGraph: {
+    title: "trueHr - Track Attendance. Track Employees.",
+    description: "Modern HR Management Platform for attendance, leaves, and workforce tracking.",
+    images: ["/og-image.png"],
+  },
 };
 
 export default function RootLayout({ children }) {
@@ -17,7 +27,7 @@ export default function RootLayout({ children }) {
       className={cn("h-full antialiased font-sans", fontPoppins.variable)}
     >
       <body className="min-h-screen bg-background text-foreground">
-        <NextTopLoader color="#ea580c" showSpinner={false} />
+        <NextTopLoader color="#f65340" showSpinner={false} />
         <Providers>
           {children}
         </Providers>

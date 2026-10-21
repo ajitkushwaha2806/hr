@@ -89,7 +89,7 @@ export default function AdminAttendancePage() {
           <Button
             size="sm"
             onClick={() => setIsLocationModalOpen(true)}
-            className="h-8.5 px-3 rounded-lg text-xs font-semibold cursor-pointer shadow-2xs bg-emerald-600 hover:bg-emerald-700 text-white"
+            className="h-8.5 px-3 rounded-lg text-xs font-semibold cursor-pointer shadow-2xs bg-primary hover:bg-primary/90 text-primary-foreground"
           >
             <Sliders className="w-3.5 h-3.5 mr-1.5" />
             Office Geofence

@@ -50,6 +50,11 @@ export const EMPLOYEE_SIDEBAR_CONFIG = {
       url: "/employee/onboarding",
       icon: <Sparkles />,
     },
+    {
+      title: "Privacy Policy",
+      url: "/privacy-policy",
+      icon: <ShieldCheck />,
+    },
   ],
 };
 
@@ -131,6 +136,11 @@ export const ADMIN_SIDEBAR_CONFIG = {
     {
       title: "Roles & Permissions",
       url: "/admin/roles",
+      icon: <ShieldCheck />,
+    },
+    {
+      title: "Privacy Policy",
+      url: "/privacy-policy",
       icon: <ShieldCheck />,
     },
   ],

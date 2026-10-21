@@ -11,7 +11,7 @@ export function UserBasicFields({
 }) {
   return (
     <>
-      <div className="relative border border-gray-200 dark:border-zinc-800 rounded-xl px-4 py-3 flex items-center gap-3 bg-white dark:bg-zinc-900 mt-2 focus-within:border-orange-500 focus-within:ring-1 focus-within:ring-primary transition-all">
+      <div className="relative border border-gray-200 dark:border-zinc-800 rounded-xl px-4 py-3 flex items-center gap-3 bg-white dark:bg-zinc-900 mt-2 focus-within:border-primary focus-within:ring-1 focus-within:ring-primary transition-all">
         <span className="absolute -top-2.5 left-4 px-1.5 bg-[#f8fafc] dark:bg-zinc-950 text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
           Full Name
         </span>
@@ -32,7 +32,7 @@ export function UserBasicFields({
         )}
       </div>
 
-      <div className="relative border border-gray-200 dark:border-zinc-800 rounded-xl px-4 py-3 flex items-center gap-3 bg-white dark:bg-zinc-900 mt-6 focus-within:border-orange-500 focus-within:ring-1 focus-within:ring-primary transition-all">
+      <div className="relative border border-gray-200 dark:border-zinc-800 rounded-xl px-4 py-3 flex items-center gap-3 bg-white dark:bg-zinc-900 mt-6 focus-within:border-primary focus-within:ring-1 focus-within:ring-primary transition-all">
         <span className="absolute -top-2.5 left-4 px-1.5 bg-[#f8fafc] dark:bg-zinc-950 text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
           Phone Number
         </span>
@@ -54,7 +54,7 @@ export function UserBasicFields({
         )}
       </div>
 
-      <div className="relative border border-gray-200 dark:border-zinc-800 rounded-xl px-4 py-3 flex items-center gap-3 bg-white dark:bg-zinc-900 mt-6 focus-within:border-orange-500 focus-within:ring-1 focus-within:ring-primary transition-all">
+      <div className="relative border border-gray-200 dark:border-zinc-800 rounded-xl px-4 py-3 flex items-center gap-3 bg-white dark:bg-zinc-900 mt-6 focus-within:border-primary focus-within:ring-1 focus-within:ring-primary transition-all">
         <span className="absolute -top-2.5 left-4 px-1.5 bg-[#f8fafc] dark:bg-zinc-950 text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
           Password{" "}
           {isEditMode && !isResettingPassword && (

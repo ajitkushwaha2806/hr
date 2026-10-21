@@ -194,7 +194,7 @@ export default function AttendancePunchBar({ todayStatus, onRefresh, isLoading =
             </div>
             <div className="w-full h-2 bg-slate-100 dark:bg-zinc-800 rounded-md overflow-hidden border border-border/40">
               <div
-                className="h-full bg-emerald-600 rounded-md transition-all duration-500"
+                className="h-full bg-primary rounded-md transition-all duration-500"
                 style={{ width: `${Math.max(5, shiftProgressPercent)}%` }}
               />
             </div>
@@ -219,7 +219,7 @@ export default function AttendancePunchBar({ todayStatus, onRefresh, isLoading =
             <button
               type="button"
               onClick={handleOpenCheckIn}
-              className="w-full h-12 rounded-md bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white font-bold text-sm sm:text-base flex items-center justify-center gap-2 transition-colors cursor-pointer group shadow-xs"
+              className="w-full h-12 rounded-md bg-primary hover:bg-primary/90 active:bg-primary/80 text-primary-foreground font-bold text-sm sm:text-base flex items-center justify-center gap-2 transition-colors cursor-pointer group shadow-xs"
             >
               <Camera className="w-4 h-4 text-white" />
               <span>Check In Now</span>

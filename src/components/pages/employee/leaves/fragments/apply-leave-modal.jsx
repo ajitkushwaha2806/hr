@@ -19,7 +19,7 @@ export function ApplyLeaveModal({
   isSubmitting,
 }) {
   const [isHalfDay, setIsHalfDay] = useState(false);
-  const [halfDaySession, setHalfDaySession] = useState("FIRST_HALF"); // FIRST_HALF or SECOND_HALF
+  const [halfDaySession, setHalfDaySession] = useState("FIRST_HALF");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [reason, setReason] = useState("");
@@ -40,7 +40,6 @@ export function ApplyLeaveModal({
     }
   };
 
-  // Calculate requested days
   let calculatedDays = 1;
   if (isHalfDay) {
     calculatedDays = 0.5;
