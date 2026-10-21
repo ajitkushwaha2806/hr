@@ -1,31 +1,12 @@
 "use client";
-
-import {
-  ChevronLeft,
-  ChevronRight,
-  Calendar,
-  Sparkles,
-  Coffee,
-} from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { CalendarLegend } from "./calendar-legend";
 import { Spinner } from "@/components/global/loader";
-import {
-  MONTH_NAMES,
-  WEEKDAYS,
-  resolveDayCategory,
-  getDayCellStyles,
-} from "./calendar-helpers";
+import { CALENDAR_LEGENDS } from "../helpers/constants";
+import { MONTH_NAMES, WEEKDAYS, resolveDayCategory, getDayCellStyles, getStatusBadge } from "./calendar-helpers";
+import { ChevronLeft, ChevronRight, Calendar, Sparkles, Coffee, CheckCircle2, CalendarDays } from "lucide-react";
 
-export function AttendanceCalendar({
-  year = 2026,
-  month = 10,
-  days = [],
-  todayString = "2026-10-20",
-  onNextMonth,
-  onPrevMonth,
-  onJumpToday,
-  isLoading = false,
-}) {
+export function AttendanceCalendar({ year = 2026, month = 10, days = [], todayString = "2026-10-20", onNextMonth, onPrevMonth, onJumpToday, isLoading = false, legends = CALENDAR_LEGENDS }) {
   const monthName = MONTH_NAMES[month - 1] || "Month";
 
   const firstDayOfMonth = new Date(year, month - 1, 1);
@@ -33,8 +14,6 @@ export function AttendanceCalendar({
   const mondayBasedOffset = (sundayBasedDay + 6) % 7;
 
   const isCurrentMonthView = () => year === 2026 && month === 10;
-
-  // Monthly summary metrics for glanceable mobile stats
   const presentCount = days.filter((d) => d.attendanceStatus === "PRESENT").length;
   const holidaysCount = days.filter((d) => d.type === "HOLIDAY").length;
   const weeklyOffCount = days.filter((d) => d.type === "WEEKLY_OFF").length;
@@ -44,17 +23,15 @@ export function AttendanceCalendar({
 
   return (
     <div className="rounded-md border border-border/80 bg-white dark:bg-zinc-900 shadow-xs overflow-hidden transition-all">
-      {/* Top Mobile-First Calendar Header */}
       <div className="p-4 sm:p-5 border-b border-border/50 bg-slate-50/50 dark:bg-zinc-900/80">
-        <div className="flex items-center justify-between gap-2.5">
-          {/* Left: Icon + Month Title */}
+        <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-3 min-w-0">
-            <div className="size-10 sm:size-11 rounded-md bg-primary/10 text-primary border border-primary/20 flex items-center justify-center shrink-0 shadow-2xs">
-              <Calendar className="size-5" />
+            <div className="size-9 sm:size-10 rounded-lg bg-primary/10 text-primary border border-primary/20 flex items-center justify-center shrink-0 shadow-2xs">
+              <Calendar className="size-4.5 sm:size-5" />
             </div>
             <div className="min-w-0">
               <div className="flex items-center gap-1.5 sm:gap-2">
-                <h2 className="text-lg sm:text-2xl font-black tracking-tight text-foreground truncate">
+                <h2 className="text-lg sm:text-xl font-bold tracking-tight text-foreground truncate">
                   {monthName} {year}
                 </h2>
                 {year === 2027 && (
@@ -63,13 +40,12 @@ export function AttendanceCalendar({
                   </span>
                 )}
               </div>
-              <p className="text-[11px] sm:text-xs text-muted-foreground truncate">
+              <p className="text-xs text-muted-foreground truncate">
                 Monthly Work Days &amp; Attendance
               </p>
             </div>
           </div>
 
-          {/* Right: Modern Stepper Controls (Inline, thumb-friendly) */}
           <div className="flex items-center gap-1.5 shrink-0">
             {!isCurrentMonthView() && (
               <Button
@@ -77,31 +53,31 @@ export function AttendanceCalendar({
                 variant="outline"
                 size="sm"
                 onClick={onJumpToday}
-                className="h-8.5 px-2.5 rounded-md text-xs font-bold border-border/70 hover:bg-muted active:scale-95 cursor-pointer shadow-2xs"
+                className="h-8 px-2.5 rounded-md text-xs font-semibold border-border/70 hover:bg-muted active:scale-95 cursor-pointer shadow-2xs"
               >
                 Today
               </Button>
             )}
 
-            <div className="inline-flex items-center rounded-md border border-border/70 bg-white dark:bg-zinc-800 p-0.5 shadow-2xs">
+            <div className="inline-flex items-center rounded-lg border border-border/70 bg-background p-0.5 shadow-2xs">
               <button
                 type="button"
                 onClick={onPrevMonth}
                 disabled={year <= 2026 && month <= 10}
-                className="size-8 rounded-md flex items-center justify-center text-foreground hover:bg-muted active:scale-90 transition-all disabled:opacity-25 disabled:cursor-not-allowed cursor-pointer"
+                className="size-7 sm:size-8 rounded-md flex items-center justify-center text-foreground hover:bg-muted active:scale-95 transition-all disabled:opacity-25 disabled:cursor-not-allowed cursor-pointer"
                 title="Previous Month"
+                aria-label="Previous Month"
               >
                 <ChevronLeft className="size-4" />
               </button>
-              <span className="text-xs font-bold px-2 sm:px-2.5 min-w-[70px] sm:min-w-[85px] text-center text-foreground select-none">
-                {monthName.slice(0, 3)} {year}
-              </span>
+              <div className="w-px h-3.5 bg-border/60 mx-0.5" />
               <button
                 type="button"
                 onClick={onNextMonth}
                 disabled={year >= 2027 && month >= 12}
-                className="size-8 rounded-md flex items-center justify-center text-foreground hover:bg-muted active:scale-90 transition-all disabled:opacity-25 disabled:cursor-not-allowed cursor-pointer"
+                className="size-7 sm:size-8 rounded-md flex items-center justify-center text-foreground hover:bg-muted active:scale-95 transition-all disabled:opacity-25 disabled:cursor-not-allowed cursor-pointer"
                 title="Next Month"
+                aria-label="Next Month"
               >
                 <ChevronRight className="size-4" />
               </button>
@@ -109,35 +85,33 @@ export function AttendanceCalendar({
           </div>
         </div>
 
-        {/* Quick Month Metrics Chips (Horizontal scroll on mobile) */}
-        <div className="flex items-center gap-2 pt-3 overflow-x-auto no-scrollbar">
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-bold bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20 shrink-0">
-            <span className="size-1.5 rounded-full bg-emerald-500" />
-            {presentCount} Present
+        <div className="flex items-center gap-1.5 sm:gap-2 pt-3 overflow-x-auto no-scrollbar pb-0.5">
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-sm text-[11px] font-semibold bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 shrink-0 whitespace-nowrap">
+            <CheckCircle2 className="size-3 shrink-0 text-emerald-600 dark:text-emerald-400" />
+            <span>{presentCount} Present</span>
           </span>
 
           {holidaysCount > 0 && (
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-bold bg-purple-500/10 text-purple-700 dark:text-purple-300 border border-purple-500/20 shrink-0">
-              <Sparkles className="size-3 text-purple-600 dark:text-purple-400" />
-              {holidaysCount} Holiday{holidaysCount > 1 ? "s" : ""}
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-sm text-[11px] font-semibold bg-purple-500/10 text-purple-700 dark:text-purple-300 shrink-0 whitespace-nowrap">
+              <Sparkles className="size-3 shrink-0 text-purple-600 dark:text-purple-400" />
+              <span>{holidaysCount} Holiday{holidaysCount > 1 ? "s" : ""}</span>
             </span>
           )}
 
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-bold bg-slate-500/10 text-slate-700 dark:text-slate-300 border border-slate-500/20 shrink-0">
-            <Coffee className="size-3 opacity-60" />
-            {weeklyOffCount} Off Days
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-sm text-[11px] font-semibold bg-slate-500/10 text-slate-700 dark:text-slate-300 shrink-0 whitespace-nowrap">
+            <Coffee className="size-3 shrink-0 text-slate-500 dark:text-slate-400" />
+            <span>{weeklyOffCount} {weeklyOffCount === 1 ? "Weekly Off" : "Weekly Offs"}</span>
           </span>
 
           {leavesCount > 0 && (
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-bold bg-amber-500/10 text-amber-700 dark:text-amber-300 border border-amber-500/20 shrink-0">
-              <span className="size-1.5 rounded-full bg-amber-500" />
-              {leavesCount} Leave{leavesCount > 1 ? "s" : ""}
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-sm text-[11px] font-semibold bg-amber-500/10 text-amber-700 dark:text-amber-300 shrink-0 whitespace-nowrap">
+              <CalendarDays className="size-3 shrink-0 text-amber-600 dark:text-amber-400" />
+              <span>{leavesCount} Leave{leavesCount > 1 ? "s" : ""}</span>
             </span>
           )}
         </div>
       </div>
 
-      {/* Weekday Column Headers (Desktop 7-column view) */}
       <div className="hidden sm:grid grid-cols-7 border-b border-border/40 bg-muted/20 text-center">
         {WEEKDAYS.map((wd) => (
           <div
@@ -149,7 +123,6 @@ export function AttendanceCalendar({
         ))}
       </div>
 
-      {/* Days Grid: 4 columns on mobile, 7 columns on desktop */}
       <div className="relative">
         {isLoading && (
           <div className="absolute inset-0 bg-white/70 dark:bg-zinc-900/70 backdrop-blur-xs flex items-center justify-center z-20">
@@ -161,7 +134,6 @@ export function AttendanceCalendar({
         )}
 
         <div className="grid grid-cols-4 sm:grid-cols-7 auto-rows-fr divide-x divide-y divide-border/30 border-b border-border/30">
-          {/* Leading blank offset (Desktop 7-column view only) */}
           {Array.from({ length: mondayBasedOffset }).map((_, i) => (
             <div
               key={`blank-${i}`}
@@ -169,25 +141,15 @@ export function AttendanceCalendar({
             />
           ))}
 
-          {/* Actual days */}
           {days.map((dayItem) => {
             const category = resolveDayCategory(dayItem, todayString);
-            const { cellClass, numberClass, isToday } = getDayCellStyles(category);
-            const isHoliday = dayItem.type === "HOLIDAY";
-            const isWeeklyOff = dayItem.type === "WEEKLY_OFF";
-            const isWorkingDay = dayItem.type === "WORKING_DAY";
-            const isPresent = dayItem.attendanceStatus === "PRESENT";
-            const isAbsent = dayItem.attendanceStatus === "ABSENT";
-            const isHalfDay = dayItem.attendanceStatus === "HALF_DAY";
-            const isNotCheckedOut = dayItem.attendanceStatus === "NOT_CHECKED_OUT";
-            const isCasualLeave = dayItem.attendanceStatus === "CASUAL_LEAVE";
+            const { cellClass, numberClass } = getDayCellStyles(category);
 
             return (
               <div
                 key={dayItem.dateString}
                 className={`min-h-[85px] sm:min-h-[105px] p-2 sm:p-2.5 transition-all flex flex-col justify-between group relative select-none ${cellClass}`}
               >
-                {/* Top row: Date Number + Weekday on mobile */}
                 <div className="flex items-start justify-between gap-1">
                   <div className="flex items-center gap-1.5 sm:gap-2">
                     <span
@@ -195,7 +157,6 @@ export function AttendanceCalendar({
                     >
                       {dayItem.day}
                     </span>
-                    {/* Weekday tag shown on mobile 4-column layout */}
                     <span className="sm:hidden text-[10px] font-bold text-muted-foreground/80 uppercase tracking-tight">
                       {dayItem.dayOfWeek}
                     </span>
@@ -205,70 +166,11 @@ export function AttendanceCalendar({
                     {dayItem.isCustom && (
                       <span className="size-1.5 rounded-full bg-amber-500" title="Custom override by admin" />
                     )}
-                    {isToday && (
-                      <span className="text-[8px] sm:text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-primary/15 text-primary border border-primary/30">
-                        Today
-                      </span>
-                    )}
                   </div>
                 </div>
 
-                {/* Status Badges */}
                 <div className="space-y-1 mt-1">
-                  {isPresent && (
-                    <div className="flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-emerald-500/15 border border-emerald-500/25 text-emerald-700 dark:text-emerald-300 text-[10px] sm:text-xs font-bold truncate">
-                      <span className="size-1.5 rounded-full bg-emerald-500 shrink-0" />
-                      <span className="truncate">Present</span>
-                    </div>
-                  )}
-
-                  {isAbsent && (
-                    <div className="flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-rose-500/15 border border-rose-500/25 text-rose-700 dark:text-rose-300 text-[10px] sm:text-xs font-bold truncate">
-                      <span className="size-1.5 rounded-full bg-rose-500 shrink-0" />
-                      <span className="truncate">Absent</span>
-                    </div>
-                  )}
-
-                  {isHalfDay && (
-                    <div className="flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-amber-500/15 border border-amber-500/25 text-amber-700 dark:text-amber-300 text-[10px] sm:text-xs font-bold truncate">
-                      <span className="size-1.5 rounded-full bg-amber-500 shrink-0" />
-                      <span className="truncate">Half Day</span>
-                    </div>
-                  )}
-
-                  {isNotCheckedOut && (
-                    <div className="flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-orange-500/15 border border-orange-500/25 text-orange-700 dark:text-orange-300 text-[10px] sm:text-xs font-bold truncate">
-                      <span className="size-1.5 rounded-full bg-orange-500 shrink-0" />
-                      <span className="truncate">Not Checked Out</span>
-                    </div>
-                  )}
-
-                  {isCasualLeave && (
-                    <div className="flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-sky-500/15 border border-sky-500/25 text-sky-700 dark:text-sky-300 text-[10px] sm:text-xs font-bold truncate">
-                      <span className="size-1.5 rounded-full bg-sky-500 shrink-0" />
-                      <span className="truncate">Casual Leave</span>
-                    </div>
-                  )}
-
-                  {isHoliday && (
-                    <div className="flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-purple-500/15 border border-purple-500/25 text-purple-700 dark:text-purple-300 text-[10px] sm:text-xs font-bold truncate">
-                      <Sparkles className="size-3 shrink-0 text-purple-600" />
-                      <span className="truncate">{dayItem.title || "Holiday"}</span>
-                    </div>
-                  )}
-
-                  {isWeeklyOff && (
-                    <div className="flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-muted/60 text-muted-foreground text-[10px] sm:text-[11px] font-medium truncate">
-                      <Coffee className="size-3 shrink-0 opacity-60" />
-                      <span className="truncate">{dayItem.title || "Weekly Off"}</span>
-                    </div>
-                  )}
-
-                  {isWorkingDay && !isPresent && !isAbsent && !isHalfDay && !isNotCheckedOut && !isCasualLeave && dayItem.isCustom && dayItem.title && dayItem.title !== "Working Day" && (
-                    <div className="flex items-center gap-1 px-1.5 py-0.5 rounded-md border border-border/60 text-muted-foreground text-[10px] sm:text-[11px] font-medium truncate">
-                      <span className="truncate">{dayItem.title}</span>
-                    </div>
-                  )}
+                  {getStatusBadge(dayItem)}
                 </div>
               </div>
             );
@@ -276,44 +178,7 @@ export function AttendanceCalendar({
         </div>
       </div>
 
-      {/* Legend Footer */}
-      <div className="p-3 sm:p-4 bg-slate-50/50 dark:bg-zinc-900/50 border-t border-border/40 text-xs">
-        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-0.5">
-          <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider shrink-0 mr-1">
-            Legend:
-          </span>
-
-          <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 text-[11px] font-semibold shrink-0">
-            <span className="size-2 rounded-full bg-emerald-500" />
-            Present
-          </span>
-
-          <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-rose-500/10 text-rose-700 dark:text-rose-300 text-[11px] font-semibold shrink-0">
-            <span className="size-2 rounded-full bg-rose-500" />
-            Absent
-          </span>
-
-          <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-amber-500/10 text-amber-700 dark:text-amber-300 text-[11px] font-semibold shrink-0">
-            <span className="size-2 rounded-full bg-amber-500" />
-            Half Day
-          </span>
-
-          <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-sky-500/10 text-sky-700 dark:text-sky-300 text-[11px] font-semibold shrink-0">
-            <span className="size-2 rounded-full bg-sky-500" />
-            Leave
-          </span>
-
-          <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-purple-500/10 text-purple-700 dark:text-purple-300 text-[11px] font-semibold shrink-0">
-            <span className="size-2 rounded-full bg-purple-500" />
-            Holiday
-          </span>
-
-          <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-slate-500/10 text-slate-700 dark:text-slate-300 text-[11px] font-semibold shrink-0">
-            <span className="size-2 rounded-full bg-slate-400" />
-            Weekly Off
-          </span>
-        </div>
-      </div>
+      <CalendarLegend legends={legends} />
     </div>
   );
 }

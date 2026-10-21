@@ -1,0 +1,58 @@
+import { CheckCircle2, XCircle, Clock, CalendarDays, Sparkles, Coffee } from "lucide-react";
+
+export const CALENDAR_LEGENDS = [
+  {
+    id: "present",
+    name: "Present",
+    label: "Present",
+    icon: CheckCircle2,
+    iconClass: "text-emerald-600 dark:text-emerald-400",
+    dotColor: "bg-emerald-500",
+    badgeClass: "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300",
+  },
+  {
+    id: "absent",
+    name: "Absent",
+    label: "Absent",
+    icon: XCircle,
+    iconClass: "text-rose-600 dark:text-rose-400",
+    dotColor: "bg-rose-500",
+    badgeClass: "bg-rose-500/10 text-rose-700 dark:text-rose-300",
+  },
+  {
+    id: "half-day",
+    name: "Half Day",
+    label: "Half Day",
+    icon: Clock,
+    iconClass: "text-amber-600 dark:text-amber-400",
+    dotColor: "bg-amber-500",
+    badgeClass: "bg-amber-500/10 text-amber-700 dark:text-amber-300",
+  },
+  {
+    id: "leave",
+    name: "Leave",
+    label: "Leave",
+    icon: CalendarDays,
+    iconClass: "text-sky-600 dark:text-sky-400",
+    dotColor: "bg-sky-500",
+    badgeClass: "bg-sky-500/10 text-sky-700 dark:text-sky-300",
+  },
+  {
+    id: "holiday",
+    name: "Holiday",
+    label: "Holiday",
+    icon: Sparkles,
+    iconClass: "text-purple-600 dark:text-purple-400",
+    dotColor: "bg-purple-500",
+    badgeClass: "bg-purple-500/10 text-purple-700 dark:text-purple-300",
+  },
+  {
+    id: "weekly-off",
+    name: "Weekly Off",
+    label: "Weekly Off",
+    icon: Coffee,
+    iconClass: "text-slate-500 dark:text-slate-400",
+    dotColor: "bg-slate-400",
+    badgeClass: "bg-slate-500/10 text-slate-700 dark:text-slate-300",
+  },
+];
