@@ -334,7 +334,7 @@ export default function PrivacyPolicyPage() {
                   <p className="font-bold text-foreground">trueHr Data Protection & Privacy Team</p>
                   <p className="text-muted-foreground">Email: <a href="mailto:privacy@truehr.app" className="text-[#f65340] hover:underline font-medium">privacy@truehr.app</a></p>
                   <p className="text-muted-foreground">Support: <a href="mailto:support@truehr.app" className="text-[#f65340] hover:underline font-medium">support@truehr.app</a></p>
-                  <p className="text-muted-foreground">Website: <a href="https://hr-ten-lime.vercel.app" className="text-[#f65340] hover:underline font-medium">https://hr-ten-lime.vercel.app</a></p>
+                  <p className="text-muted-foreground">Website: <a href="https://truehr.magicscale.in" className="text-[#f65340] hover:underline font-medium">https://truehr.magicscale.in</a></p>
                 </div>
               </section>
 

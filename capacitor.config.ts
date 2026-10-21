@@ -5,10 +5,12 @@ const config: CapacitorConfig = {
   appName: 'trueHr',
   webDir: 'public',
   server: {
-    url: 'https://hr-ten-lime.vercel.app',
+    url: 'https://truehr.magicscale.in',
     errorPath: 'offline.html',
     cleartext: true,
     allowNavigation: [
+      'truehr.magicscale.in',
+      '*.magicscale.in',
       '*.vercel.app',
       '*.truehr.app',
       '*.clerk.accounts.dev',
