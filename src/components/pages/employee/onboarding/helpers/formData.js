@@ -84,6 +84,14 @@ export function getInitialFormData(clerkUser, user, employee) {
     panNumber: employee?.documents?.pan?.number || "",
     panFileUrl: employee?.documents?.pan?.fileUrl || "",
 
+    // Bank Details
+    accountHolderName: employee?.bankDetails?.accountHolderName || clerkFullName || "",
+    bankName: employee?.bankDetails?.bankName || "",
+    accountNumber: employee?.bankDetails?.accountNumber || "",
+    ifscCode: employee?.bankDetails?.ifscCode || "",
+    branchName: employee?.bankDetails?.branchName || "",
+    upiId: employee?.bankDetails?.upiId || "",
+
     facePhoto: employee?.facePhoto || employee?.avatar || "",
     avatar: employee?.avatar || user?.avatar || clerkUser?.imageUrl || "",
   };
@@ -145,5 +153,16 @@ export function buildOnboardingPayload(formData) {
         fileUrl: formData.panFileUrl.trim(),
       },
     },
+    bankDetails: {
+      accountHolderName:
+        formData.accountHolderName?.trim() ||
+        `${formData.firstName || ""} ${formData.lastName || ""}`.trim(),
+      bankName: formData.bankName?.trim() || "",
+      accountNumber: formData.accountNumber?.trim() || "",
+      ifscCode: formData.ifscCode?.trim()?.toUpperCase() || "",
+      branchName: formData.branchName?.trim() || "",
+      upiId: formData.upiId?.trim() || "",
+    },
   };
 }
+

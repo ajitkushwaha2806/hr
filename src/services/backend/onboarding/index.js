@@ -156,6 +156,25 @@ export class OnboardingService {
     const lastName = data.lastName?.trim() || clerkUser.lastName || "";
     const phone = data.phone?.trim() || "";
 
+    const emergencyPhone = (data.emergencyContact?.phone || "").trim();
+    if (emergencyPhone) {
+      const emergDigits = emergencyPhone.replace(/\D/g, "");
+      if (emergDigits.length < 10 || emergDigits.length > 15) {
+        throw new BadRequestError("Emergency contact phone number must be a valid number (minimum 10 digits)");
+      }
+      const empPhoneDigits = phone.replace(/\D/g, "");
+      if (
+        empPhoneDigits.length >= 10 &&
+        emergDigits.length >= 10 &&
+        empPhoneDigits.slice(-10) === emergDigits.slice(-10)
+      ) {
+        throw new BadRequestError(
+          "Emergency contact phone number must be different from the employee's personal phone number"
+        );
+      }
+    }
+
+
     let user = await User.findOne({
       $or: [{ clerkId: clerkUser.id }, { email }],
     });

@@ -18,7 +18,7 @@ export function NavUser({ user: propUser }) {
   const user = {
     avatar: propUser?.avatar || clerkUser?.imageUrl || "",
     name: propUser?.name || clerkUser?.fullName || clerkUser?.firstName || "User",
-    email: propUser?.email || clerkUser?.primaryEmailAddress?.emailAddress || "support@getrepeat.in",
+    email: propUser?.email || clerkUser?.primaryEmailAddress?.emailAddress || "support@truehr.in",
   };
 
   const roleKey = membership?.role || clerkUser?.publicMetadata?.role || "org:member";

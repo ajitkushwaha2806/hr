@@ -187,6 +187,7 @@ export default function Step3Addresses({ formData, handleChange, errors = {} }) 
             value={formData.emergencyPhone}
             onChange={(e) => handleChange("emergencyPhone", e.target.value)}
             error={errors.emergencyPhone}
+            helperText="Must be a valid phone number different from your personal phone"
           />
         </div>
       </div>

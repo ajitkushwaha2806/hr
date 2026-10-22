@@ -14,17 +14,39 @@ const OfficeLocationSchema = new mongoose.Schema(
     },
     latitude: {
       type: Number,
-      required: [true, "Office latitude is required"],
+      default: null,
     },
     longitude: {
       type: Number,
-      required: [true, "Office longitude is required"],
+      default: null,
     },
     radiusMeters: {
       type: Number,
-      default: 200, // 200 meters geofence radius
+      default: 200,
       min: 10,
       max: 5000,
+    },
+    matchThreshold: {
+      type: Number,
+      default: 75,
+      min: 50,
+      max: 100,
+    },
+    shiftStart: {
+      type: String,
+      default: "10:00",
+      trim: true,
+    },
+    shiftEnd: {
+      type: String,
+      default: "19:00",
+      trim: true,
+    },
+    gracePeriod: {
+      type: Number,
+      default: 15,
+      min: 0,
+      max: 120,
     },
     address: {
       type: String,

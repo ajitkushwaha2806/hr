@@ -25,27 +25,35 @@ export function AppSidebar(props) {
 
   return (
     <Sidebar collapsible="icon" {...props} className="bg-sidebar border-r border-border/40">
-      <SidebarHeader className="p-2 pb-1.5 group-data-[collapsible=icon]:p-2 group-data-[collapsible=icon]:items-center">
-        <Link href="/" className="block w-full focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-xl">
-          <Image
-            src="/assets/logo/true-hr.png"
-            alt="trueHr"
-            width={500}
-            height={500}
-            className="w-full h-auto rounded-xl object-contain shadow-2xs group-data-[collapsible=icon]:hidden hover:opacity-95 transition-opacity"
-            priority
-          />
-          <div className="hidden group-data-[collapsible=icon]:flex items-center justify-center p-0.5">
+      <SidebarHeader className="p-2.5 pb-2 group-data-[collapsible=icon]:p-2 group-data-[collapsible=icon]:items-center">
+        <Link
+          href="/"
+          className="flex items-center gap-3 p-1.5 rounded-lg hover:bg-sidebar-accent/50 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary group/logo"
+        >
+          {/* Logo with the exact same height and width and rounded-md */}
+          <div className="size-10 rounded-md overflow-hidden shrink-0 shadow-2xs border border-primary/20 bg-primary flex items-center justify-center group-hover/logo:scale-105 transition-transform">
             <Image
               src="/assets/logo/true-hr.png"
               alt="trueHr"
-              width={32}
-              height={32}
-              className="size-8 rounded-lg object-cover"
+              width={40}
+              height={40}
+              className="size-full object-cover rounded-md"
+              priority
             />
+          </div>
+
+          <div className="flex flex-col min-w-0 group-data-[collapsible=icon]:hidden">
+            <span className="font-bold text-base tracking-tight text-foreground leading-none flex items-center">
+              true<span className="text-primary">HR</span>
+            </span>
+            <span className="text-[10px] text-muted-foreground truncate leading-tight mt-1 font-medium">
+              Track Attendance. Track Employees.
+            </span>
           </div>
         </Link>
       </SidebarHeader>
+
+      <SidebarSeparator className="mx-3 my-1 bg-border/40 group-data-[collapsible=icon]:mx-1" />
 
       <SidebarContent className="px-1.5 py-1 group-data-[collapsible=icon]:px-0">
         <NavMain

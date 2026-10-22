@@ -43,8 +43,8 @@ export const EmployeeStatusBadge = ({ status = "Active" }) => {
 
 export const DepartmentBadge = ({ department = "General" }) => {
   return (
-    <span className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-muted/60 text-foreground border border-border/60">
-      {department}
+    <span className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-muted/60 text-foreground border border-border/60 max-w-full">
+      <span className="truncate">{department}</span>
     </span>
   );
 };

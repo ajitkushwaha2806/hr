@@ -18,6 +18,7 @@ export function ApplyLeaveModal({
   onSubmit,
   isSubmitting,
 }) {
+  const [leaveType, setLeaveType] = useState("Casual Leave");
   const [isHalfDay, setIsHalfDay] = useState(false);
   const [halfDaySession, setHalfDaySession] = useState("FIRST_HALF");
   const [startDate, setStartDate] = useState("");
@@ -53,7 +54,7 @@ export function ApplyLeaveModal({
   }
 
   const availableBalance = quota?.availableBalance ?? 2;
-  const isOverQuota = calculatedDays > availableBalance;
+  const isOverQuota = leaveType === "Casual Leave" && calculatedDays > availableBalance;
   const remainingAfter = Math.max(0, Number((availableBalance - calculatedDays).toFixed(1)));
 
   const handleSubmit = (e) => {
@@ -68,7 +69,7 @@ export function ApplyLeaveModal({
       endDate: finalEndDate,
       dayType,
       reason: reason.trim(),
-      type: "Casual Leave",
+      type: leaveType,
     });
   };
 
@@ -110,6 +111,60 @@ export function ApplyLeaveModal({
 
         {/* Scrollable Form */}
         <form onSubmit={handleSubmit} className="p-4 sm:p-5 space-y-3.5 overflow-y-auto flex-1">
+          {/* Leave Type Selector (Casual Leave vs Loss of Pay) */}
+          <div className="space-y-1.5">
+            <label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
+              Leave Type
+            </label>
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={() => setLeaveType("Casual Leave")}
+                className={`p-2.5 rounded-xl border text-left transition-all relative flex flex-col justify-between cursor-pointer ${
+                  leaveType === "Casual Leave"
+                    ? "bg-blue-500/10 border-blue-500 shadow-2xs ring-1 ring-blue-500/40"
+                    : "bg-muted/30 border-border/70 hover:border-border hover:bg-muted/50"
+                }`}
+              >
+                <div className="flex items-center justify-between w-full">
+                  <div className="flex items-center gap-1.5">
+                    <span className="size-2 rounded-full bg-blue-500 shrink-0" />
+                    <span className="text-xs font-bold text-foreground">Casual Leave</span>
+                  </div>
+                  <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-700 dark:text-blue-300">
+                    Paid
+                  </span>
+                </div>
+                <p className="text-[10.5px] text-muted-foreground mt-1.5 leading-tight">
+                  From monthly quota ({availableBalance}d left)
+                </p>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setLeaveType("Loss of Pay")}
+                className={`p-2.5 rounded-xl border text-left transition-all relative flex flex-col justify-between cursor-pointer ${
+                  leaveType === "Loss of Pay"
+                    ? "bg-rose-500/10 border-rose-500 shadow-2xs ring-1 ring-rose-500/40"
+                    : "bg-muted/30 border-border/70 hover:border-border hover:bg-muted/50"
+                }`}
+              >
+                <div className="flex items-center justify-between w-full">
+                  <div className="flex items-center gap-1.5">
+                    <span className="size-2 rounded-full bg-rose-500 shrink-0" />
+                    <span className="text-xs font-bold text-foreground">Loss of Pay</span>
+                  </div>
+                  <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-rose-500/20 text-rose-700 dark:text-rose-300">
+                    Unpaid
+                  </span>
+                </div>
+                <p className="text-[10.5px] text-muted-foreground mt-1.5 leading-tight">
+                  Salary deduction, quota unaffected
+                </p>
+              </button>
+            </div>
+          </div>
+
           {/* Duration Toggle (Full Day vs Half Day) */}
           <div className="space-y-1.5">
             <label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
@@ -231,6 +286,8 @@ export function ApplyLeaveModal({
               className={`p-2.5 rounded-md border flex items-center justify-between text-xs ${
                 isOverQuota
                   ? "bg-rose-500/10 border-rose-500/20 text-rose-700 dark:text-rose-300"
+                  : leaveType === "Loss of Pay"
+                  ? "bg-rose-500/5 border-rose-500/20 text-foreground"
                   : "bg-muted/30 border-border text-foreground"
               }`}
             >
@@ -241,12 +298,14 @@ export function ApplyLeaveModal({
                   <CheckCircle2 className="size-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
                 )}
                 <span className="font-semibold text-[11px]">
-                  {calculatedDays} Day(s) Requested
+                  {calculatedDays} Day(s) {leaveType === "Loss of Pay" ? "Unpaid (LOP)" : "Requested"}
                 </span>
               </div>
               <span className="text-[11px] text-muted-foreground">
                 {isOverQuota
-                  ? `Exceeds balance (${availableBalance}d left)`
+                  ? `Exceeds quota (${availableBalance}d left). Switch to Loss of Pay?`
+                  : leaveType === "Loss of Pay"
+                  ? "Casual quota unaffected"
                   : `${remainingAfter}d left after approval`}
               </span>
             </div>

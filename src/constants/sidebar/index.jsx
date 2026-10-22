@@ -1,19 +1,4 @@
-import {
-  LayoutDashboard,
-  Users,
-  Building2,
-  Clock,
-  CalendarDays,
-  Wallet,
-  TrendingUp,
-  UserPlus,
-  Laptop,
-  BarChart3,
-  ShieldCheck,
-  Settings,
-  User,
-  Sparkles,
-} from "lucide-react";
+import { LayoutDashboard, Users, Building2, Clock, CalendarDays, ShieldCheck, User, Sparkles } from "lucide-react";
 
 export const EMPLOYEE_SIDEBAR_CONFIG = {
   portal: "employee",
@@ -90,54 +75,9 @@ export const ADMIN_SIDEBAR_CONFIG = {
         url: "/admin/leaves",
         icon: <CalendarDays />,
       },
-      {
-        title: "Payroll",
-        url: "/admin/payroll",
-        icon: <Wallet />,
-      },
-      {
-        title: "Performance",
-        url: "/admin/performance",
-        icon: <TrendingUp />,
-      },
-      {
-        title: "Recruitment",
-        url: "/admin/recruitment",
-        icon: <UserPlus />,
-      },
-      {
-        title: "Assets",
-        url: "/admin/assets",
-        icon: <Laptop />,
-      },
-      {
-        title: "Reports & Analytics",
-        url: "/admin/reports",
-        icon: <BarChart3 />,
-      },
-      {
-        title: "Roles & Permissions",
-        url: "/admin/roles",
-        icon: <ShieldCheck />,
-      },
-      {
-        title: "Company Settings",
-        url: "/admin/settings",
-        icon: <Settings />,
-      },
     ],
   },
   navUserItems: [
-    {
-      title: "Company Settings",
-      url: "/admin/settings",
-      icon: <Settings />,
-    },
-    {
-      title: "Roles & Permissions",
-      url: "/admin/roles",
-      icon: <ShieldCheck />,
-    },
     {
       title: "Privacy Policy",
       url: "/privacy-policy",

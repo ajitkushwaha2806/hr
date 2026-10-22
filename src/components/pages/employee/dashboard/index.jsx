@@ -39,8 +39,8 @@ export default function EmployeeDashboard() {
   const isProfileLoading = isAttendanceLoading && !todayStatus;
 
   return (
-    <div className="w-full bg-slate-50/60 dark:bg-zinc-950 px-3 sm:px-6 py-3 sm:py-6 space-y-4 sm:space-y-6 max-w-4xl mx-auto pb-3 sm:pb-6">
-      <div className="flex items-center justify-between gap-3 px-2 pt-1">
+    <div className="w-full min-h-[calc(100vh-4rem)] bg-slate-50/60 dark:bg-zinc-950 px-3 sm:px-6 lg:px-8 py-3 sm:py-6 space-y-4 sm:space-y-6 pb-6">
+      <div className="flex items-center justify-between gap-3 px-1 pt-1">
         {isProfileLoading ? (
           <div className="min-w-0 space-y-1.5">
             <Skeleton className="h-4 w-28 rounded" />

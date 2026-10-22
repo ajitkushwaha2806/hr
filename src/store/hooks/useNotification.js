@@ -1,16 +1,8 @@
 "use client";
-import { useCallback } from "react";
 import { useDispatch } from "react-redux";
-import {
-  showNotification,
-  hideNotification,
-  clearNotification,
-} from "../slice/notificationSlice";
-import {
-  NOTIFICATION_TYPES,
-  NOTIFICATION_DEFAULT_DURATIONS,
-  NOTIFICATION_DURATIONS,
-} from "@/constants/notification";
+import { useCallback, useMemo } from "react";
+import { showNotification, hideNotification, clearNotification } from "../slice/notificationSlice";
+import { NOTIFICATION_TYPES, NOTIFICATION_DEFAULT_DURATIONS, NOTIFICATION_DURATIONS } from "@/constants/notification";
 
 export default function useNotification() {
   const dispatch = useDispatch();
@@ -36,25 +28,20 @@ export default function useNotification() {
     [dispatch]
   );
 
-  return {
-    show: (payload) => dispatch(showNotification(payload)),
-    hide: useCallback(() => dispatch(hideNotification()), [dispatch]),
-    clear: useCallback(() => dispatch(clearNotification()), [dispatch]),
-    success: useCallback(
-      (message, options) => notify(NOTIFICATION_TYPES.SUCCESS, message, options),
-      [notify]
-    ),
-    error: useCallback(
-      (message, options) => notify(NOTIFICATION_TYPES.ERROR, message, options),
-      [notify]
-    ),
-    warning: useCallback(
-      (message, options) => notify(NOTIFICATION_TYPES.WARNING, message, options),
-      [notify]
-    ),
-    info: useCallback(
-      (message, options) => notify(NOTIFICATION_TYPES.INFO, message, options),
-      [notify]
-    ),
-  };
+  return useMemo(
+    () => ({
+      show: (payload) => dispatch(showNotification(payload)),
+      hide: () => dispatch(hideNotification()),
+      clear: () => dispatch(clearNotification()),
+      success: (message, options) =>
+        notify(NOTIFICATION_TYPES.SUCCESS, message, options),
+      error: (message, options) =>
+        notify(NOTIFICATION_TYPES.ERROR, message, options),
+      warning: (message, options) =>
+        notify(NOTIFICATION_TYPES.WARNING, message, options),
+      info: (message, options) =>
+        notify(NOTIFICATION_TYPES.INFO, message, options),
+    }),
+    [dispatch, notify]
+  );
 }

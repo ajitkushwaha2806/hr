@@ -10,24 +10,24 @@ export function TableToolbar({ title, subtitle, totalCount, searchable = false, 
   if (!hasHeaderRow && !hasFilterRow) return null;
 
   return (
-    <div className={cn("flex flex-col gap-3 w-full min-w-0", className)}>
+    <div className={cn("flex flex-col gap-2.5 sm:gap-3 w-full min-w-0", className)}>
       {(title || subtitle || actions || hasSelected) && (
-        <div className={cn("flex-col sm:flex-row items-start sm:items-center justify-between gap-3 w-full min-w-0", hideTitleOnMobile && !actions && !hasSelected ? "hidden md:flex" : "flex")}>
-          <div className={cn("min-w-0 flex-1", hideTitleOnMobile && "hidden md:block")}>
+        <div className={cn("flex flex-wrap sm:flex-nowrap items-start sm:items-center justify-between gap-2 sm:gap-3 w-full min-w-0", hideTitleOnMobile && !actions && !hasSelected ? "hidden md:flex" : "flex")}>
+          <div className={cn("min-w-[140px] flex-1", hideTitleOnMobile && "hidden md:block")}>
             {title && (
-              <h3 className="text-base font-semibold text-gray-900 dark:text-zinc-100 flex items-center gap-2 tracking-tight">
+              <h3 className="text-sm sm:text-base font-semibold text-gray-900 dark:text-zinc-100 flex items-center gap-1.5 sm:gap-2 tracking-tight">
                 <span className="truncate">{title}</span>
                 {totalCount !== undefined && totalCount !== null && (
-                  <span className="inline-flex items-center shrink-0 rounded-md bg-gray-100 dark:bg-zinc-800 px-2 py-0.5 text-xs font-semibold text-gray-700 dark:text-zinc-300 border border-gray-200/60 dark:border-zinc-700/60">
+                  <span className="inline-flex items-center shrink-0 rounded-md bg-gray-100 dark:bg-zinc-800 px-1.5 py-0.2 sm:px-2 sm:py-0.5 text-[11px] sm:text-xs font-semibold text-gray-700 dark:text-zinc-300 border border-gray-200/60 dark:border-zinc-700/60">
                     {totalCount}
                   </span>
                 )}
               </h3>
             )}
-            {subtitle && <p className="text-xs text-gray-500 dark:text-zinc-400 mt-0.5 line-clamp-2 sm:truncate">{subtitle}</p>}
+            {subtitle && <p className="text-[11px] sm:text-xs text-gray-500 dark:text-zinc-400 mt-0.5 line-clamp-1 sm:truncate">{subtitle}</p>}
           </div>
 
-          <div className="flex items-center gap-2 w-full sm:w-auto justify-start sm:justify-end min-w-0 shrink-0">
+          <div className="flex items-center gap-2 shrink-0">
             {hasSelected ? (
               <div className="inline-flex items-center gap-2 bg-primary/10 dark:bg-primary/20 border border-primary/20 text-primary px-3 py-1.5 rounded-md text-xs font-medium animate-in fade-in duration-150">
                 <span>{selectedCount} selected</span>
@@ -78,8 +78,8 @@ export function TableToolbar({ title, subtitle, totalCount, searchable = false, 
           ) : <div />}
 
           {searchable && (
-            <div className="flex items-center gap-2 w-full md:w-auto min-w-0 shrink-0">
-              <div className="relative w-full md:w-72 min-w-0 shrink-0 flex-1">
+            <div className="flex flex-wrap sm:flex-nowrap items-center gap-2 w-full md:w-auto min-w-0">
+              <div className="relative min-w-[140px] flex-1 md:w-72">
                 <div className="relative flex items-center w-full">
                   <Search className="absolute left-3 h-3.5 w-3.5 text-gray-400 dark:text-zinc-500 pointer-events-none" />
                   <input
@@ -92,7 +92,7 @@ export function TableToolbar({ title, subtitle, totalCount, searchable = false, 
                   {searchQuery && (
                     <button
                       onClick={() => onSearchChange && onSearchChange("")}
-                      className="absolute right-2.5 p-0.5 text-gray-400 hover:text-gray-600 dark:hover:text-zinc-300 rounded-full hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors"
+                      className="absolute right-2.5 p-0.5 text-gray-400 hover:text-gray-600 dark:hover:text-zinc-300 rounded-full hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
                       title="Clear search"
                     >
                       <X className="h-3 w-3" />
@@ -101,7 +101,7 @@ export function TableToolbar({ title, subtitle, totalCount, searchable = false, 
                 </div>
               </div>
               {searchActions && (
-                <div className="shrink-0">
+                <div className="w-auto shrink-0">
                   {searchActions}
                 </div>
               )}

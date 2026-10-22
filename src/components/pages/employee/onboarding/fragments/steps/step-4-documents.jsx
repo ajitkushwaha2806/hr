@@ -1,8 +1,8 @@
 "use client";
 import FloatingField from "../floating-field";
-import { Shield, CreditCard, FileText } from "lucide-react";
 import { DocumentUploadCard } from "@/components/ui/document-upload-card";
 import { formatAadharInput, formatPanInput } from "../../helpers/formatters";
+import { Shield, CreditCard, FileText, Landmark, Building2, Wallet } from "lucide-react";
 
 export default function Step4Documents({ formData, handleChange, errors = {} }) {
   return (
@@ -81,6 +81,86 @@ export default function Step4Documents({ formData, handleChange, errors = {} }) 
             onChange={(url) => handleChange("panFileUrl", url)}
             error={errors.panFileUrl}
             required
+          />
+        </div>
+      </div>
+
+      <div className="space-y-5 p-3.5 sm:p-5 rounded-md border border-border/60 bg-white dark:bg-zinc-900">
+        <div className="flex items-center gap-2 text-xs font-semibold text-primary">
+          <Landmark className="size-4 text-primary" />
+          <span>Bank Account & Settlement Details</span>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+          <FloatingField
+            id="accountHolderName"
+            label="Account Holder Name *"
+            icon={CreditCard}
+            placeholder="e.g. John Doe"
+            value={formData.accountHolderName}
+            onChange={(e) => handleChange("accountHolderName", e.target.value)}
+            error={errors.accountHolderName}
+            helperText="As printed on your bank passbook or statement."
+          />
+
+          <FloatingField
+            id="bankName"
+            label="Bank Name *"
+            icon={Building2}
+            placeholder="e.g. HDFC Bank, State Bank of India"
+            value={formData.bankName}
+            onChange={(e) => handleChange("bankName", e.target.value)}
+            error={errors.bankName}
+            helperText="Full bank name where salary will be credited."
+          />
+
+          <FloatingField
+            id="accountNumber"
+            label="Bank Account Number *"
+            icon={CreditCard}
+            placeholder="e.g. 123456789012"
+            value={formData.accountNumber}
+            onChange={(e) => {
+              const val = e.target.value.replace(/\D/g, "");
+              handleChange("accountNumber", val);
+            }}
+            error={errors.accountNumber}
+            maxLength={18}
+            helperText="9-18 digit account number for salary disbursement."
+          />
+
+          <FloatingField
+            id="ifscCode"
+            label="IFSC Code *"
+            icon={Landmark}
+            placeholder="e.g. HDFC0001234"
+            value={formData.ifscCode}
+            onChange={(e) => handleChange("ifscCode", e.target.value.toUpperCase().trim())}
+            error={errors.ifscCode}
+            maxLength={11}
+            helperText="11-character code (e.g. 4 letters, '0', 6 alphanumeric characters)."
+          />
+
+          <FloatingField
+            id="branchName"
+            label="Branch Name (Optional)"
+            icon={Building2}
+            placeholder="e.g. Koramangala 5th Block"
+            value={formData.branchName}
+            onChange={(e) => handleChange("branchName", e.target.value)}
+            error={errors.branchName}
+            helperText="Bank branch location."
+          />
+
+          <FloatingField
+            id="upiId"
+            label="UPI ID (Optional)"
+            icon={Wallet}
+            placeholder="e.g. username@okhdfcbank"
+            value={formData.upiId}
+            onChange={(e) => handleChange("upiId", e.target.value.toLowerCase().trim())}
+            error={errors.upiId}
+            helperText="For quick reimbursements and settlements."
           />
         </div>
       </div>

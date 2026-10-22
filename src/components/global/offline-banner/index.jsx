@@ -39,11 +39,11 @@ export default function OfflineBanner() {
     <AnimatePresence>
       {isOffline && (
         <motion.div
-          initial={{ y: -50, opacity: 0 }}
+          initial={{ y: -60, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
-          exit={{ y: -50, opacity: 0 }}
+          exit={{ y: -60, opacity: 0 }}
           transition={{ duration: 0.25, ease: "easeOut" }}
-          className="fixed top-0 left-0 right-0 z-[9999] flex items-center justify-center gap-2 px-4 py-2.5 bg-red-600 text-white text-xs sm:text-sm font-medium shadow-lg"
+          className="fixed top-0 left-0 right-0 z-[99999] flex items-center justify-center gap-2 px-4 pt-[max(0.625rem,env(safe-area-inset-top))] pb-2.5 bg-red-600 text-white text-xs sm:text-sm font-medium shadow-md"
         >
           <WifiOff className="w-4 h-4 animate-pulse flex-shrink-0" />
           <span>You are offline. Please check your internet connection.</span>
@@ -52,11 +52,11 @@ export default function OfflineBanner() {
 
       {!isOffline && showReconnected && (
         <motion.div
-          initial={{ y: -50, opacity: 0 }}
+          initial={{ y: -60, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
-          exit={{ y: -50, opacity: 0 }}
+          exit={{ y: -60, opacity: 0 }}
           transition={{ duration: 0.25, ease: "easeOut" }}
-          className="fixed top-0 left-0 right-0 z-[9999] flex items-center justify-center gap-2 px-4 py-2.5 bg-emerald-600 text-white text-xs sm:text-sm font-medium shadow-lg"
+          className="fixed top-0 left-0 right-0 z-[99999] flex items-center justify-center gap-2 px-4 pt-[max(0.625rem,env(safe-area-inset-top))] pb-2.5 bg-emerald-600 text-white text-xs sm:text-sm font-medium shadow-md"
         >
           <Wifi className="w-4 h-4 flex-shrink-0" />
           <span>Back online! Reconnected to trueHr.</span>

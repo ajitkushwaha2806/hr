@@ -117,55 +117,131 @@ export function EmployeeLeavesView() {
   });
 
   return (
-    <div className="w-full min-h-screen bg-slate-50/50 dark:bg-zinc-950 pb-20">
-      <div className="max-w-2xl lg:max-w-4xl mx-auto px-3.5 sm:px-6 pt-3 sm:pt-6 space-y-3.5 sm:space-y-4">
-        <div className="p-4 sm:p-5 rounded-2xl border border-border/80 bg-card shadow-2xs space-y-3 sm:space-y-3.5">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <div className="min-w-0">
-              <div className="flex items-center justify-between gap-2 flex-wrap">
-                <h1 className="text-xl sm:text-2xl font-semibold tracking-tight text-foreground whitespace-nowrap">
-                  Casual Leaves
-                </h1>
-                
-                <div className="flex justify-center items-center gap-2"><button
-                type="button"
-                onClick={() => fetchLeaves(true)}
-                disabled={isLoading}
-                title="Refresh leave balance"
-                className="size-9 rounded-xl border border-border/80 bg-card hover:bg-muted text-muted-foreground flex items-center justify-center transition-all shadow-2xs shrink-0 active:scale-95"
-              >
-                <RefreshCw
-                  className={`size-3.5 ${isLoading ? "animate-spin text-primary" : ""}`}
-                />
-              </button>
-                <button
-                    type="button"
-                    onClick={() => setIsApplyModalOpen(true)}
-                    className="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-md bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-bold shadow-xs transition-all active:scale-95 whitespace-nowrap"
-                >
-                  <Plus className="size-4" />
-                  <span>Request Leave</span>
-                </button></div>
+    <div className="w-full min-h-screen bg-slate-50/50 dark:bg-zinc-950 pb-28 sm:pb-16">
+      <div className="w-full px-3.5 sm:px-6 lg:px-8 pt-3 sm:pt-6 space-y-4 sm:space-y-5">
+        {/* Header Bar */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="space-y-0.5">
+            <div className="flex items-center gap-2">
+              <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground">
+                Casual Leaves
+              </h1>
+              <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20">
+                Self-Service
+              </span>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              {currentMonthDisplay} • Request and track your time off
+            </p>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => fetchLeaves(true)}
+              disabled={isLoading}
+              title="Refresh leave balance"
+              className="size-9 rounded-xl border border-border/70 bg-card hover:bg-muted text-muted-foreground hover:text-foreground flex items-center justify-center transition-all shadow-2xs shrink-0 active:scale-95 cursor-pointer"
+            >
+              <RefreshCw
+                className={`size-3.5 ${isLoading ? "animate-spin text-primary" : ""}`}
+              />
+            </button>
+            <button
+              type="button"
+              onClick={() => setIsApplyModalOpen(true)}
+              className="flex-1 sm:flex-none inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-bold shadow-xs transition-all active:scale-95 cursor-pointer"
+            >
+              <Plus className="size-4" strokeWidth={2.5} />
+              <span>Request Leave</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Quota KPI Cards */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3">
+          <div className="p-3.5 sm:p-4 rounded-xl bg-card border border-border/70 shadow-2xs flex flex-col justify-between">
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-semibold text-muted-foreground">Available</span>
+              <div className="size-6 rounded-md bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
+                <CheckCircle2 className="size-3.5" />
               </div>
-              <p className="text-xs text-muted-foreground mt-0.5">
-                {currentMonthDisplay} • Self-Service Portal
+            </div>
+            <div className="mt-2">
+              <div className="text-lg sm:text-2xl font-extrabold text-foreground tracking-tight">
+                {quota.availableBalance} <span className="text-xs font-semibold text-muted-foreground">Days</span>
+              </div>
+              <p className="text-[10.5px] text-emerald-600 dark:text-emerald-400 font-semibold mt-0.5">
+                Ready to Use
+              </p>
+            </div>
+          </div>
+
+          <div className="p-3.5 sm:p-4 rounded-xl bg-card border border-border/70 shadow-2xs flex flex-col justify-between">
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-semibold text-muted-foreground">Used this Month</span>
+              <div className="size-6 rounded-md bg-blue-500/15 text-blue-600 dark:text-blue-400 flex items-center justify-center">
+                <CalendarDays className="size-3.5" />
+              </div>
+            </div>
+            <div className="mt-2">
+              <div className="text-lg sm:text-2xl font-extrabold text-foreground tracking-tight">
+                {quota.usedThisMonth} <span className="text-xs font-semibold text-muted-foreground">Days</span>
+              </div>
+              <p className="text-[10.5px] text-blue-600 dark:text-blue-400 font-semibold mt-0.5">
+                {quota.lopThisMonth > 0 ? `+ ${quota.lopThisMonth}d LOP` : "Casual Leaves"}
+              </p>
+            </div>
+          </div>
+
+          <div className="p-3.5 sm:p-4 rounded-xl bg-card border border-border/70 shadow-2xs flex flex-col justify-between">
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-semibold text-muted-foreground">In Review</span>
+              <div className="size-6 rounded-md bg-amber-500/15 text-amber-600 dark:text-amber-400 flex items-center justify-center">
+                <Clock className="size-3.5" />
+              </div>
+            </div>
+            <div className="mt-2">
+              <div className="text-lg sm:text-2xl font-extrabold text-foreground tracking-tight">
+                {pendingCount} <span className="text-xs font-semibold text-muted-foreground">Reqs</span>
+              </div>
+              <p className="text-[10.5px] text-amber-600 dark:text-amber-400 font-semibold mt-0.5">
+                {pendingCount > 0 ? "Awaiting Review" : "None Pending"}
+              </p>
+            </div>
+          </div>
+
+          <div className="p-3.5 sm:p-4 rounded-xl bg-card border border-border/70 shadow-2xs flex flex-col justify-between">
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-semibold text-muted-foreground">Monthly Quota</span>
+              <div className="size-6 rounded-md bg-purple-500/15 text-purple-600 dark:text-purple-400 flex items-center justify-center">
+                <Calendar className="size-3.5" />
+              </div>
+            </div>
+            <div className="mt-2">
+              <div className="text-lg sm:text-2xl font-extrabold text-foreground tracking-tight">
+                {quota.monthlyQuota} <span className="text-xs font-semibold text-muted-foreground">Days</span>
+              </div>
+              <p className="text-[10.5px] text-purple-600 dark:text-purple-400 font-semibold mt-0.5">
+                Per Month
               </p>
             </div>
           </div>
         </div>
 
-        <div className="flex items-center gap-1.5 p-1 rounded-xl bg-muted/60 border border-border/60 overflow-x-auto no-scrollbar">
+        {/* Filter Tabs */}
+        <div className="grid grid-cols-4 gap-1 p-1 rounded-xl bg-muted/60 border border-border/60">
           <button
             type="button"
             onClick={() => setActiveTab("all")}
-            className={`flex-1 min-w-[70px] py-1.5 px-3 rounded-lg text-xs font-bold transition-all text-center flex items-center justify-center gap-1.5 ${
+            className={`py-1.5 px-1 sm:px-3 rounded-lg text-xs font-semibold transition-all text-center flex items-center justify-center gap-1 cursor-pointer ${
               activeTab === "all"
-                ? "bg-card text-foreground shadow-xs"
+                ? "bg-card text-foreground shadow-2xs border border-border/50"
                 : "text-muted-foreground hover:text-foreground"
             }`}
           >
             <span>All</span>
-            <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-muted font-semibold">
+            <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-muted font-bold">
               {leaves.length}
             </span>
           </button>
@@ -173,31 +249,33 @@ export function EmployeeLeavesView() {
           <button
             type="button"
             onClick={() => setActiveTab("pending")}
-            className={`flex-1 min-w-[85px] py-1.5 px-3 rounded-lg text-xs font-bold transition-all text-center flex items-center justify-center gap-1.5 ${
+            className={`py-1.5 px-1 sm:px-3 rounded-lg text-xs font-semibold transition-all text-center flex items-center justify-center gap-1 cursor-pointer ${
               activeTab === "pending"
-                ? "bg-amber-500/10 text-amber-700 dark:text-amber-300 shadow-xs border border-amber-500/20"
+                ? "bg-amber-500/15 text-amber-800 dark:text-amber-200 shadow-2xs border border-amber-500/30"
                 : "text-muted-foreground hover:text-foreground"
             }`}
           >
             <span>Pending</span>
-            {pendingCount > 0 && (
-              <span className="size-4 rounded-full bg-amber-500 text-white text-[10px] flex items-center justify-center font-bold">
-                {pendingCount}
-              </span>
-            )}
+            <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${
+              pendingCount > 0 ? "bg-amber-500 text-white" : "bg-muted text-muted-foreground"
+            }`}>
+              {pendingCount}
+            </span>
           </button>
 
           <button
             type="button"
             onClick={() => setActiveTab("approved")}
-            className={`flex-1 min-w-[85px] py-1.5 px-3 rounded-lg text-xs font-bold transition-all text-center flex items-center justify-center gap-1.5 ${
+            className={`py-1.5 px-1 sm:px-3 rounded-lg text-xs font-semibold transition-all text-center flex items-center justify-center gap-1 cursor-pointer ${
               activeTab === "approved"
-                ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 shadow-xs border border-emerald-500/20"
+                ? "bg-emerald-500/15 text-emerald-800 dark:text-emerald-200 shadow-2xs border border-emerald-500/30"
                 : "text-muted-foreground hover:text-foreground"
             }`}
           >
             <span>Approved</span>
-            <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-muted font-semibold">
+            <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${
+              approvedCount > 0 ? "bg-emerald-500/20 text-emerald-700 dark:text-emerald-300" : "bg-muted text-muted-foreground"
+            }`}>
               {approvedCount}
             </span>
           </button>
@@ -205,14 +283,16 @@ export function EmployeeLeavesView() {
           <button
             type="button"
             onClick={() => setActiveTab("rejected")}
-            className={`flex-1 min-w-[85px] py-1.5 px-3 rounded-lg text-xs font-bold transition-all text-center flex items-center justify-center gap-1.5 ${
+            className={`py-1.5 px-1 sm:px-3 rounded-lg text-xs font-semibold transition-all text-center flex items-center justify-center gap-1 cursor-pointer ${
               activeTab === "rejected"
-                ? "bg-rose-500/10 text-rose-700 dark:text-rose-300 shadow-xs border border-rose-500/20"
+                ? "bg-rose-500/15 text-rose-800 dark:text-rose-200 shadow-2xs border border-rose-500/30"
                 : "text-muted-foreground hover:text-foreground"
             }`}
           >
             <span>Rejected</span>
-            <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-muted font-semibold">
+            <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${
+              rejectedCount > 0 ? "bg-rose-500/20 text-rose-700 dark:text-rose-300" : "bg-muted text-muted-foreground"
+            }`}>
               {rejectedCount}
             </span>
           </button>
@@ -236,30 +316,30 @@ export function EmployeeLeavesView() {
               {[1, 2, 3].map((i) => (
                 <div
                   key={i}
-                  className="w-full h-32 rounded-2xl bg-card/60 border border-border/60 animate-pulse"
+                  className="w-full h-32 rounded-xl bg-card/60 border border-border/60 animate-pulse"
                 />
               ))}
             </div>
           ) : filteredLeaves.length === 0 ? (
-            <div className="w-full py-12 px-4 rounded-2xl border border-dashed border-border/80 bg-card/50 text-center space-y-3">
-              <div className="size-12 rounded-2xl bg-primary/10 text-primary flex items-center justify-center mx-auto">
+            <div className="w-full py-10 sm:py-12 px-4 rounded-xl border border-border/70 bg-card text-center space-y-3.5 shadow-2xs">
+              <div className="size-12 rounded-2xl bg-primary/10 text-primary border border-primary/20 flex items-center justify-center mx-auto shadow-2xs">
                 <CalendarDays className="size-6" />
               </div>
               <div className="space-y-1">
                 <p className="text-sm font-bold text-foreground">No leave requests found</p>
-                <p className="text-xs text-muted-foreground max-w-xs mx-auto">
+                <p className="text-xs text-muted-foreground max-w-sm mx-auto leading-relaxed">
                   {activeTab === "all"
-                    ? "You haven't requested any casual leaves yet. Apply whenever you need time off."
+                    ? `You have ${quota.availableBalance} days of casual leaves available for this month. Submit a request whenever you need time off.`
                     : `No ${activeTab} leave applications in your account.`}
                 </p>
               </div>
               <button
                 type="button"
                 onClick={() => setIsApplyModalOpen(true)}
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-primary text-primary-foreground text-xs font-bold shadow-xs hover:bg-primary/90 transition-all"
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-primary text-primary-foreground text-xs font-bold shadow-xs hover:bg-primary/90 transition-all cursor-pointer active:scale-95"
               >
-                <Plus className="size-3.5" />
-                Apply for Casual Leave
+                <Plus className="size-4" strokeWidth={2.5} />
+                <span>Apply for Casual Leave</span>
               </button>
             </div>
           ) : (
@@ -299,9 +379,22 @@ export function EmployeeLeavesView() {
                     {/* Top Row: Type & Status Badge */}
                     <div className="flex items-center justify-between gap-2 flex-wrap">
                       <div className="flex items-center gap-2">
-                        <span className="size-2 rounded-full bg-primary" />
+                        <span
+                          className={`size-2 rounded-full shrink-0 ${
+                            req.type === "Loss of Pay" ? "bg-rose-500" : "bg-blue-500"
+                          }`}
+                        />
                         <span className="text-xs font-bold text-foreground">
                           {req.type || "Casual Leave"}
+                        </span>
+                        <span
+                          className={`text-[10px] font-semibold px-1.5 py-0.5 rounded ${
+                            req.type === "Loss of Pay"
+                              ? "bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/20"
+                              : "bg-blue-500/15 text-blue-600 dark:text-blue-400 border border-blue-500/20"
+                          }`}
+                        >
+                          {req.type === "Loss of Pay" ? "Unpaid" : "Paid"}
                         </span>
                         <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-muted text-muted-foreground border border-border/50">
                           {dayTypeLabel}

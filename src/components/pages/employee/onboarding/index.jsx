@@ -182,16 +182,32 @@ export default function EmployeeOnboarding() {
         aadharBackUrl: prev.aadharBackUrl || initial.aadharBackUrl,
         panNumber: prev.panNumber || initial.panNumber,
         panFileUrl: prev.panFileUrl || initial.panFileUrl,
+
+        accountHolderName: prev.accountHolderName || initial.accountHolderName,
+        bankName: prev.bankName || initial.bankName,
+        accountNumber: prev.accountNumber || initial.accountNumber,
+        ifscCode: prev.ifscCode || initial.ifscCode,
+        branchName: prev.branchName || initial.branchName,
+        upiId: prev.upiId || initial.upiId,
       };
     });
   }
 
   const [errors, setErrors] = useState({});
 
+  // Clear errors whenever activeStep changes so landing on a new step never shows premature errors
+  useEffect(() => {
+    setErrors({});
+  }, [activeStep]);
+
   const handleChange = (field, value) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
     if (errors[field]) {
-      setErrors((prev) => ({ ...prev, [field]: null }));
+      setErrors((prev) => {
+        const next = { ...prev };
+        delete next[field];
+        return next;
+      });
     }
   };
 
@@ -207,11 +223,18 @@ export default function EmployeeOnboarding() {
   };
 
   const handleBack = () => {
+    setErrors({});
     setActiveStep((prev) => Math.max(prev - 1, 1));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // If user presses Enter while on steps 1-3, advance to next step instead of prematurely validating step 4
+    if (activeStep < STEPS.length) {
+      handleNext();
+      return;
+    }
 
     for (let step = 1; step <= STEPS.length; step++) {
       const errs = validateStep(step, formData);
@@ -222,6 +245,7 @@ export default function EmployeeOnboarding() {
         return;
       }
     }
+
 
     try {
       const payload = buildOnboardingPayload(formData);

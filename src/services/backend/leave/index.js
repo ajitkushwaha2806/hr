@@ -31,9 +31,6 @@ export class LeaveService {
     return employee;
   }
 
-  /**
-   * Helper to format current month YYYY-MM in Asia/Kolkata timezone
-   */
   static getCurrentMonthString(date = new Date()) {
     try {
       const parts = new Intl.DateTimeFormat("en-US", {
@@ -69,9 +66,6 @@ export class LeaveService {
     return diffDays;
   }
 
-  /**
-   * Get employee's leaves and current monthly quota balance
-   */
   static async getMyLeaves(clerkUser, organizationId, targetMonth = null) {
     await dbConnect();
     const employee = await this.getEmployeeForUser(clerkUser, organizationId);
@@ -101,17 +95,20 @@ export class LeaveService {
       .sort({ createdAt: -1 })
       .lean();
 
-    // Calculate usage for current month
     const thisMonthLeaves = allLeaves.filter(
       (l) => l.month === currentMonth || (l.startDate && l.startDate.startsWith(currentMonth))
     );
 
     const usedThisMonth = thisMonthLeaves
-      .filter((l) => l.status === "APPROVED")
+      .filter((l) => l.status === "APPROVED" && (l.type === "Casual Leave" || !l.type))
       .reduce((sum, l) => sum + (Number(l.daysCount) || 0), 0);
 
     const pendingThisMonth = thisMonthLeaves
-      .filter((l) => l.status === "PENDING")
+      .filter((l) => l.status === "PENDING" && (l.type === "Casual Leave" || !l.type))
+      .reduce((sum, l) => sum + (Number(l.daysCount) || 0), 0);
+
+    const lopThisMonth = thisMonthLeaves
+      .filter((l) => l.status === "APPROVED" && l.type === "Loss of Pay")
       .reduce((sum, l) => sum + (Number(l.daysCount) || 0), 0);
 
     const availableBalance = Math.max(0, Number((monthlyQuota - usedThisMonth).toFixed(1)));
@@ -130,6 +127,7 @@ export class LeaveService {
         monthlyQuota,
         usedThisMonth,
         pendingThisMonth,
+        lopThisMonth,
         availableBalance,
         month: currentMonth,
       },
@@ -139,6 +137,7 @@ export class LeaveService {
 
   static async applyLeave(clerkUser, organizationId, payload) {
     const { startDate, endDate, dayType = "FULL_DAY", reason, type = "Casual Leave" } = payload || {};
+    const normalizedType = type === "Loss of Pay" ? "Loss of Pay" : "Casual Leave";
 
     if (!startDate || !endDate) {
       throw new BadRequestError("Start date and end date are required");
@@ -168,20 +167,23 @@ export class LeaveService {
     const month = startDate.slice(0, 7); // e.g. "2026-10"
     const monthlyQuota = Number(employee.monthlyCasualLeavesQuota) || 2;
 
-    const existingMonthApproved = await Leave.find({
-      organizationId: orgId,
-      employeeId: employee._id,
-      month,
-      status: "APPROVED",
-    }).lean();
+    if (normalizedType === "Casual Leave") {
+      const existingMonthApproved = await Leave.find({
+        organizationId: orgId,
+        employeeId: employee._id,
+        month,
+        type: "Casual Leave",
+        status: "APPROVED",
+      }).lean();
 
-    const usedDays = existingMonthApproved.reduce((sum, l) => sum + (Number(l.daysCount) || 0), 0);
-    const availableBalance = Math.max(0, monthlyQuota - usedDays);
+      const usedDays = existingMonthApproved.reduce((sum, l) => sum + (Number(l.daysCount) || 0), 0);
+      const availableBalance = Math.max(0, monthlyQuota - usedDays);
 
-    if (daysCount > availableBalance) {
-      throw new BadRequestError(
-        `Leave request of ${daysCount} day(s) exceeds your remaining monthly casual leave balance (${availableBalance} day(s) available for ${month}).`
-      );
+      if (daysCount > availableBalance) {
+        throw new BadRequestError(
+          `Leave request of ${daysCount} day(s) exceeds your remaining monthly casual leave balance (${availableBalance} day(s) available for ${month}). For extended absence, please select 'Loss of Pay'.`
+        );
+      }
     }
 
     const overlap = await Leave.findOne({
@@ -207,7 +209,7 @@ export class LeaveService {
       employeeEmail: employee.email,
       department: employee.department,
       avatar: employee.avatar || "",
-      type: type || "Casual Leave",
+      type: normalizedType,
       dayType,
       startDate,
       endDate,
@@ -247,9 +249,6 @@ export class LeaveService {
     return leave;
   }
 
-  /**
-   * Admin: Get all leave requests for the organization
-   */
   static async adminGetLeaves(organizationId, { status = "all", month = null, search = "" } = {}) {
     await dbConnect();
 
@@ -273,9 +272,11 @@ export class LeaveService {
       ];
     }
 
-    const leaves = await Leave.find(query).sort({ createdAt: -1 }).lean();
+    const leaves = await Leave.find(query)
+      .populate("employeeId", "avatar firstName lastName email department")
+      .sort({ createdAt: -1 })
+      .lean();
 
-    // Compute stats
     const allOrgLeaves = await Leave.find({ organizationId }).lean();
     const stats = {
       total: allOrgLeaves.length,
@@ -290,9 +291,6 @@ export class LeaveService {
     };
   }
 
-  /**
-   * Admin: Approve or Reject a leave request
-   */
   static async adminReviewLeave(clerkUser, organizationId, leaveId, { action, adminRemarks = "" }) {
     if (!["APPROVE", "REJECT"].includes(action)) {
       throw new BadRequestError("Invalid action. Must be APPROVE or REJECT.");

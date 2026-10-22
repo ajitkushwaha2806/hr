@@ -164,7 +164,7 @@ export function TableMobileCards({
                   </span>
                 )}
 
-                <div className="min-w-0 flex-1 font-semibold text-gray-900 dark:text-zinc-100 leading-snug">
+                <div className="min-w-0 flex-1 font-semibold text-gray-900 dark:text-zinc-100 leading-snug overflow-hidden">
                   {primaryRender}
                 </div>
               </div>
@@ -204,18 +204,18 @@ export function TableMobileCards({
                     <div
                       key={col.key || col.accessorKey || col.field || cIdx}
                       className={cn(
-                        "flex flex-col gap-1 min-w-0 bg-gray-50/80 dark:bg-zinc-900/60 p-2.5 rounded-lg border border-gray-100/90 dark:border-zinc-800/80",
+                        "flex flex-col gap-1 min-w-0 overflow-hidden bg-gray-50/80 dark:bg-zinc-900/60 p-2.5 rounded-lg border border-gray-100/90 dark:border-zinc-800/80",
                         detailCols.length % 2 === 1 && cIdx === detailCols.length - 1 && detailCols.length > 1
                           ? "col-span-2"
                           : ""
                       )}
                     >
                       {headerLabel && (
-                        <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400 dark:text-zinc-500 truncate">
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400 dark:text-zinc-500 truncate block">
                           {headerLabel}
                         </span>
                       )}
-                      <div className="text-gray-800 dark:text-zinc-200 font-medium min-w-0 break-words flex items-center gap-1.5 flex-wrap">
+                      <div className="text-gray-800 dark:text-zinc-200 font-medium min-w-0 w-full overflow-hidden flex items-center gap-1.5 flex-wrap">
                         {renderedVal}
                       </div>
                     </div>
