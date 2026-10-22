@@ -29,7 +29,7 @@ export default function PrivacyPolicyPage() {
         <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2 group">
             <Image
-              src="/assets/logo/true-hr.png"
+              src="/assets/icons/logo.png"
               alt="trueHr Logo"
               width={28}
               height={28}

@@ -16,7 +16,7 @@ export default function OnboardingHeader({
       <div className="flex items-center gap-3 min-w-0">
         <div className="size-9 sm:size-10 rounded-md overflow-hidden shadow-xs shrink-0 border border-border/40">
           <Image
-            src="/assets/logo/true-hr.png"
+            src="/assets/icons/logo.png"
             alt="trueHr"
             width={40}
             height={40}

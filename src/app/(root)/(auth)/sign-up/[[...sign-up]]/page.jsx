@@ -9,7 +9,7 @@ export default function Page() {
       forceRedirectUrl="/"
       appearance={{
         layout: {
-          logoImageUrl: "/assets/logo/true-hr.png",
+          logoImageUrl: "/assets/icons/logo.png",
         },
       }}
     />

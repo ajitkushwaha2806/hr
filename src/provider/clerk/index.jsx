@@ -6,7 +6,7 @@ export function AppClerkProvider({ children }) {
     <ClerkProvider
       appearance={{
         layout: {
-          logoImageUrl: "/assets/logo/true-hr.png",
+          logoImageUrl: "/assets/icons/logo.png",
           logoPlacement: "inside",
         },
       }}

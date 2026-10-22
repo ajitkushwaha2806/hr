@@ -265,7 +265,6 @@ export default function FaceCaptureCard({
           </div>
         )}
 
-        {/* Empty State */}
         {!isCameraActive && !value && (
           <div className="text-center p-6 space-y-3">
             <div className="size-14 rounded-2xl bg-zinc-800/80 border border-zinc-700/60 mx-auto flex items-center justify-center text-primary shadow-inner">
@@ -273,9 +272,6 @@ export default function FaceCaptureCard({
             </div>
             <div className="space-y-1">
               <p className="text-sm font-semibold text-zinc-200">No Face Photo Enrolled</p>
-              <p className="text-xs text-zinc-400 max-w-[260px] mx-auto leading-relaxed">
-                Take a clear live selfie to enable one-tap biometric attendance check-in.
-              </p>
             </div>
             <button
               type="button"
@@ -289,7 +285,6 @@ export default function FaceCaptureCard({
           </div>
         )}
 
-        {/* Uploading Spinner */}
         {isUploading && (
           <div className="absolute inset-0 bg-black/80 backdrop-blur-xs flex flex-col items-center justify-center gap-2.5 text-white z-20">
             <RefreshCw className="size-7 animate-spin text-primary" />

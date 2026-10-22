@@ -22,7 +22,7 @@ async function run() {
 
   console.log('\n--- 1. Generating BIGGER Splash Screen Assets ---');
 
-  const iconTargetWidth = 620;
+  const iconTargetWidth = 920;
   const iconResized = await sharp(logoBuffer)
     .resize({ width: iconTargetWidth })
     .toBuffer();
@@ -78,12 +78,12 @@ async function run() {
 
       let targetW;
       if (isPortrait) {
-        targetW = Math.min(Math.round(width * 0.78), Math.round(height * 0.35 * logoAspect));
+        targetW = Math.min(Math.round(width * 0.82), Math.round(height * 0.40 * logoAspect));
       } else {
-        targetW = Math.min(Math.round(width * 0.50), Math.round(height * 0.55 * logoAspect));
+        targetW = Math.min(Math.round(width * 0.52), Math.round(height * 0.60 * logoAspect));
       }
 
-      targetW = Math.max(90, Math.min(width - 24, targetW));
+      targetW = Math.max(90, Math.min(width - 20, targetW));
 
       const scaledLogo = await sharp(logoBuffer)
         .resize({ width: targetW })
