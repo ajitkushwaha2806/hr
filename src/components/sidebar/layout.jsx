@@ -134,8 +134,8 @@ export function SidebarLayout({ children }) {
           <div className="hidden md:flex items-center gap-3 shrink-0">
             <OrganizationSwitcher
               hidePersonal={false}
-              afterCreateOrganizationUrl="/dashboard"
-              afterSelectOrganizationUrl="/dashboard"
+              afterCreateOrganizationUrl="/"
+              afterSelectOrganizationUrl="/"
               appearance={{
                 elements: {
                   rootBox: "flex items-center text-xs",

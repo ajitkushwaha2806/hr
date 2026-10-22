@@ -1,4 +1,5 @@
 "use client";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Building2, LogOut, Edit3 } from "lucide-react";
 
@@ -13,8 +14,15 @@ export default function OnboardingHeader({
   return (
     <header className="h-16 w-full border-b border-border/40 bg-white/90 dark:bg-zinc-900/90 backdrop-blur-md px-4 sm:px-8 lg:px-12 flex items-center justify-between sticky top-0 z-30">
       <div className="flex items-center gap-3 min-w-0">
-        <div className="size-9 sm:size-10 rounded-xl bg-primary text-primary-foreground flex items-center justify-center font-bold text-sm sm:text-base shadow-sm shrink-0">
-          t
+        <div className="size-9 sm:size-10 rounded-md overflow-hidden shadow-xs shrink-0 border border-border/40">
+          <Image
+            src="/assets/logo/true-hr.png"
+            alt="trueHr"
+            width={40}
+            height={40}
+            className="size-full object-cover"
+            priority
+          />
         </div>
         <div className="min-w-0">
           <div className="flex items-center gap-1.5 sm:gap-2">
@@ -38,8 +46,8 @@ export default function OnboardingHeader({
         </div>
       </div>
 
-      <div className="flex items-center gap-2 sm:gap-3 shrink-0">
-        <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-muted/50 border border-border/40 text-xs">
+      <div className="flex items-center gap-2 shrink-0">
+        <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-md bg-muted/50 border border-border/40 text-xs">
           <span className="size-2 rounded-full bg-emerald-500 animate-pulse" />
           <span className="font-semibold text-foreground max-w-[150px] truncate">{user?.email}</span>
           <span className="text-[11px] font-medium text-muted-foreground">

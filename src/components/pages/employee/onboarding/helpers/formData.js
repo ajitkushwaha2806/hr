@@ -84,8 +84,7 @@ export function getInitialFormData(clerkUser, user, employee) {
     panNumber: employee?.documents?.pan?.number || "",
     panFileUrl: employee?.documents?.pan?.fileUrl || "",
 
-    // Biometric Face Photo
-    facePhoto: employee?.avatar || user?.avatar || clerkUser?.imageUrl || "",
+    facePhoto: employee?.facePhoto || employee?.avatar || "",
     avatar: employee?.avatar || user?.avatar || clerkUser?.imageUrl || "",
   };
 }

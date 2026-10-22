@@ -5,11 +5,11 @@ export default function Page() {
     <SignIn
       routing="path"
       path="/sign-in"
-      fallbackRedirectUrl="/dashboard"
-      forceRedirectUrl="/dashboard"
+      fallbackRedirectUrl="/"
+      forceRedirectUrl="/"
       appearance={{
         layout: {
-          logoImageUrl: "/logo.png",
+          logoImageUrl: "/assets/logo/logo-trimmed.png",
         },
       }}
     />

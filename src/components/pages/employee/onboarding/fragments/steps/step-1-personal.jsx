@@ -42,7 +42,6 @@ export default function Step1Personal({ formData, handleChange, errors = {} }) {
           icon={Mail}
           value={formData.email}
           disabled
-          helperText="Connected directly to your verified organization account."
         />
 
         <FloatingField
@@ -53,11 +52,9 @@ export default function Step1Personal({ formData, handleChange, errors = {} }) {
           value={formData.phone}
           onChange={(e) => handleChange("phone", e.target.value)}
           error={errors.phone}
-          helperText={!errors.phone ? "Primary number for team contact and notifications." : null}
         />
       </div>
 
-      {/* Gender & DOB */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-7">
         <FloatingRadioGroup
           label="Gender"
@@ -78,13 +75,17 @@ export default function Step1Personal({ formData, handleChange, errors = {} }) {
         />
       </div>
 
-      {/* Biometric Face Registration for Attendance */}
       <FaceCaptureCard
-        value={formData.facePhoto || formData.avatar}
+        value={
+          formData.facePhoto && !formData.facePhoto.includes("img.clerk.com")
+            ? formData.facePhoto
+            : ""
+        }
         onChange={(url) => {
           handleChange("facePhoto", url);
           handleChange("avatar", url);
         }}
+        allowRetake={true}
         error={errors.facePhoto}
       />
     </div>

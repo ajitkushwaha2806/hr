@@ -28,20 +28,20 @@ export function AppSidebar(props) {
       <SidebarHeader className="p-2 pb-1.5 group-data-[collapsible=icon]:p-2 group-data-[collapsible=icon]:items-center">
         <Link href="/" className="block w-full focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-xl">
           <Image
-            src="/assets/logo/logo-card.png"
+            src="/assets/logo/true-hr.png"
             alt="trueHr"
-            width={448}
-            height={159}
-            className="w-full h-auto rounded-xl object-contain shadow-2xs border border-border/40 group-data-[collapsible=icon]:hidden hover:opacity-95 transition-opacity"
+            width={500}
+            height={500}
+            className="w-full h-auto rounded-xl object-contain shadow-2xs group-data-[collapsible=icon]:hidden hover:opacity-95 transition-opacity"
             priority
           />
           <div className="hidden group-data-[collapsible=icon]:flex items-center justify-center p-0.5">
             <Image
-              src="/assets/logo/logo-mark.png"
+              src="/assets/logo/true-hr.png"
               alt="trueHr"
               width={32}
               height={32}
-              className="size-8 object-contain"
+              className="size-8 rounded-lg object-cover"
             />
           </div>
         </Link>

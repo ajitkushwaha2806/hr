@@ -268,8 +268,8 @@ export default function EmployeeOnboarding() {
         onSignOut={handleSignOut}
       />
 
-      <main className="flex-1 w-full px-3 sm:px-6 lg:px-12 py-5 sm:py-8 flex flex-col">
-        <div className="w-full bg-white dark:bg-zinc-900 p-4 sm:p-8 lg:p-10 rounded-2xl sm:rounded-3xl border border-border/50 shadow-xs">
+      <main className="flex-1 w-full px-3 sm:px-2 lg:px-6 py-3 sm:py-3 flex flex-col">
+        <div className="w-full bg-white dark:bg-zinc-900 p-2 sm:p-4 lg:p-8 rounded-md border border-border/50 shadow-xs">
           <form onSubmit={handleSubmit} className="space-y-8 sm:space-y-10">
             {activeStep === 1 && (
               <Step1Personal

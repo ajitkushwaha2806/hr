@@ -1,19 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
-import { 
-  ShieldCheck, 
-  Lock, 
-  MapPin, 
-  Camera, 
-  UserCheck, 
-  Database, 
-  Eye, 
-  FileText, 
-  Mail, 
-  ArrowLeft,
-  Calendar,
-  CheckCircle2
-} from "lucide-react";
+import {  ShieldCheck,  Lock,  MapPin,  Camera,  UserCheck,  Database,  Eye,  FileText,  Mail,  ArrowLeft, Calendar, CheckCircle2 } from "lucide-react";
 
 export const metadata = {
   title: "Privacy Policy | trueHr",
@@ -38,16 +25,15 @@ export default function PrivacyPolicyPage() {
 
   return (
     <div className="min-h-screen bg-slate-50/60 dark:bg-zinc-950 text-foreground transition-colors selection:bg-[#f65340]/20 selection:text-[#f65340]">
-      {/* Top Header */}
       <header className="sticky top-0 z-40 w-full border-b border-border/50 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-md">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2 group">
             <Image
-              src="/assets/logo/logo-mark.png"
+              src="/assets/logo/true-hr.png"
               alt="trueHr Logo"
               width={28}
               height={28}
-              className="size-7 object-contain group-hover:scale-105 transition-transform"
+              className="size-7 rounded-md object-cover group-hover:scale-105 transition-transform"
             />
             <div className="flex items-center leading-none">
               <span className="font-bold text-lg tracking-tight text-[#f65340]">true</span>
@@ -67,7 +53,6 @@ export default function PrivacyPolicyPage() {
         </div>
       </header>
 
-      {/* Hero Banner */}
       <section className="border-b border-border/40 bg-white dark:bg-zinc-900/50 py-10 sm:py-14">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 text-center space-y-4">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-[#f65340]/10 text-[#f65340] border border-[#f65340]/20">
@@ -122,11 +107,8 @@ export default function PrivacyPolicyPage() {
             </div>
           </aside>
 
-          {/* Legal Content Card */}
           <div className="lg:col-span-8 space-y-8">
             <div className="p-6 sm:p-10 rounded-3xl border border-border/60 bg-white dark:bg-zinc-900 shadow-xs space-y-10 leading-relaxed text-sm text-foreground/90">
-
-              {/* 1. Introduction */}
               <section id="introduction" className="space-y-3 scroll-mt-24">
                 <div className="flex items-center gap-2.5 text-[#f65340]">
                   <ShieldCheck className="w-5 h-5 shrink-0" />
@@ -140,7 +122,6 @@ export default function PrivacyPolicyPage() {
                 </p>
               </section>
 
-              {/* 2. Information We Collect */}
               <section id="information-collected" className="space-y-4 scroll-mt-24 border-t border-border/40 pt-8">
                 <div className="flex items-center gap-2.5 text-[#f65340]">
                   <Database className="w-5 h-5 shrink-0" />
@@ -165,7 +146,6 @@ export default function PrivacyPolicyPage() {
                 </ul>
               </section>
 
-              {/* 3. Biometric & Camera Data */}
               <section id="biometric-data" className="space-y-4 scroll-mt-24 border-t border-border/40 pt-8">
                 <div className="flex items-center gap-2.5 text-[#f65340]">
                   <Camera className="w-5 h-5 shrink-0" />
@@ -196,7 +176,6 @@ export default function PrivacyPolicyPage() {
                 </ul>
               </section>
 
-              {/* 4. Geolocation & Geofencing */}
               <section id="location-data" className="space-y-4 scroll-mt-24 border-t border-border/40 pt-8">
                 <div className="flex items-center gap-2.5 text-[#f65340]">
                   <MapPin className="w-5 h-5 shrink-0" />
@@ -218,7 +197,6 @@ export default function PrivacyPolicyPage() {
                 </ul>
               </section>
 
-              {/* 5. How We Use Information */}
               <section id="how-we-use" className="space-y-4 scroll-mt-24 border-t border-border/40 pt-8">
                 <div className="flex items-center gap-2.5 text-[#f65340]">
                   <UserCheck className="w-5 h-5 shrink-0" />
@@ -245,7 +223,6 @@ export default function PrivacyPolicyPage() {
                 </div>
               </section>
 
-              {/* 6. Data Sharing */}
               <section id="data-sharing" className="space-y-4 scroll-mt-24 border-t border-border/40 pt-8">
                 <div className="flex items-center gap-2.5 text-[#f65340]">
                   <Eye className="w-5 h-5 shrink-0" />
@@ -267,7 +244,6 @@ export default function PrivacyPolicyPage() {
                 </ul>
               </section>
 
-              {/* 7. Security & Encryption */}
               <section id="data-security" className="space-y-4 scroll-mt-24 border-t border-border/40 pt-8">
                 <div className="flex items-center gap-2.5 text-[#f65340]">
                   <Lock className="w-5 h-5 shrink-0" />
@@ -292,7 +268,6 @@ export default function PrivacyPolicyPage() {
                 </div>
               </section>
 
-              {/* 8. Data Retention & Deletion */}
               <section id="retention-deletion" className="space-y-4 scroll-mt-24 border-t border-border/40 pt-8">
                 <div className="flex items-center gap-2.5 text-[#f65340]">
                   <Database className="w-5 h-5 shrink-0" />
@@ -343,7 +318,6 @@ export default function PrivacyPolicyPage() {
         </div>
       </main>
 
-      {/* Footer */}
       <footer className="border-t border-border/40 bg-white dark:bg-zinc-900/60 py-8 text-xs text-muted-foreground">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">

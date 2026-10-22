@@ -57,8 +57,7 @@ export function MobileNav() {
       {navItems.map(({ item, label }) => {
         const isActive =
           pathname === item.url ||
-          (item.url !== "/" && item.url !== "/dashboard" && pathname?.startsWith(item.url)) ||
-          (item.url === "/dashboard" && (pathname === "/" || pathname === "/dashboard"));
+          (item.url !== "/" && pathname?.startsWith(item.url));
 
         return (
           <Link
