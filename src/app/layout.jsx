@@ -17,7 +17,7 @@ export const viewport = {
 };
 
 export const metadata = {
-  title: "trueHr - Track Attendance. Track Employees.",
+  title: "trueHR - Track Attendance. Track Employees.",
   description: "Modern HR Management Platform for attendance tracking, leave requests, employee records, and payroll.",
   icons: {
     icon: "/assets/icons/logo.png",
@@ -25,7 +25,7 @@ export const metadata = {
   },
   manifest: "/manifest.json",
   openGraph: {
-    title: "trueHr - Track Attendance. Track Employees.",
+    title: "trueHR - Track Attendance. Track Employees.",
     description: "Modern HR Management Platform for attendance, leaves, and workforce tracking.",
     images: ["/assets/icons/logo.png"],
   },

@@ -34,7 +34,7 @@ export function AppSidebar(props) {
           <div className="size-10 rounded-md overflow-hidden shrink-0 shadow-2xs border border-primary/20 bg-primary flex items-center justify-center group-hover/logo:scale-105 transition-transform">
             <Image
               src="/assets/icons/logo.png"
-              alt="trueHr"
+              alt="trueHR"
               width={40}
               height={40}
               className="size-full object-cover rounded-md"

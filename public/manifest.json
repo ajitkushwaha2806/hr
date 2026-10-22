@@ -1,7 +1,7 @@
 {
-  "name": "trueHr",
-  "short_name": "trueHr",
-  "description": "trueHr - Track Attendance. Track Employees. Modern HR & workforce management platform.",
+  "name": "trueHR",
+  "short_name": "trueHR",
+  "description": "trueHR - Track Attendance. Track Employees. Modern HR & workforce management platform.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#db543e",

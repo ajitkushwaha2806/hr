@@ -17,7 +17,7 @@ export default function OnboardingHeader({
         <div className="size-9 sm:size-10 rounded-md overflow-hidden shadow-xs shrink-0 border border-border/40">
           <Image
             src="/assets/icons/logo.png"
-            alt="trueHr"
+            alt="trueHR"
             width={40}
             height={40}
             className="size-full object-cover"
@@ -27,7 +27,7 @@ export default function OnboardingHeader({
         <div className="min-w-0">
           <div className="flex items-center gap-1.5 sm:gap-2">
             <span className="font-bold text-sm text-foreground tracking-tight whitespace-nowrap">
-              trueHr Portal
+              trueHR Portal
             </span>
             {isOnboarded && !isEditing ? (
               <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 whitespace-nowrap">

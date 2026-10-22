@@ -3,8 +3,8 @@ import Image from "next/image";
 import {  ShieldCheck,  Lock,  MapPin,  Camera,  UserCheck,  Database,  Eye,  FileText,  Mail,  ArrowLeft, Calendar, CheckCircle2 } from "lucide-react";
 
 export const metadata = {
-  title: "Privacy Policy | trueHr",
-  description: "Learn how trueHr collects, uses, protects, and handles your employee personal, biometric, and attendance data.",
+  title: "Privacy Policy | trueHR",
+  description: "Learn how trueHR collects, uses, protects, and handles your employee personal, biometric, and attendance data.",
 };
 
 export default function PrivacyPolicyPage() {
@@ -30,14 +30,14 @@ export default function PrivacyPolicyPage() {
           <Link href="/" className="flex items-center gap-2 group">
             <Image
               src="/assets/icons/logo.png"
-              alt="trueHr Logo"
+              alt="trueHR Logo"
               width={28}
               height={28}
               className="size-7 rounded-md object-cover group-hover:scale-105 transition-transform"
             />
             <div className="flex items-center leading-none">
               <span className="font-bold text-lg tracking-tight text-[#f65340]">true</span>
-              <span className="font-bold text-lg tracking-tight text-foreground">Hr</span>
+              <span className="font-bold text-lg tracking-tight text-foreground">HR</span>
             </div>
           </Link>
 
@@ -57,7 +57,7 @@ export default function PrivacyPolicyPage() {
         <div className="max-w-4xl mx-auto px-4 sm:px-6 text-center space-y-4">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-[#f65340]/10 text-[#f65340] border border-[#f65340]/20">
             <ShieldCheck className="w-3.5 h-3.5" />
-            <span>trueHr Legal & Transparency Center</span>
+            <span>trueHR Legal & Transparency Center</span>
           </div>
 
           <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-foreground">
@@ -65,7 +65,7 @@ export default function PrivacyPolicyPage() {
           </h1>
 
           <p className="text-sm sm:text-base text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-            Your trust and data privacy are paramount. This policy outlines how <span className="font-semibold text-foreground">trueHr</span> collects, handles, safeguards, and respects your employee records, facial recognition attendance scans, and workplace geolocation data.
+            Your trust and data privacy are paramount. This policy outlines how <span className="font-semibold text-foreground">trueHR</span> collects, handles, safeguards, and respects your employee records, facial recognition attendance scans, and workplace geolocation data.
           </p>
 
           <div className="flex items-center justify-center gap-4 pt-2 text-xs text-muted-foreground">
@@ -115,10 +115,10 @@ export default function PrivacyPolicyPage() {
                   <h2 className="text-xl font-bold tracking-tight text-foreground">1. Introduction</h2>
                 </div>
                 <p>
-                  Welcome to <strong className="text-foreground">trueHr</strong> (&ldquo;we,&rdquo; &ldquo;our,&rdquo; or &ldquo;us&rdquo;). trueHr is a modern human resource management, attendance verification, leave tracking, and workforce management platform designed for organizations and their employees.
+                  Welcome to <strong className="text-foreground">trueHR</strong> (&ldquo;we,&rdquo; &ldquo;our,&rdquo; or &ldquo;us&rdquo;). trueHR is a modern human resource management, attendance verification, leave tracking, and workforce management platform designed for organizations and their employees.
                 </p>
                 <p>
-                  This Privacy Policy applies to our mobile applications (Android/iOS), web platform, API services, and associated products. By installing, accessing, or using trueHr, you and your employer acknowledge the collection and handling of information in accordance with this policy.
+                  This Privacy Policy applies to our mobile applications (Android/iOS), web platform, API services, and associated products. By installing, accessing, or using trueHR, you and your employer acknowledge the collection and handling of information in accordance with this policy.
                 </p>
               </section>
 
@@ -157,7 +157,7 @@ export default function PrivacyPolicyPage() {
                     Strict Biometric Privacy Standards
                   </p>
                   <p className="text-xs text-foreground/85 leading-normal">
-                    trueHr utilizes high-precision facial verification strictly to authenticate that the employee punching in is physically present, eliminating &ldquo;buddy punching&rdquo; and payroll fraud.
+                    trueHR utilizes high-precision facial verification strictly to authenticate that the employee punching in is physically present, eliminating &ldquo;buddy punching&rdquo; and payroll fraud.
                   </p>
                 </div>
                 <ul className="space-y-2 list-disc list-inside pl-1 text-foreground/80">
@@ -182,14 +182,14 @@ export default function PrivacyPolicyPage() {
                   <h2 className="text-xl font-bold tracking-tight text-foreground">4. Geolocation & Workplace Geofencing</h2>
                 </div>
                 <p>
-                  trueHr uses location services to verify that punch events occur within designated office premises:
+                  trueHR uses location services to verify that punch events occur within designated office premises:
                 </p>
                 <ul className="space-y-2 list-disc list-inside pl-1 text-foreground/80">
                   <li>
                     <strong className="text-foreground">Point-in-Time Geolocation:</strong> Your device&apos;s GPS coordinates are acquired exclusively at the instant you click the punch button.
                   </li>
                   <li>
-                    <strong className="text-foreground">Zero Background Tracking:</strong> trueHr does <span className="underline font-semibold text-foreground">not</span> track your location continuously throughout the day, during off-duty hours, weekends, or leaves.
+                    <strong className="text-foreground">Zero Background Tracking:</strong> trueHR does <span className="underline font-semibold text-foreground">not</span> track your location continuously throughout the day, during off-duty hours, weekends, or leaves.
                   </li>
                   <li>
                     <strong className="text-foreground">Geofence Radius Validation:</strong> Coordinates are mathematically checked against your company&apos;s configured office coordinates and allowable radius (e.g., 100 meters).
@@ -274,7 +274,7 @@ export default function PrivacyPolicyPage() {
                   <h2 className="text-xl font-bold tracking-tight text-foreground">8. Data Retention & Deletion</h2>
                 </div>
                 <p>
-                  We retain personal data for the duration of the employer&apos;s active subscription with trueHr, or as required by applicable statutory labor and employment laws.
+                  We retain personal data for the duration of the employer&apos;s active subscription with trueHR, or as required by applicable statutory labor and employment laws.
                 </p>
                 <p>
                   When an employee departs the organization, or upon written request from the employer, personal data and facial reference hashes are permanently purged or anonymized from active operational databases in accordance with our data retention schedule.
@@ -306,7 +306,7 @@ export default function PrivacyPolicyPage() {
                   If you have questions, feedback, or concerns regarding this Privacy Policy, or if you wish to exercise your data rights, please contact our Data Protection Officer:
                 </p>
                 <div className="p-4 rounded-xl border border-border/60 bg-muted/30 space-y-1 text-xs">
-                  <p className="font-bold text-foreground">trueHr Data Protection & Privacy Team</p>
+                  <p className="font-bold text-foreground">trueHR Data Protection & Privacy Team</p>
                   <p className="text-muted-foreground">Email: <a href="mailto:privacy@truehr.app" className="text-[#f65340] hover:underline font-medium">privacy@truehr.app</a></p>
                   <p className="text-muted-foreground">Support: <a href="mailto:support@truehr.app" className="text-[#f65340] hover:underline font-medium">support@truehr.app</a></p>
                   <p className="text-muted-foreground">Website: <a href="https://truehr.magicscale.in" className="text-[#f65340] hover:underline font-medium">https://truehr.magicscale.in</a></p>
@@ -321,8 +321,8 @@ export default function PrivacyPolicyPage() {
       <footer className="border-t border-border/40 bg-white dark:bg-zinc-900/60 py-8 text-xs text-muted-foreground">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
-            <span className="font-bold text-[#f65340]">true<span className="text-foreground">Hr</span></span>
-            <span>© {new Date().getFullYear()} trueHr Inc. All rights reserved.</span>
+            <span className="font-bold text-[#f65340]">true<span className="text-foreground">HR</span></span>
+            <span>© {new Date().getFullYear()} trueHR Inc. All rights reserved.</span>
           </div>
 
           <div className="flex items-center gap-4">

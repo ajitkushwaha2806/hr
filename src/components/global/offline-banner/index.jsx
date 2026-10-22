@@ -59,7 +59,7 @@ export default function OfflineBanner() {
           className="fixed top-0 left-0 right-0 z-[99999] flex items-center justify-center gap-2 px-4 pt-[max(0.625rem,env(safe-area-inset-top))] pb-2.5 bg-emerald-600 text-white text-xs sm:text-sm font-medium shadow-md"
         >
           <Wifi className="w-4 h-4 flex-shrink-0" />
-          <span>Back online! Reconnected to trueHr.</span>
+          <span>Back online! Reconnected to trueHR.</span>
         </motion.div>
       )}
     </AnimatePresence>

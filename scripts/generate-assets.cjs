@@ -20,9 +20,17 @@ async function run() {
 
   console.log('Logo dimensions:', logoMeta.width, 'x', logoMeta.height, 'Aspect:', logoAspect);
 
-  console.log('\n--- 1. Generating BIGGER Splash Screen Assets ---');
+  console.log('\n--- 1. Generating Splash Screen Assets from Master public/assets/splash.png ---');
 
-  const iconTargetWidth = 920;
+  const masterSplashPath = path.join(__dirname, '../public/assets/splash.png');
+  if (!fs.existsSync(masterSplashPath)) {
+    console.error('Missing master splash at public/assets/splash.png!');
+    process.exit(1);
+  }
+
+  // Generate splash_icon.png for Android 12+ system window icon
+  // Needs to fit comfortably within the 682px circular mask of a 1024x1024 canvas
+  const iconTargetWidth = 640;
   const iconResized = await sharp(logoBuffer)
     .resize({ width: iconTargetWidth })
     .toBuffer();
@@ -48,10 +56,11 @@ async function run() {
     const fullPath = path.join(__dirname, '..', dest);
     if (fs.existsSync(path.dirname(fullPath))) {
       await sharp(splashIcon1024).toFile(fullPath);
-      console.log('Generated bigger Android 12+ splash icon:', dest);
+      console.log('Generated Android 12+ splash icon:', dest);
     }
   }
 
+  // Update all Android splash.png drawables from masterSplashPath
   const resDir = path.join(__dirname, '../android/app/src/main/res');
   const splashDrawables = [];
 
@@ -68,7 +77,7 @@ async function run() {
 
   if (fs.existsSync(resDir)) {
     findSplashFiles(resDir);
-    console.log(`Updating ${splashDrawables.length} splash.png drawables with MUCH BIGGER logo (78% width)`);
+    console.log(`Updating ${splashDrawables.length} splash.png drawables using public/assets/splash.png`);
 
     for (const file of splashDrawables) {
       const meta = await sharp(file).metadata();
@@ -76,53 +85,35 @@ async function run() {
       const height = meta.height;
       const isPortrait = height >= width;
 
-      let targetW;
       if (isPortrait) {
-        targetW = Math.min(Math.round(width * 0.82), Math.round(height * 0.40 * logoAspect));
+        // High quality contain with matching coral background
+        await sharp(masterSplashPath)
+          .resize(width, height, {
+            fit: 'contain',
+            background: BG_COLOR,
+          })
+          .png()
+          .toFile(file);
       } else {
-        targetW = Math.min(Math.round(width * 0.52), Math.round(height * 0.60 * logoAspect));
+        await sharp(masterSplashPath)
+          .resize(width, height, {
+            fit: 'contain',
+            background: BG_COLOR,
+          })
+          .png()
+          .toFile(file);
       }
-
-      targetW = Math.max(90, Math.min(width - 20, targetW));
-
-      const scaledLogo = await sharp(logoBuffer)
-        .resize({ width: targetW })
-        .toBuffer();
-
-      await sharp({
-        create: {
-          width,
-          height,
-          channels: 4,
-          background: BG_COLOR,
-        },
-      })
-        .composite([{ input: scaledLogo, gravity: 'center' }])
-        .png()
-        .toFile(file);
     }
-    console.log('Updated all Android splash drawables.');
+
+    // Also ensure android/app/src/main/res/drawable/splash.png is high-res 1080x1920
+    const defaultDrawableSplash = path.join(resDir, 'drawable/splash.png');
+    await sharp(masterSplashPath)
+      .resize(1080, 1920, { fit: 'contain', background: BG_COLOR })
+      .png()
+      .toFile(defaultDrawableSplash);
+
+    console.log('Updated all Android splash drawables from master splash.');
   }
-
-  const webSplashPath = path.join(__dirname, '../public/assets/splash.png');
-  const webWidth = 1080;
-  const webHeight = 1920;
-  const webLogoWidth = Math.round(webWidth * 0.78); 
-  const webScaledLogo = await sharp(logoBuffer).resize({ width: webLogoWidth }).toBuffer();
-
-  await sharp({
-    create: {
-      width: webWidth,
-      height: webHeight,
-      channels: 4,
-      background: BG_COLOR,
-    },
-  })
-    .composite([{ input: webScaledLogo, gravity: 'center' }])
-    .png()
-    .toFile(webSplashPath);
-
-  console.log('Generated Web/PWA Splash (842px logo): public/assets/splash.png');
 
   console.log('\n--- 2. Generating App Icons using Final Logo ---');
   async function createSquareIcon(size, logoScale = 0.75) {

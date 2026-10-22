@@ -2,7 +2,7 @@ import { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
   appId: 'com.truehr.hrms',
-  appName: 'trueHr',
+  appName: 'trueHR',
   webDir: 'public',
   server: {
     url: 'https://truehr.magicscale.in',
@@ -20,7 +20,7 @@ const config: CapacitorConfig = {
   },
   plugins: {
     SplashScreen: {
-      launchShowDuration: 3000,
+      launchShowDuration: 0,
       launchAutoHide: true,
       backgroundColor: "#db543e",
       androidSplashResourceName: "splash",
@@ -28,7 +28,7 @@ const config: CapacitorConfig = {
       showSpinner: false,
       splashFullScreen: true,
       splashImmersive: true,
-      useDialog: true
+      useDialog: false
     }
   }
 };
