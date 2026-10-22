@@ -56,18 +56,38 @@ export function useCalendar() {
     },
   });
 
+  const handleSetYear = (valOrFn) => {
+    setYear((prev) => {
+      const val = typeof valOrFn === "function" ? valOrFn(prev) : valOrFn;
+      return Math.min(2027, Math.max(2026, Number(val) || 2026));
+    });
+  };
+
+  const handleSetMonth = (valOrFn) => {
+    setMonth((prev) => {
+      const val = typeof valOrFn === "function" ? valOrFn(prev) : valOrFn;
+      const num = Number(val) || 10;
+      if (year >= 2027) {
+        return Math.min(12, Math.max(1, num));
+      }
+      return Math.min(12, Math.max(10, num));
+    });
+  };
+
   const nextMonth = () => {
-    if (year === 2027 && month === 12) return; 
+    if (year >= 2027 && month >= 12) return; 
     if (month === 12) {
-      setYear((prev) => prev + 1);
-      setMonth(1);
+      if (year < 2027) {
+        setYear((prev) => prev + 1);
+        setMonth(1);
+      }
     } else {
       setMonth((prev) => prev + 1);
     }
   };
 
   const prevMonth = () => {
-    if (year === 2026 && month === 10) return; 
+    if (year <= 2026 && month <= 10) return; 
     if (month === 1) {
       setYear((prev) => prev - 1);
       setMonth(12);
@@ -84,8 +104,8 @@ export function useCalendar() {
   return {
     year,
     month,
-    setYear,
-    setMonth,
+    setYear: handleSetYear,
+    setMonth: handleSetMonth,
     nextMonth,
     prevMonth,
     jumpToToday,

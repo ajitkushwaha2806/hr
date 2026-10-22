@@ -4,8 +4,8 @@
   "description": "trueHr - Track Attendance. Track Employees. Modern HR & workforce management platform.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#FBF9F3",
-  "theme_color": "#f65340",
+  "background_color": "#db543e",
+  "theme_color": "#db543e",
   "icons": [
     {
       "src": "assets/icons/icon-48.webp",

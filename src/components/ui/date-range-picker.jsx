@@ -113,6 +113,7 @@ export function DatePickerWithRange({ className, date, setDate }) {
                 selected={tempDate}
                 onSelect={setTempDate}
                 numberOfMonths={1}
+                disabled={(date) => date > new Date(2027, 11, 31)}
                 className="select-none"
               />
             </div>

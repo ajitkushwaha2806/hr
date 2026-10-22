@@ -1,6 +1,15 @@
-import { CheckCircle2, XCircle, Clock, CalendarDays, Sparkles, Coffee } from "lucide-react";
+import { CheckCircle2, XCircle, Clock, CalendarDays, Briefcase } from "lucide-react";
 
 export const CALENDAR_LEGENDS = [
+  {
+    id: "working-day",
+    name: "Working Day",
+    label: "Working Day",
+    icon: Briefcase,
+    iconClass: "text-blue-600 dark:text-blue-400",
+    dotColor: "bg-blue-500",
+    badgeClass: "bg-blue-500/10 text-blue-700 dark:text-blue-300",
+  },
   {
     id: "present",
     name: "Present",
@@ -45,23 +54,5 @@ export const CALENDAR_LEGENDS = [
     iconClass: "text-sky-600 dark:text-sky-400",
     dotColor: "bg-sky-500",
     badgeClass: "bg-sky-500/10 text-sky-700 dark:text-sky-300",
-  },
-  {
-    id: "holiday",
-    name: "Holiday",
-    label: "Holiday",
-    icon: Sparkles,
-    iconClass: "text-purple-600 dark:text-purple-400",
-    dotColor: "bg-purple-500",
-    badgeClass: "bg-purple-500/10 text-purple-700 dark:text-purple-300",
-  },
-  {
-    id: "weekly-off",
-    name: "Weekly Off",
-    label: "Weekly Off",
-    icon: Coffee,
-    iconClass: "text-slate-500 dark:text-slate-400",
-    dotColor: "bg-slate-400",
-    badgeClass: "bg-slate-500/10 text-slate-700 dark:text-slate-300",
   },
 ];

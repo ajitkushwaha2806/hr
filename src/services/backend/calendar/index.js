@@ -76,13 +76,19 @@ export class CalendarService {
       await this.seedOrganizationCalendar({ organizationId });
     } else {
       await CalendarDay.updateMany(
-        { organizationId, isCustom: false, type: { $ne: "WORKING_DAY" } },
-        { $set: { type: "WORKING_DAY", title: "Working Day" } }
+        { organizationId, type: { $ne: "WORKING_DAY" } },
+        { $set: { type: "WORKING_DAY", title: "Working Day", isCustom: false } }
       );
     }
 
-    const currentYear = Number(year) || 2026;
-    const currentMonth = Number(month) || 10;
+    let currentYear = Number(year) || 2026;
+    let currentMonth = Number(month) || 10;
+
+    // Enforce max date boundary: 2027 December 31
+    if (currentYear > 2027 || (currentYear === 2027 && currentMonth > 12)) {
+      currentYear = 2027;
+      currentMonth = 12;
+    }
 
     const days = await CalendarDay.find({
       organizationId,

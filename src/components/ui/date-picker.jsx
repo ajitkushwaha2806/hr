@@ -34,7 +34,7 @@ function DatePicker({
   disabled = false,
   className = "",
   minYear = 1940,
-  maxYear = new Date().getFullYear() + 5,
+  maxYear = 2027,
   displayFormat = "dd MMM yyyy",
 }) {
   const [open, setOpen] = useState(false);
@@ -49,13 +49,15 @@ function DatePicker({
     }
   }
 
+  const effectiveMaxYear = Math.min(2027, maxYear);
+
   const years = useMemo(() => {
     const list = [];
-    for (let y = maxYear; y >= minYear; y--) {
+    for (let y = effectiveMaxYear; y >= minYear; y--) {
       list.push(y);
     }
     return list;
-  }, [minYear, maxYear]);
+  }, [minYear, effectiveMaxYear]);
 
   const handleSelect = (selectedDate) => {
     if (!selectedDate) {
@@ -156,6 +158,7 @@ function DatePicker({
           onSelect={handleSelect}
           month={currentMonth}
           onMonthChange={setCurrentMonth}
+          disabled={(date) => date > new Date(2027, 11, 31)}
           className="p-0"
         />
       </PopoverContent>
@@ -173,7 +176,7 @@ function FloatingDatePicker({
   disabled = false,
   helperText,
   minYear = 1940,
-  maxYear = new Date().getFullYear() + 5,
+  maxYear = 2027,
   displayFormat = "dd MMMM yyyy",
   className = "",
 }) {
@@ -189,13 +192,15 @@ function FloatingDatePicker({
     }
   }
 
+  const effectiveMaxYear = Math.min(2027, maxYear);
+
   const years = useMemo(() => {
     const list = [];
-    for (let y = maxYear; y >= minYear; y--) {
+    for (let y = effectiveMaxYear; y >= minYear; y--) {
       list.push(y);
     }
     return list;
-  }, [minYear, maxYear]);
+  }, [minYear, effectiveMaxYear]);
 
   const handleSelect = (selectedDate) => {
     if (!selectedDate) {
@@ -325,6 +330,7 @@ function FloatingDatePicker({
             onSelect={handleSelect}
             month={currentMonth}
             onMonthChange={setCurrentMonth}
+            disabled={(date) => date > new Date(2027, 11, 31)}
             className="p-0"
           />
         </PopoverContent>
