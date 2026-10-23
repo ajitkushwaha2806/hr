@@ -53,6 +53,42 @@ const OfficeLocationSchema = new mongoose.Schema(
       default: "",
       trim: true,
     },
+    // Company Profile & Legal NDA Details
+    companyName: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+    companyAddress: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+    companyPhone: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+    companyWebsite: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+    companyRepresentative: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+    companyDesignation: {
+      type: String,
+      default: "Authorized Signatory",
+      trim: true,
+    },
+    companyLogo: {
+      type: String,
+      default: "",
+      trim: true,
+    },
     isActive: {
       type: Boolean,
       default: true,

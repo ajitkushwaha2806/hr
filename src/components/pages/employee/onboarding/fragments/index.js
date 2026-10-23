@@ -9,3 +9,4 @@ export { default as Step1Personal } from "./steps/step-1-personal";
 export { default as Step2Role } from "./steps/step-2-role";
 export { default as Step3Addresses } from "./steps/step-3-addresses";
 export { default as Step4Documents } from "./steps/step-4-documents";
+export { default as Step5Nda } from "./steps/step-5-nda";

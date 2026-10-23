@@ -321,6 +321,41 @@ export class CheckInService {
       .limit(limit)
       .populate("employeeId", "name firstName lastName email department designation avatar employeeCode");
 
+    if (date) {
+      const todayStr = getTodayDateString();
+      if (date <= todayStr) {
+        const punchedEmployeeIds = new Set(
+          punches
+            .filter((p) => p.employeeId && (p.employeeId._id || p.employeeId.id))
+            .map((p) => (p.employeeId._id || p.employeeId.id).toString())
+        );
+
+        const allEmployees = await Employee.find({
+          ...(organizationId ? { organizationId } : {}),
+          status: { $nin: ["Terminated", "Inactive"] },
+        }).select("name firstName lastName email department designation avatar employeeCode");
+
+        const absentLogs = [];
+        for (const emp of allEmployees) {
+          if (!punchedEmployeeIds.has(emp._id.toString())) {
+            absentLogs.push({
+              _id: `absent_${emp._id}_${date}`,
+              organizationId: emp.organizationId || organizationId,
+              employeeId: emp,
+              date,
+              status: "ABSENT",
+              checkIn: null,
+              checkOut: null,
+              durationMinutes: 0,
+              createdAt: new Date(),
+            });
+          }
+        }
+
+        return [...punches, ...absentLogs];
+      }
+    }
+
     return punches;
   }
 }

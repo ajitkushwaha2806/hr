@@ -1,13 +1,14 @@
 "use client";
 import { useState, useEffect } from "react";
 import { AttendanceService } from "@/services/frontend/attendance";
-import { X, MapPin, Navigation, Save, RefreshCw, CheckCircle2, AlertCircle, Clock, ShieldCheck } from "lucide-react";
+import { X, MapPin, Navigation, Save, RefreshCw, CheckCircle2, AlertCircle, Clock, ShieldCheck, Building2 } from "lucide-react";
 
 export default function OfficeLocationModal({
   isOpen,
   onClose,
   currentLocation,
   onUpdated,
+  onSaved,
 }) {
   const [officeName, setOfficeName] = useState("Headquarters");
   const [latitude, setLatitude] = useState("");
@@ -18,6 +19,14 @@ export default function OfficeLocationModal({
   const [shiftEnd, setShiftEnd] = useState("19:00");
   const [gracePeriod, setGracePeriod] = useState(15);
   const [matchThreshold, setMatchThreshold] = useState(75);
+
+  // Company Profile for NDA & Agreements
+  const [companyName, setCompanyName] = useState("");
+  const [companyAddress, setCompanyAddress] = useState("");
+  const [companyPhone, setCompanyPhone] = useState("");
+  const [companyWebsite, setCompanyWebsite] = useState("");
+  const [companyRepresentative, setCompanyRepresentative] = useState("");
+  const [companyDesignation, setCompanyDesignation] = useState("Authorized Signatory");
 
   const [isDetectingGps, setIsDetectingGps] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -40,6 +49,14 @@ export default function OfficeLocationModal({
         setShiftEnd(currentLocation.shiftEnd || "19:00");
         setGracePeriod(currentLocation.gracePeriod ?? 15);
         setMatchThreshold(currentLocation.matchThreshold ?? 75);
+
+        // Populate company legal details
+        setCompanyName(currentLocation.companyName || "");
+        setCompanyAddress(currentLocation.companyAddress || currentLocation.address || "");
+        setCompanyPhone(currentLocation.companyPhone || "");
+        setCompanyWebsite(currentLocation.companyWebsite || "");
+        setCompanyRepresentative(currentLocation.companyRepresentative || "");
+        setCompanyDesignation(currentLocation.companyDesignation || "Authorized Signatory");
       }
     }, 0);
 
@@ -98,10 +115,17 @@ export default function OfficeLocationModal({
         shiftEnd: shiftEnd || "19:00",
         gracePeriod: Number(gracePeriod) || 15,
         matchThreshold: Number(matchThreshold) || 75,
+        companyName: companyName.trim(),
+        companyAddress: companyAddress.trim(),
+        companyPhone: companyPhone.trim(),
+        companyWebsite: companyWebsite.trim(),
+        companyRepresentative: companyRepresentative.trim(),
+        companyDesignation: companyDesignation.trim() || "Authorized Signatory",
       });
 
-      setStatusMessage("Office location & attendance rules calibrated successfully!");
+      setStatusMessage("Office location & company rules saved successfully!");
       if (onUpdated) onUpdated(res.data || res);
+      if (onSaved) onSaved(res.data || res);
       setTimeout(() => {
         onClose();
       }, 1000);
@@ -354,6 +378,100 @@ export default function OfficeLocationModal({
               <p className="text-[11px] text-muted-foreground">
                 Face match scores below {matchThreshold}% will be blocked to prevent photo spoofs.
               </p>
+            </div>
+
+            {/* COMPANY & LEGAL PROFILE (FOR NDA & AGREEMENTS) */}
+            <div className="space-y-3 pt-3.5 border-t border-border/60">
+              <div>
+                <span className="font-bold text-foreground text-xs uppercase tracking-wider flex items-center gap-1.5">
+                  <Building2 className="size-3.5 text-primary" /> Company Profile & NDA Details
+                </span>
+                <p className="text-[11px] text-muted-foreground mt-0.5">
+                  These legal details will be dynamically injected into employee Non-Disclosure Agreements and contracts.
+                </p>
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-foreground mb-1">
+                  Company Legal Entity Name
+                </label>
+                <input
+                  type="text"
+                  value={companyName}
+                  onChange={(e) => setCompanyName(e.target.value)}
+                  placeholder="e.g. Acme Technologies Pvt. Ltd."
+                  className="w-full px-3 py-2 rounded-xl border border-border bg-background text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-primary shadow-2xs"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-foreground mb-1">
+                  Registered Office Address
+                </label>
+                <textarea
+                  value={companyAddress}
+                  onChange={(e) => setCompanyAddress(e.target.value)}
+                  placeholder="e.g. 4th Floor, Tech Hub, Cyber City, Sector 63..."
+                  rows={2}
+                  className="w-full px-3 py-2 rounded-xl border border-border bg-background text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-primary shadow-2xs resize-none"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-medium text-foreground mb-1">
+                    Contact Phone
+                  </label>
+                  <input
+                    type="text"
+                    value={companyPhone}
+                    onChange={(e) => setCompanyPhone(e.target.value)}
+                    placeholder="e.g. +91 98765 43210"
+                    className="w-full px-3 py-2 rounded-xl border border-border bg-background text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-primary shadow-2xs"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-medium text-foreground mb-1">
+                    Official Website
+                  </label>
+                  <input
+                    type="text"
+                    value={companyWebsite}
+                    onChange={(e) => setCompanyWebsite(e.target.value)}
+                    placeholder="e.g. www.acme.com"
+                    className="w-full px-3 py-2 rounded-xl border border-border bg-background text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-primary shadow-2xs"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-medium text-foreground mb-1">
+                    Authorized Signatory / Representative
+                  </label>
+                  <input
+                    type="text"
+                    value={companyRepresentative}
+                    onChange={(e) => setCompanyRepresentative(e.target.value)}
+                    placeholder="e.g. John Doe (Director)"
+                    className="w-full px-3 py-2 rounded-xl border border-border bg-background text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-primary shadow-2xs"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-medium text-foreground mb-1">
+                    Signatory Designation
+                  </label>
+                  <input
+                    type="text"
+                    value={companyDesignation}
+                    onChange={(e) => setCompanyDesignation(e.target.value)}
+                    placeholder="e.g. Authorized Signatory"
+                    className="w-full px-3 py-2 rounded-xl border border-border bg-background text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-primary shadow-2xs"
+                  />
+                </div>
+              </div>
             </div>
           </div>
 

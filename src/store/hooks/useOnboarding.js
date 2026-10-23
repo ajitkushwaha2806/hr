@@ -51,6 +51,7 @@ export function useOnboarding() {
 
   return {
     user: data?.user || null,
+    companyDetails: data?.companyDetails || null,
     isOnboarded: isAdmin ? true : Boolean(data?.user?.isOnboarded),
     isAdmin,
     role: rawRole,

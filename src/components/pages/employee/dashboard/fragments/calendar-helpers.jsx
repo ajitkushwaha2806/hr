@@ -136,7 +136,7 @@ export function getStatusBadge(statusOrDay, customTitle, extra) {
       return (
         <div className={`${baseBadgeClass} bg-emerald-500/10 text-emerald-700 dark:text-emerald-300`}>
           <CheckCircle2 className="size-3 shrink-0 text-emerald-600 dark:text-emerald-400" />
-          <span className="truncate">{title || "Present"}</span>
+          <span className="truncate">{title && title !== "Working Day" ? title : "Present"}</span>
         </div>
       );
 
@@ -152,7 +152,7 @@ export function getStatusBadge(statusOrDay, customTitle, extra) {
       return (
         <div className={`${baseBadgeClass} bg-amber-500/10 text-amber-700 dark:text-amber-300`}>
           <Clock className="size-3 shrink-0 text-amber-600 dark:text-amber-400" />
-          <span className="truncate">{title || "Half Day"}</span>
+          <span className="truncate">{title && title !== "Working Day" ? title : "Half Day"}</span>
         </div>
       );
 
@@ -161,7 +161,7 @@ export function getStatusBadge(statusOrDay, customTitle, extra) {
       return (
         <div className={`${baseBadgeClass} bg-orange-500/10 text-orange-700 dark:text-orange-300`}>
           <Clock className="size-3 shrink-0 text-orange-600 dark:text-orange-400" />
-          <span className="truncate">{title || "No Punch Out"}</span>
+          <span className="truncate">{title && title !== "Working Day" ? title : "No Punch Out"}</span>
         </div>
       );
 
@@ -170,7 +170,7 @@ export function getStatusBadge(statusOrDay, customTitle, extra) {
       return (
         <div className={`${baseBadgeClass} bg-sky-500/10 text-sky-700 dark:text-sky-300`}>
           <CalendarDays className="size-3 shrink-0 text-sky-600 dark:text-sky-400" />
-          <span className="truncate">{title || "Leave"}</span>
+          <span className="truncate">{title && title !== "Working Day" ? title : "Leave"}</span>
         </div>
       );
 

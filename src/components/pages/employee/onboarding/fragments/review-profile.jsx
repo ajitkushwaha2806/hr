@@ -187,6 +187,12 @@ export default function ReviewProfile({ user, employee, organization }) {
                 {employee?.documents?.pan?.number || "Uploaded"}
               </p>
             </div>
+            <div>
+              <span className="text-muted-foreground">NDA Agreement:</span>
+              <p className="font-semibold text-emerald-600 dark:text-emerald-400">
+                {employee?.nda?.isSigned ? "✓ Electronically Executed" : "Executed"}
+              </p>
+            </div>
           </div>
         </div>
       </div>

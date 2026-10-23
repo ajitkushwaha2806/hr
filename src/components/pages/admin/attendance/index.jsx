@@ -9,6 +9,7 @@ import {
   ChevronLeft,
   ChevronRight,
   UserCheck,
+  XCircle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DatePicker } from "@/components/ui/date-picker";
@@ -61,8 +62,31 @@ export default function AttendanceManagement() {
   );
 
   useEffect(() => {
-    fetchAttendanceLogs(selectedDate, true);
-  }, [selectedDate, fetchAttendanceLogs]);
+    let ignore = false;
+    const loadData = async () => {
+      try {
+        const res = await AttendanceService.getAdminAttendanceLogs({
+          date: selectedDate,
+          limit: 100,
+        });
+        if (!ignore && res?.success) {
+          setLogs(res.data || []);
+        }
+      } catch (err) {
+        if (!ignore) {
+          notify.error(err?.message || "Failed to load attendance logs");
+        }
+      } finally {
+        if (!ignore) {
+          setIsLoading(false);
+        }
+      }
+    };
+    loadData();
+    return () => {
+      ignore = true;
+    };
+  }, [selectedDate, notify]);
 
   const handleDateChange = (newDate) => {
     if (newDate) setSelectedDate(newDate);
@@ -130,6 +154,14 @@ export default function AttendanceManagement() {
         header: "Check-In",
         sortable: true,
         render: (row) => {
+          if (row.status === "ABSENT") {
+            return (
+              <span className="inline-flex items-center gap-1 font-semibold text-xs text-rose-600 dark:text-rose-400 bg-rose-500/10 px-2 py-0.5 rounded-full border border-rose-500/20 whitespace-nowrap">
+                <XCircle className="size-3.5" /> Absent
+              </span>
+            );
+          }
+
           const checkInTime = formatPunchTime(row.checkIn?.time);
           const selfie = row.checkIn?.selfieUrl;
           const emp = row.employeeId || {};
@@ -184,6 +216,10 @@ export default function AttendanceManagement() {
         header: "Check-Out",
         sortable: true,
         render: (row) => {
+          if (row.status === "ABSENT") {
+            return <span className="text-xs text-muted-foreground">--:--</span>;
+          }
+
           const checkOutTime = formatPunchTime(row.checkOut?.time);
           const selfie = row.checkOut?.selfieUrl;
           const emp = row.employeeId || {};
@@ -230,39 +266,63 @@ export default function AttendanceManagement() {
             );
           }
 
-          return (
-            <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-amber-600 dark:text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-full border border-amber-500/20 whitespace-nowrap">
-              <Clock className="size-3" /> In Progress
-            </span>
-          );
+          if (row.checkIn?.time) {
+            return (
+              <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-amber-600 dark:text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-full border border-amber-500/20 whitespace-nowrap">
+                <Clock className="size-3" /> In Progress
+              </span>
+            );
+          }
+
+          return <span className="text-xs text-muted-foreground">--:--</span>;
         },
       },
       {
         key: "duration",
         header: "Shift Duration",
         sortable: true,
-        render: (row) => (
-          <span className="font-semibold text-xs text-foreground whitespace-nowrap">
-            {formatDuration(row.durationMinutes)}
-          </span>
-        ),
+        render: (row) => {
+          if (row.status === "ABSENT") {
+            return <span className="text-xs text-muted-foreground">--</span>;
+          }
+          return (
+            <span className="font-semibold text-xs text-foreground whitespace-nowrap">
+              {formatDuration(row.durationMinutes)}
+            </span>
+          );
+        },
       },
       {
         key: "distance",
         header: "Geofence Distance",
         sortable: true,
-        render: (row) => (
-          <span className="inline-flex items-center gap-1 text-xs text-muted-foreground whitespace-nowrap">
-            <MapPin className="size-3 text-amber-500 shrink-0" />
-            <span>{formatDistance(row.checkIn?.distanceMeters)}</span>
-          </span>
-        ),
+        render: (row) => {
+          if (row.status === "ABSENT") {
+            return <span className="text-xs text-muted-foreground">--</span>;
+          }
+          return (
+            <span className="inline-flex items-center gap-1 text-xs text-muted-foreground whitespace-nowrap">
+              <MapPin className="size-3 text-amber-500 shrink-0" />
+              <span>{formatDistance(row.checkIn?.distanceMeters)}</span>
+            </span>
+          );
+        },
       },
       {
         key: "biometric",
         header: "Biometric Match",
         className: "text-right",
         render: (row) => {
+          if (row.status === "ABSENT") {
+            return (
+              <div className="flex items-center justify-end">
+                <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-muted-foreground bg-muted/40 px-2 py-0.5 rounded-full border border-border/40 whitespace-nowrap">
+                  No Punch
+                </span>
+              </div>
+            );
+          }
+
           const conf = formatConfidence(row.checkIn?.faceMatchConfidence);
           return (
             <div className="flex items-center justify-end">
@@ -320,7 +380,11 @@ export default function AttendanceManagement() {
             <span className="text-[9.5px] font-bold uppercase tracking-wider text-muted-foreground block">
               Check-In
             </span>
-            {punch.checkIn?.status === "SUCCESS" || punch.checkIn?.time ? (
+            {punch.status === "ABSENT" ? (
+              <span className="inline-flex items-center gap-1 font-semibold text-xs text-rose-600 dark:text-rose-400">
+                <XCircle className="size-3" /> Absent
+              </span>
+            ) : punch.checkIn?.status === "SUCCESS" || punch.checkIn?.time ? (
               <div className="flex items-center gap-1.5">
                 <span className="inline-flex items-center gap-1 font-semibold text-xs text-emerald-600 dark:text-emerald-400">
                   <CheckCircle2 className="size-3" /> {checkInTime}
@@ -361,7 +425,9 @@ export default function AttendanceManagement() {
             <span className="text-[9.5px] font-bold uppercase tracking-wider text-muted-foreground block">
               Check-Out
             </span>
-            {punch.checkOut?.time ? (
+            {punch.status === "ABSENT" ? (
+              <span className="text-xs text-muted-foreground">--:--</span>
+            ) : punch.checkOut?.time ? (
               <div className="flex items-center gap-1.5">
                 <span className="inline-flex items-center gap-1 font-semibold text-xs text-blue-600 dark:text-blue-400">
                   <CheckCircle2 className="size-3" /> {checkOutTime}
@@ -392,10 +458,12 @@ export default function AttendanceManagement() {
                   </button>
                 )}
               </div>
-            ) : (
+            ) : punch.checkIn?.time ? (
               <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-amber-600 dark:text-amber-400 bg-amber-500/10 px-1.5 py-0.2 rounded-full border border-amber-500/20">
                 <Clock className="size-2.5" /> In Progress
               </span>
+            ) : (
+              <span className="text-xs text-muted-foreground">--:--</span>
             )}
           </div>
         </div>
@@ -404,7 +472,11 @@ export default function AttendanceManagement() {
         <div className="flex items-center justify-between text-[11px] text-muted-foreground pt-0.5">
           <span className="font-semibold text-foreground flex items-center gap-1">
             <Clock className="size-3 text-muted-foreground" />
-            {duration !== "--" ? `${duration} shift` : "Shift active"}
+            {punch.status === "ABSENT"
+              ? "Absent"
+              : duration !== "--"
+              ? `${duration} shift`
+              : "Shift active"}
           </span>
 
           <div className="flex items-center gap-2">

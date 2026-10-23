@@ -138,6 +138,14 @@ const EmployeeSchema = new mongoose.Schema(
       relation: { type: String, default: "" },
       phone: { type: String, default: "" },
     },
+    nda: {
+      isSigned: { type: Boolean, default: false },
+      signedAt: { type: Date, default: null },
+      signatureType: { type: String, default: "" },
+      signatureData: { type: String, default: "" },
+      signerName: { type: String, default: "" },
+      version: { type: String, default: "1.0" },
+    },
   },
   {
     timestamps: true,

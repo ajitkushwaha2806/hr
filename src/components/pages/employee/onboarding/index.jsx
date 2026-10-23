@@ -8,7 +8,7 @@ import { STEPS, DRAFT_STORAGE_KEY_PREFIX } from "./constants";
 import { NOTIFICATION_MESSAGES } from "@/constants/notification";
 import { useClerk, useOrganization, useUser } from "@clerk/nextjs";
 import { getInitialFormData, buildOnboardingPayload, validateStep } from "./helpers";
-import { OnboardingHeader, FormFooter, Step1Personal, Step2Role, Step3Addresses, Step4Documents } from "./fragments";
+import { OnboardingHeader, FormFooter, Step1Personal, Step2Role, Step3Addresses, Step4Documents, Step5Nda } from "./fragments";
 
 export default function EmployeeOnboarding() {
   const router = useRouter();
@@ -16,7 +16,7 @@ export default function EmployeeOnboarding() {
   const { user: clerkUser } = useUser();
   const { organization } = useOrganization();
   const notify = useNotification();
-  const { user, isOnboarded, isLoading, isSubmitting, submitOnboarding } = useOnboarding();
+  const { user, companyDetails, isOnboarded, isLoading, isSubmitting, submitOnboarding } = useOnboarding();
 
   const [activeStep, setActiveStep] = useState(1);
   const [formData, setFormData] = useState(() => getInitialFormData(clerkUser, user));
@@ -189,16 +189,20 @@ export default function EmployeeOnboarding() {
         ifscCode: prev.ifscCode || initial.ifscCode,
         branchName: prev.branchName || initial.branchName,
         upiId: prev.upiId || initial.upiId,
+
+        ndaAccepted: prev.ndaAccepted !== undefined ? prev.ndaAccepted : initial.ndaAccepted,
+        ndaAttested: prev.ndaAttested !== undefined ? prev.ndaAttested : initial.ndaAttested,
+        ndaSignatureType: prev.ndaSignatureType || initial.ndaSignatureType,
+        ndaSignatureData: prev.ndaSignatureData || initial.ndaSignatureData,
+        ndaSignerName: prev.ndaSignerName || initial.ndaSignerName,
+        ndaSignedAt: prev.ndaSignedAt || initial.ndaSignedAt,
+        ndaVersion: prev.ndaVersion || initial.ndaVersion,
       };
     });
   }
 
   const [errors, setErrors] = useState({});
 
-  // Clear errors whenever activeStep changes so landing on a new step never shows premature errors
-  useEffect(() => {
-    setErrors({});
-  }, [activeStep]);
 
   const handleChange = (field, value) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -324,6 +328,16 @@ export default function EmployeeOnboarding() {
                 formData={formData}
                 handleChange={handleChange}
                 errors={errors}
+              />
+            )}
+
+            {activeStep === 5 && (
+              <Step5Nda
+                formData={formData}
+                handleChange={handleChange}
+                errors={errors}
+                organization={organization}
+                companyDetails={companyDetails}
               />
             )}
 

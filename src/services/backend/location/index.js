@@ -61,6 +61,13 @@ export class OfficeLocationService {
       gracePeriod = 15,
       address = "",
       calibratedBy = "",
+      companyName = "",
+      companyAddress = "",
+      companyPhone = "",
+      companyWebsite = "",
+      companyRepresentative = "",
+      companyDesignation = "",
+      companyLogo = "",
     } = payload;
 
     const numericRadius = Math.max(10, Math.min(5000, Number(radiusMeters) || 200));
@@ -76,6 +83,13 @@ export class OfficeLocationService {
       shiftEnd: shiftEnd || "19:00",
       gracePeriod: numericGrace,
       address: address.trim(),
+      companyName: companyName.trim(),
+      companyAddress: companyAddress.trim(),
+      companyPhone: companyPhone.trim(),
+      companyWebsite: companyWebsite.trim(),
+      companyRepresentative: companyRepresentative.trim(),
+      companyDesignation: companyDesignation.trim() || "Authorized Signatory",
+      companyLogo: companyLogo.trim(),
       isActive: true,
       calibratedAt: new Date(),
       calibratedBy: calibratedBy || "Admin",

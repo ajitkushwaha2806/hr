@@ -4,7 +4,7 @@ import { CalendarLegend } from "./calendar-legend";
 import { Skeleton } from "@/components/ui/skeleton";
 import { CALENDAR_LEGENDS } from "../helpers/constants";
 import { MONTH_NAMES, WEEKDAYS, resolveDayCategory, getDayCellStyles, getStatusBadge } from "./calendar-helpers";
-import { ChevronLeft, ChevronRight, Calendar, Sparkles, Coffee, CheckCircle2, CalendarDays, Briefcase } from "lucide-react";
+import { ChevronLeft, ChevronRight, Calendar, Sparkles, Coffee, CheckCircle2, CalendarDays, Briefcase, XCircle } from "lucide-react";
 
 export function AttendanceCalendar({
   year = 2026,
@@ -28,6 +28,7 @@ export function AttendanceCalendar({
 
   const isCurrentMonthView = () => year === 2026 && month === 10;
   const presentCount = days.filter((d) => d.attendanceStatus === "PRESENT").length;
+  const absentCount = days.filter((d) => d.attendanceStatus === "ABSENT").length;
   const holidaysCount = days.filter((d) => d.type === "HOLIDAY").length;
   const weeklyOffCount = days.filter((d) => d.type === "WEEKLY_OFF").length;
   const workingDaysCount = days.filter((d) => d.type === "WORKING_DAY").length || days.length;
@@ -106,6 +107,13 @@ export function AttendanceCalendar({
               <CheckCircle2 className="size-3 shrink-0 text-emerald-600 dark:text-emerald-400" />
               <span>{presentCount} Present</span>
             </span>
+
+            {absentCount > 0 && (
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-sm text-[11px] font-semibold bg-rose-500/10 text-rose-700 dark:text-rose-300 shrink-0 whitespace-nowrap">
+                <XCircle className="size-3 shrink-0 text-rose-600 dark:text-rose-400" />
+                <span>{absentCount} Absent</span>
+              </span>
+            )}
 
             <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-sm text-[11px] font-semibold bg-blue-500/10 text-blue-700 dark:text-blue-300 shrink-0 whitespace-nowrap">
               <Briefcase className="size-3 shrink-0 text-blue-600 dark:text-blue-400" />

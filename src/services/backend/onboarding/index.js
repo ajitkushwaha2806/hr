@@ -1,6 +1,7 @@
 import dbConnect from "@/lib/db";
 import User from "@/models/User";
 import Employee from "@/models/Employee";
+import OfficeLocation from "@/models/OfficeLocation";
 import { EmployeeService } from "@/services/backend/employee";
 import { BadRequestError, UnauthorizedError } from "@/lib/api/response-handler";
 
@@ -113,6 +114,21 @@ export class OnboardingService {
 
     const isOnboardedStatus = isFinalAdmin ? true : Boolean(user.isOnboarded);
 
+    const officeLocation = await OfficeLocation.findOne({
+      organizationId: orgId || "default_org",
+      isActive: true,
+    }).lean();
+
+    const companyDetails = {
+      name: officeLocation?.companyName || "",
+      address: officeLocation?.companyAddress || officeLocation?.address || "",
+      phone: officeLocation?.companyPhone || "",
+      website: officeLocation?.companyWebsite || "",
+      representative: officeLocation?.companyRepresentative || "",
+      designation: officeLocation?.companyDesignation || "Authorized Signatory",
+      logo: officeLocation?.companyLogo || "/assets/icons/logo.png",
+    };
+
     return {
       user: {
         id: user._id,
@@ -127,6 +143,7 @@ export class OnboardingService {
         isAdmin: isFinalAdmin,
         isOnboarded: isOnboardedStatus,
       },
+      companyDetails,
       isOnboarded: isOnboardedStatus,
       isAdmin: isFinalAdmin,
       role: orgRole || user.role || "org:member",
@@ -272,6 +289,14 @@ export class OnboardingService {
         name: data.emergencyContact?.name?.trim() || "",
         relation: data.emergencyContact?.relation?.trim() || "",
         phone: data.emergencyContact?.phone?.trim() || "",
+      },
+      nda: {
+        isSigned: Boolean(data.nda?.isSigned),
+        signedAt: data.nda?.signedAt ? new Date(data.nda.signedAt) : new Date(),
+        signatureType: data.nda?.signatureType || "draw",
+        signatureData: data.nda?.signatureData || "",
+        signerName: data.nda?.signerName || `${firstName} ${lastName}`.trim(),
+        version: data.nda?.version || "1.0",
       },
       avatar: data.avatar?.trim() || data.facePhoto?.trim() || clerkUser.imageUrl || "",
     };

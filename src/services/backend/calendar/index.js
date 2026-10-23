@@ -154,6 +154,9 @@ export class CalendarService {
         } else {
           attendanceStatus = "PRESENT";
         }
+      } else if (d.dateString <= todayStr) {
+        // No record found on or before today for a working day -> consider user ABSENT
+        attendanceStatus = "ABSENT";
       }
 
       return {

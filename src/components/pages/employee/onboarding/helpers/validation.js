@@ -103,6 +103,19 @@ export function validateStep(step, formData) {
     } else if (!/^[A-Z]{4}0[A-Z0-9]{6}$/.test(cleanIfsc)) {
       errs.ifscCode = "Invalid IFSC format (e.g. HDFC0001234)";
     }
+  } else if (step === 5) {
+    if (!formData.ndaAccepted) {
+      errs.ndaAccepted = "You must acknowledge and agree to the Non-Disclosure Agreement terms.";
+    }
+    if (!formData.ndaAttested) {
+      errs.ndaAttested = "You must certify your electronic signature under Section 10A of the Information Technology Act.";
+    }
+    if (!formData.ndaSignatureData?.trim()) {
+      errs.ndaSignatureData = "An electronic signature is required to execute the agreement.";
+    }
+    if (!formData.ndaSignerName?.trim()) {
+      errs.ndaSignerName = "Signer full legal name is required.";
+    }
   }
 
   return errs;

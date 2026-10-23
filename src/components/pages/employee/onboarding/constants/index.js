@@ -1,4 +1,5 @@
-import { User, Briefcase, MapPin, Shield } from "lucide-react";
+import { User, Briefcase, MapPin, Shield, FileSignature } from "lucide-react";
+export * from "./ndaTemplate";
 
 export const DRAFT_STORAGE_KEY_PREFIX = "hr_onboarding_draft";
 
@@ -26,6 +27,12 @@ export const STEPS = [
     title: "Identity & Verification",
     subtitle: "Official Aadhar & PAN document uploads",
     icon: Shield,
+  },
+  {
+    id: 5,
+    title: "NDA & Compliance",
+    subtitle: "Review agreement & execute electronic signature",
+    icon: FileSignature,
   },
 ];
 

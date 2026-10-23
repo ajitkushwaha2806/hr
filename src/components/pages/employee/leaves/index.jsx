@@ -117,9 +117,8 @@ export function EmployeeLeavesView() {
   });
 
   return (
-    <div className="w-full min-h-screen bg-slate-50/50 dark:bg-zinc-950 pb-28 sm:pb-16">
+    <div className="w-full bg-white m-2 min-h-screen bg-slate-50/50 dark:bg-zinc-950 pb-28 sm:pb-16">
       <div className="w-full px-3.5 sm:px-6 lg:px-8 pt-3 sm:pt-6 space-y-4 sm:space-y-5">
-        {/* Header Bar */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="space-y-0.5">
             <div className="flex items-center gap-2">

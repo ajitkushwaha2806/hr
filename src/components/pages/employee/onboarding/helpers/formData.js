@@ -92,6 +92,15 @@ export function getInitialFormData(clerkUser, user, employee) {
     branchName: employee?.bankDetails?.branchName || "",
     upiId: employee?.bankDetails?.upiId || "",
 
+    // Non-Disclosure Agreement (NDA) E-Signature
+    ndaAccepted: Boolean(employee?.nda?.isSigned),
+    ndaAttested: Boolean(employee?.nda?.isSigned),
+    ndaSignatureType: employee?.nda?.signatureType || "draw",
+    ndaSignatureData: employee?.nda?.signatureData || "",
+    ndaSignerName: employee?.nda?.signerName || clerkFullName || `${fName} ${lName}`.trim(),
+    ndaSignedAt: employee?.nda?.signedAt ? new Date(employee.nda.signedAt).toISOString() : "",
+    ndaVersion: employee?.nda?.version || "1.0",
+
     facePhoto: employee?.facePhoto || employee?.avatar || "",
     avatar: employee?.avatar || user?.avatar || clerkUser?.imageUrl || "",
   };
@@ -162,6 +171,14 @@ export function buildOnboardingPayload(formData) {
       ifscCode: formData.ifscCode?.trim()?.toUpperCase() || "",
       branchName: formData.branchName?.trim() || "",
       upiId: formData.upiId?.trim() || "",
+    },
+    nda: {
+      isSigned: Boolean(formData.ndaAccepted && formData.ndaAttested && formData.ndaSignatureData),
+      signedAt: formData.ndaSignedAt || new Date().toISOString(),
+      signatureType: formData.ndaSignatureType || "draw",
+      signatureData: (formData.ndaSignatureData || "").trim(),
+      signerName: (formData.ndaSignerName || `${formData.firstName || ""} ${formData.lastName || ""}`).trim(),
+      version: formData.ndaVersion || "1.0",
     },
   };
 }
