@@ -9,14 +9,11 @@ import {
   PenTool,
   Type,
   AlertCircle,
-  Clock,
-  Sparkles,
   Download,
   FileText,
   ShieldCheck,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import {
@@ -733,25 +730,29 @@ export default function Step5Nda({
       {/* ============================================================== */}
       {/* INTERACTIVE E-SIGNATURE EXECUTION STUDIO                        */}
       {/* ============================================================== */}
-      <div className="p-4 sm:p-6 rounded-xl border border-border/60 bg-white dark:bg-zinc-900 shadow-sm space-y-5 sm:space-y-6">
+      <div className="p-4 sm:p-6 rounded-2xl border border-border/70 bg-gradient-to-b from-white to-slate-50/40 dark:from-zinc-900 dark:to-zinc-950 shadow-xs space-y-5 sm:space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-border/40 pb-4">
-          <div>
-            <h3 className="text-xs font-bold uppercase tracking-wider text-primary flex items-center gap-2">
+          <div className="flex items-center gap-3">
+            <div className="size-9 rounded-xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shrink-0">
               <PenTool className="size-4" />
-              <span>Affix Your Electronic Signature</span>
-            </h3>
-            <p className="text-xs text-muted-foreground mt-0.5">
-              Draw your signature or type your legal name to affix it directly to the agreement above.
-            </p>
+            </div>
+            <div>
+              <h3 className="text-xs font-bold uppercase tracking-wider text-primary">
+                Affix Your Electronic Signature
+              </h3>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Draw your signature or type your legal name to affix it directly to the agreement above.
+              </p>
+            </div>
           </div>
 
-          <div className="grid grid-cols-2 sm:flex items-center p-1 rounded-lg bg-muted/60 border border-border/40 w-full sm:w-auto gap-1">
+          <div className="grid grid-cols-2 sm:flex items-center p-1 rounded-xl bg-slate-100 dark:bg-zinc-800/80 border border-slate-200/80 dark:border-zinc-700/80 w-full sm:w-auto gap-1">
             <button
               type="button"
               onClick={() => handleSwitchMode("draw")}
-              className={`flex items-center justify-center gap-1.5 px-3 py-2 sm:py-1.5 text-xs font-semibold rounded-md transition-all cursor-pointer ${
+              className={`flex items-center justify-center gap-1.5 px-3.5 py-2 sm:py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer ${
                 signatureMode === "draw"
-                  ? "bg-white dark:bg-zinc-800 text-foreground shadow-xs"
+                  ? "bg-white dark:bg-zinc-900 text-foreground shadow-xs"
                   : "text-muted-foreground hover:text-foreground"
               }`}
             >
@@ -761,9 +762,9 @@ export default function Step5Nda({
             <button
               type="button"
               onClick={() => handleSwitchMode("type")}
-              className={`flex items-center justify-center gap-1.5 px-3 py-2 sm:py-1.5 text-xs font-semibold rounded-md transition-all cursor-pointer ${
+              className={`flex items-center justify-center gap-1.5 px-3.5 py-2 sm:py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer ${
                 signatureMode === "type"
-                  ? "bg-white dark:bg-zinc-800 text-foreground shadow-xs"
+                  ? "bg-white dark:bg-zinc-900 text-foreground shadow-xs"
                   : "text-muted-foreground hover:text-foreground"
               }`}
             >
@@ -885,27 +886,41 @@ export default function Step5Nda({
         )}
 
         {/* Legal Consent Checkboxes */}
-        <div className="pt-2 space-y-3.5 border-t border-border/40">
-          <label className="flex items-start gap-3 cursor-pointer group">
+        <div className="pt-3 space-y-3 border-t border-border/40">
+          <label
+            htmlFor="ndaAccepted"
+            className={`flex items-start gap-3 p-3.5 rounded-xl border transition-all cursor-pointer group select-none ${
+              formData.ndaAccepted
+                ? "border-primary/40 bg-primary/[0.03]"
+                : "border-border/60 bg-slate-50/50 dark:bg-zinc-950/40 hover:border-border"
+            }`}
+          >
             <Checkbox
               id="ndaAccepted"
               checked={Boolean(formData.ndaAccepted)}
               onCheckedChange={(checked) => handleChange("ndaAccepted", Boolean(checked))}
               className="mt-0.5 size-4 rounded border-border/80 data-[state=checked]:bg-primary data-[state=checked]:border-primary"
             />
-            <span className="text-xs text-foreground/90 leading-snug select-none group-hover:text-foreground">
+            <span className="text-xs text-foreground/90 leading-relaxed group-hover:text-foreground">
               I acknowledge that I have read, understood, and agree to be bound by all <strong>11 sections</strong> of this Non-Disclosure and Proprietary Rights Agreement, including non-compete, non-solicitation, and liquidated damages provisions.
             </span>
           </label>
 
-          <label className="flex items-start gap-3 cursor-pointer group">
+          <label
+            htmlFor="ndaAttestation"
+            className={`flex items-start gap-3 p-3.5 rounded-xl border transition-all cursor-pointer group select-none ${
+              formData.ndaAttested
+                ? "border-primary/40 bg-primary/[0.03]"
+                : "border-border/60 bg-slate-50/50 dark:bg-zinc-950/40 hover:border-border"
+            }`}
+          >
             <Checkbox
               id="ndaAttestation"
               checked={Boolean(formData.ndaAttested)}
               onCheckedChange={(checked) => handleChange("ndaAttested", Boolean(checked))}
               className="mt-0.5 size-4 rounded border-border/80 data-[state=checked]:bg-primary data-[state=checked]:border-primary"
             />
-            <span className="text-xs text-muted-foreground leading-snug select-none group-hover:text-foreground">
+            <span className="text-xs text-muted-foreground leading-relaxed group-hover:text-foreground">
               I certify that this electronic signature is executed by me, corresponds to my verified identity, and constitutes the legally binding equivalent of my handwritten signature under Section 10A of the Information Technology Act, 2000.
             </span>
           </label>
