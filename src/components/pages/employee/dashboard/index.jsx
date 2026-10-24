@@ -16,7 +16,9 @@ export default function EmployeeDashboard() {
   const employee = todayStatus?.employee;
   const displayName = employee?.name || user?.firstName || user?.fullName || "Employee";
 
-  const presentDays = days.filter((d) => d.attendanceStatus === "PRESENT" || d.attendanceStatus === "HALF_DAY").length;
+  const presentDays = days.filter(
+    (d) => d.attendanceStatus === "PRESENT" || d.attendanceStatus === "HALF_DAY" || d.attendanceStatus === "CHECKED_IN"
+  ).length;
   const absentDays = days.filter((d) => d.attendanceStatus === "ABSENT").length;
   const workingDays = days.filter((d) => d.type === "WORKING_DAY").length;
   const totalWorkedMinutes = days.reduce((acc, d) => acc + (d.punch?.durationMinutes || 0), 0);

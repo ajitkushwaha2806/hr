@@ -4,6 +4,7 @@ import Employee from "@/models/Employee";
 import OfficeLocation from "@/models/OfficeLocation";
 import { EmployeeService } from "@/services/backend/employee";
 import { BadRequestError, UnauthorizedError } from "@/lib/api/response-handler";
+import { uploadToS3 } from "@/lib/services/s3";
 
 export class OnboardingService {
   static async getStatus(clerkUser, { orgId = null, orgRole = "org:member" } = {}) {
@@ -229,6 +230,45 @@ export class OnboardingService {
       }
     }
 
+    let signatureUrl = data.nda?.signatureUrl?.trim() || "";
+    let agreementPdfUrl = data.nda?.agreementPdfUrl?.trim() || "";
+
+    // Upload base64 signature to S3 so only S3 link is saved in database
+    if (data.nda?.signatureData && data.nda.signatureData.startsWith("data:image")) {
+      try {
+        const base64Data = data.nda.signatureData.replace(/^data:image\/\w+;base64,/, "");
+        const buffer = Buffer.from(base64Data, "base64");
+        const s3Res = await uploadToS3({
+          buffer,
+          originalName: `nda-sign-${(firstName || "user").toLowerCase()}-${Date.now()}.png`,
+          mimeType: "image/png",
+          subfolder: "signatures",
+        });
+        signatureUrl = s3Res.url;
+      } catch (uploadErr) {
+        console.error("Failed to upload signature to S3:", uploadErr);
+      }
+    } else if (data.nda?.signatureData && (data.nda.signatureData.startsWith("http://") || data.nda.signatureData.startsWith("https://"))) {
+      signatureUrl = data.nda.signatureData;
+    }
+
+    // Upload base64 PDF agreement to S3 if sent as data URI
+    if (data.nda?.agreementPdfData && data.nda.agreementPdfData.startsWith("data:application/pdf")) {
+      try {
+        const base64Pdf = data.nda.agreementPdfData.replace(/^data:application\/pdf;base64,/, "");
+        const buffer = Buffer.from(base64Pdf, "base64");
+        const s3Res = await uploadToS3({
+          buffer,
+          originalName: `nda-agreement-${(firstName || "user").toLowerCase()}-${Date.now()}.pdf`,
+          mimeType: "application/pdf",
+          subfolder: "nda",
+        });
+        agreementPdfUrl = s3Res.url;
+      } catch (pdfUploadErr) {
+        console.error("Failed to upload NDA agreement PDF to S3:", pdfUploadErr);
+      }
+    }
+
     const employeePayload = {
       organizationId,
       clerkId: clerkUser.id,
@@ -276,6 +316,14 @@ export class OnboardingService {
           number: data.documents?.pan?.number?.trim()?.toUpperCase() || "",
           fileUrl: data.documents?.pan?.fileUrl?.trim() || "",
         },
+        tenthResult: {
+          rollNumber: data.documents?.tenthResult?.rollNumber?.trim() || "",
+          fileUrl: data.documents?.tenthResult?.fileUrl?.trim() || "",
+        },
+        twelfthResult: {
+          rollNumber: data.documents?.twelfthResult?.rollNumber?.trim() || "",
+          fileUrl: data.documents?.twelfthResult?.fileUrl?.trim() || "",
+        },
       },
       bankDetails: {
         accountHolderName: data.bankDetails?.accountHolderName?.trim() || "",
@@ -294,7 +342,9 @@ export class OnboardingService {
         isSigned: Boolean(data.nda?.isSigned),
         signedAt: data.nda?.signedAt ? new Date(data.nda.signedAt) : new Date(),
         signatureType: data.nda?.signatureType || "draw",
-        signatureData: data.nda?.signatureData || "",
+        signatureData: signatureUrl || (data.nda?.signatureType === "type" ? data.nda?.signatureData : "") || "",
+        signatureUrl: signatureUrl || "",
+        agreementPdfUrl: agreementPdfUrl || data.nda?.agreementPdfUrl || "",
         signerName: data.nda?.signerName || `${firstName} ${lastName}`.trim(),
         version: data.nda?.version || "1.0",
       },

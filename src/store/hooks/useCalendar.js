@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import useNotification from "@/store/hooks/useNotification";
+import { getTodayDateString } from "@/lib/utils";
 import { extractErrorMessage } from "@/lib/helpers/notification";
 import { CalendarFrontendService } from "@/services/frontend/calendar";
 import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query";
@@ -9,8 +10,8 @@ export function useCalendar() {
   const queryClient = useQueryClient();
   const notification = useNotification();
 
-  const [year, setYear] = useState(2026);
-  const [month, setMonth] = useState(10); 
+  const [year, setYear] = useState(() => new Date().getFullYear());
+  const [month, setMonth] = useState(() => new Date().getMonth() + 1); 
 
   const { data, isLoading, isFetching, error, refetch } = useQuery({
     queryKey: ["organization-calendar", year, month],
@@ -97,8 +98,9 @@ export function useCalendar() {
   };
 
   const jumpToToday = () => {
-    setYear(2026);
-    setMonth(10);
+    const now = new Date();
+    setYear(now.getFullYear());
+    setMonth(now.getMonth() + 1);
   };
 
   return {
@@ -112,7 +114,7 @@ export function useCalendar() {
     calendar: data || {},
     days: data?.days || [],
     stats: data?.stats || {},
-    todayString: data?.todayString || "2026-10-20",
+    todayString: data?.todayString || getTodayDateString("Asia/Kolkata"),
     isLoading,
     isFetching,
     error,

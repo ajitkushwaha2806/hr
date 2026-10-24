@@ -24,6 +24,7 @@ export function useAttendance() {
 
   const refreshAttendance = () => {
     queryClient.invalidateQueries({ queryKey: ["attendance-today-status"] });
+    queryClient.invalidateQueries({ queryKey: ["organization-calendar"] });
   };
 
   return {

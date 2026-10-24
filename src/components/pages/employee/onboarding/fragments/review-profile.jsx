@@ -188,9 +188,51 @@ export default function ReviewProfile({ user, employee, organization }) {
               </p>
             </div>
             <div>
-              <span className="text-muted-foreground">NDA Agreement:</span>
-              <p className="font-semibold text-emerald-600 dark:text-emerald-400">
-                {employee?.nda?.isSigned ? "✓ Electronically Executed" : "Executed"}
+              <span className="text-muted-foreground">10th Marksheet:</span>
+              <p className="font-semibold text-foreground flex items-center gap-1.5">
+                <span>{employee?.documents?.tenthResult?.rollNumber ? `Roll: ${employee.documents.tenthResult.rollNumber}` : "Verified"}</span>
+                {employee?.documents?.tenthResult?.fileUrl && (
+                  <a
+                    href={employee.documents.tenthResult.fileUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-primary hover:underline text-[11px] inline-flex items-center gap-0.5 ml-1"
+                  >
+                    View Document
+                  </a>
+                )}
+              </p>
+            </div>
+            <div>
+              <span className="text-muted-foreground">12th Marksheet:</span>
+              <p className="font-semibold text-foreground flex items-center gap-1.5">
+                <span>{employee?.documents?.twelfthResult?.rollNumber ? `Roll: ${employee.documents.twelfthResult.rollNumber}` : "Verified"}</span>
+                {employee?.documents?.twelfthResult?.fileUrl && (
+                  <a
+                    href={employee.documents.twelfthResult.fileUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-primary hover:underline text-[11px] inline-flex items-center gap-0.5 ml-1"
+                  >
+                    View Document
+                  </a>
+                )}
+              </p>
+            </div>
+            <div>
+              <span className="text-muted-foreground">Signed NDA (S3 Cloud):</span>
+              <p className="font-semibold text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
+                <span>{employee?.nda?.isSigned ? "✓ Electronically Executed" : "Executed"}</span>
+                {employee?.nda?.agreementPdfUrl && (
+                  <a
+                    href={employee.nda.agreementPdfUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-primary hover:underline text-[11px] inline-flex items-center gap-0.5 ml-1 font-normal"
+                  >
+                    Download PDF
+                  </a>
+                )}
               </p>
             </div>
           </div>

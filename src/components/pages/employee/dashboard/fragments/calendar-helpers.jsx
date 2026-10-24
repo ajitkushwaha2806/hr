@@ -5,28 +5,34 @@ export const MONTH_NAMES = [ "January", "February", "March", "April", "May", "Ju
 export const WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
 export function resolveDayCategory(dayItem, todayString) {
-  if (dayItem.dateString === todayString) {
-    return "TODAY";
+  const isToday = dayItem.dateString === todayString;
+
+  if (dayItem.attendanceStatus === "CHECKED_IN") {
+    return isToday ? "TODAY_CHECKED_IN" : "CHECKED_IN";
   }
 
   if (dayItem.attendanceStatus === "PRESENT") {
-    return "PRESENT";
+    return isToday ? "TODAY_PRESENT" : "PRESENT";
   }
 
   if (dayItem.attendanceStatus === "ABSENT") {
-    return "ABSENT";
+    return isToday ? "TODAY_ABSENT" : "ABSENT";
   }
 
   if (dayItem.attendanceStatus === "HALF_DAY") {
-    return "HALF_DAY";
+    return isToday ? "TODAY_HALF_DAY" : "HALF_DAY";
   }
 
   if (dayItem.attendanceStatus === "NOT_CHECKED_OUT" || dayItem.attendanceStatus === "NO_PUNCH_OUT") {
-    return "NOT_CHECKED_OUT";
+    return isToday ? "TODAY_NOT_CHECKED_OUT" : "NOT_CHECKED_OUT";
   }
 
   if (dayItem.attendanceStatus === "CASUAL_LEAVE") {
-    return "CASUAL_LEAVE";
+    return isToday ? "TODAY_LEAVE" : "CASUAL_LEAVE";
+  }
+
+  if (isToday) {
+    return "TODAY";
   }
 
   switch (dayItem.type) {
@@ -43,6 +49,49 @@ export function resolveDayCategory(dayItem, todayString) {
 
 export function getDayCellStyles(category) {
   switch (category) {
+    case "TODAY_CHECKED_IN":
+    case "CHECKED_IN":
+      return {
+        cellClass: "bg-emerald-500/10 dark:bg-emerald-950/30 ring-2 ring-emerald-500/60 ring-inset shadow-xs",
+        numberClass: "bg-emerald-600 text-white shadow-xs font-bold",
+        isToday: true,
+      };
+
+    case "TODAY_PRESENT":
+      return {
+        cellClass: "bg-emerald-500/10 dark:bg-emerald-950/25 ring-2 ring-emerald-500/50 ring-inset",
+        numberClass: "bg-emerald-600 text-white shadow-xs font-bold",
+        isToday: true,
+      };
+
+    case "TODAY_HALF_DAY":
+      return {
+        cellClass: "bg-amber-500/10 dark:bg-amber-950/25 ring-2 ring-amber-500/50 ring-inset",
+        numberClass: "bg-amber-600 text-white shadow-xs font-bold",
+        isToday: true,
+      };
+
+    case "TODAY_ABSENT":
+      return {
+        cellClass: "bg-rose-500/10 dark:bg-rose-950/25 ring-2 ring-rose-500/50 ring-inset",
+        numberClass: "bg-rose-600 text-white shadow-xs font-bold",
+        isToday: true,
+      };
+
+    case "TODAY_NOT_CHECKED_OUT":
+      return {
+        cellClass: "bg-orange-500/10 dark:bg-orange-950/25 ring-2 ring-orange-500/50 ring-inset",
+        numberClass: "bg-orange-600 text-white shadow-xs font-bold",
+        isToday: true,
+      };
+
+    case "TODAY_LEAVE":
+      return {
+        cellClass: "bg-sky-500/10 dark:bg-sky-950/25 ring-2 ring-sky-500/50 ring-inset",
+        numberClass: "bg-sky-600 text-white shadow-xs font-bold",
+        isToday: true,
+      };
+
     case "TODAY":
       return {
         cellClass: "bg-primary/5 dark:bg-primary/10 ring-2 ring-primary/40 ring-inset",
@@ -132,6 +181,17 @@ export function getStatusBadge(statusOrDay, customTitle, extra) {
     "inline-flex items-center gap-1.5 px-2 py-1 rounded-sm text-[11px] font-semibold truncate max-w-full";
 
   switch (status) {
+    case "CHECKED_IN":
+      return (
+        <div className={`${baseBadgeClass} bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30`}>
+          <span className="relative flex size-2 shrink-0">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+            <span className="relative inline-flex rounded-full size-2 bg-emerald-500"></span>
+          </span>
+          <span className="truncate">{title && title !== "Working Day" ? title : "Checked In"}</span>
+        </div>
+      );
+
     case "PRESENT":
       return (
         <div className={`${baseBadgeClass} bg-emerald-500/10 text-emerald-700 dark:text-emerald-300`}>

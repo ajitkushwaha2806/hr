@@ -1,7 +1,8 @@
 import dbConnect from "@/lib/db";
 import Leave from "@/models/Leave";
 import Employee from "@/models/Employee";
-import { formatDateString } from "@/lib/utils";
+import OfficeLocation from "@/models/OfficeLocation";
+import { formatDateString, getTodayDateString } from "@/lib/utils";
 import CalendarDay from "@/models/CalendarDay";
 import AttendancePunch from "@/models/AttendancePunch";
 
@@ -69,20 +70,21 @@ export class CalendarService {
     };
   }
 
-  static async getMonthlyCalendar({ organizationId, year, month, userId }) {
+  static async getMonthlyCalendar({ organizationId, year, month, userId, userEmail }) {
     await dbConnect();
     const count = await CalendarDay.countDocuments({ organizationId });
     if (count === 0) {
       await this.seedOrganizationCalendar({ organizationId });
     } else {
       await CalendarDay.updateMany(
-        { organizationId, type: { $ne: "WORKING_DAY" } },
-        { $set: { type: "WORKING_DAY", title: "Working Day", isCustom: false } }
+        { organizationId, type: { $ne: "WORKING_DAY" }, isCustom: false },
+        { $set: { type: "WORKING_DAY", title: "Working Day" } }
       );
     }
 
-    let currentYear = Number(year) || 2026;
-    let currentMonth = Number(month) || 10;
+    const now = new Date();
+    let currentYear = Number(year) || now.getFullYear();
+    let currentMonth = Number(month) || now.getMonth() + 1;
 
     // Enforce max date boundary: 2027 December 31
     if (currentYear > 2027 || (currentYear === 2027 && currentMonth > 12)) {
@@ -100,25 +102,55 @@ export class CalendarService {
 
     let employeePunches = [];
     let approvedLeaves = [];
-    if (userId) {
-      const emp = await Employee.findOne({
-        $or: [{ clerkId: userId }, { organizationId }],
-      });
+    if (userId || userEmail) {
+      const orConditions = [];
+      if (userId) orConditions.push({ clerkId: userId });
+      if (userEmail) {
+        orConditions.push({
+          email: { $regex: new RegExp(`^${userEmail.trim().replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`, "i") },
+        });
+      }
+
+      let emp = null;
+      if (organizationId && organizationId !== "default_org") {
+        emp = await Employee.findOne({
+          organizationId,
+          $or: orConditions,
+        });
+      }
+      if (!emp) {
+        emp = await Employee.findOne({
+          $or: orConditions,
+        });
+      }
+
+      const punchOrConditions = [];
+      const leaveOrConditions = [];
+
       if (emp) {
+        punchOrConditions.push({ employeeId: emp._id });
+        leaveOrConditions.push({ employeeId: emp._id });
+      }
+      if (userId) {
+        punchOrConditions.push({ clerkId: userId });
+        leaveOrConditions.push({ clerkId: userId });
+      }
+
+      if (punchOrConditions.length > 0) {
         const monthPad = String(currentMonth).padStart(2, "0");
         const startOfMonth = `${currentYear}-${monthPad}-01`;
         const endOfMonth = `${currentYear}-${monthPad}-31`;
+
         employeePunches = await AttendancePunch.find({
-          employeeId: emp._id,
+          $or: punchOrConditions,
           date: { $gte: startOfMonth, $lte: endOfMonth },
         }).lean();
 
         approvedLeaves = await Leave.find({
-          employeeId: emp._id,
+          $or: leaveOrConditions,
           status: "APPROVED",
-          $or: [
-            { startDate: { $lte: endOfMonth }, endDate: { $gte: startOfMonth } },
-          ],
+          startDate: { $lte: endOfMonth },
+          endDate: { $gte: startOfMonth },
         }).lean();
       }
     }
@@ -128,7 +160,41 @@ export class CalendarService {
       punchMap[p.date] = p;
     }
 
-    const todayStr = this.formatDateString(new Date());
+    // Determine shift timings and current time in IST
+    let shiftEndTime = "19:00";
+    try {
+      const officeLocation = (organizationId && organizationId !== "default_org")
+        ? (await OfficeLocation.findOne({ organizationId, isActive: true }).lean() ||
+           await OfficeLocation.findOne({ organizationId }).lean())
+        : await OfficeLocation.findOne({ isActive: true }).lean();
+
+      if (officeLocation?.shiftEnd) {
+        shiftEndTime = officeLocation.shiftEnd;
+      }
+    } catch (e) {
+      console.warn("Could not fetch OfficeLocation shiftEnd:", e);
+    }
+
+    const todayStr = getTodayDateString("Asia/Kolkata");
+
+    let currentISTTime = "12:00";
+    try {
+      const parts = new Intl.DateTimeFormat("en-US", {
+        timeZone: "Asia/Kolkata",
+        hour: "numeric",
+        minute: "numeric",
+        hourCycle: "h23",
+      }).formatToParts(new Date());
+      const hour = parts.find((p) => p.type === "hour")?.value?.padStart(2, "0") || "00";
+      const minute = parts.find((p) => p.type === "minute")?.value?.padStart(2, "0") || "00";
+      currentISTTime = `${hour}:${minute}`;
+    } catch {
+      const n = new Date();
+      currentISTTime = `${String(n.getHours()).padStart(2, "0")}:${String(n.getMinutes()).padStart(2, "0")}`;
+    }
+
+    // Shift is considered completed for the day if current IST time is at or past shift end
+    const isTodayDayEnded = currentISTTime >= shiftEndTime;
 
     const enrichedDays = days.map((d) => {
       const punch = punchMap[d.dateString];
@@ -136,27 +202,74 @@ export class CalendarService {
         (l) => l.startDate <= d.dateString && l.endDate >= d.dateString
       );
 
+      const isToday = d.dateString === todayStr;
+      const isPast = d.dateString < todayStr;
+      const isFuture = d.dateString > todayStr;
+
       let attendanceStatus = null;
 
-      if (d.type === "HOLIDAY") {
-        attendanceStatus = "HOLIDAY";
-      } else if (leaveForDay) {
-        attendanceStatus = "CASUAL_LEAVE";
-      } else if (d.type === "WEEKLY_OFF") {
-        attendanceStatus = "WEEKLY_OFF";
-      } else if (d.title?.toLowerCase().includes("leave") || d.type === "LEAVE") {
-        attendanceStatus = "CASUAL_LEAVE";
-      } else if (punch && punch.checkIn?.status === "SUCCESS") {
-        if (punch.status === "NO_PUNCH_OUT" || (!punch.checkOut?.time && d.dateString < todayStr)) {
-          attendanceStatus = "NOT_CHECKED_OUT";
-        } else if (punch.durationMinutes && punch.durationMinutes > 0 && punch.durationMinutes < 240) {
-          attendanceStatus = "HALF_DAY";
-        } else {
-          attendanceStatus = "PRESENT";
+      // RULE 1: If user physically checked in successfully, biometric attendance
+      // ALWAYS takes precedence over leave records!
+      if (punch && punch.checkIn?.status === "SUCCESS") {
+        const hasCheckedOut = Boolean(punch.checkOut?.time) || punch.status === "COMPLETED";
+
+        let durationMinutes = punch.durationMinutes || 0;
+        if (!durationMinutes && punch.checkIn?.time && punch.checkOut?.time) {
+          durationMinutes = Math.max(
+            0,
+            Math.round(
+              (new Date(punch.checkOut.time).getTime() - new Date(punch.checkIn.time).getTime()) / (1000 * 60)
+            )
+          );
         }
-      } else if (d.dateString <= todayStr) {
-        // No record found on or before today for a working day -> consider user ABSENT
-        attendanceStatus = "ABSENT";
+
+        if (hasCheckedOut) {
+          // Checkout completed: finalize status based on worked hours
+          if (durationMinutes >= 240) {
+            attendanceStatus = "PRESENT";
+          } else {
+            attendanceStatus = "HALF_DAY";
+          }
+        } else if (isToday) {
+          // Today: user has checked in, but not checked out yet.
+          if (!isTodayDayEnded) {
+            // Day/shift is currently ongoing: user is actively working!
+            attendanceStatus = "CHECKED_IN";
+          } else {
+            // Day/shift ended and user never checked out
+            attendanceStatus = "NOT_CHECKED_OUT";
+          }
+        } else if (isPast) {
+          // Past day where check-in succeeded but no check-out was recorded
+          attendanceStatus = "NOT_CHECKED_OUT";
+        }
+      } else {
+        // RULE 2: No successful check-in punch on this day
+        if (d.type === "HOLIDAY") {
+          attendanceStatus = "HOLIDAY";
+        } else if (d.type === "WEEKLY_OFF") {
+          attendanceStatus = "WEEKLY_OFF";
+        } else if (leaveForDay) {
+          // User has an approved leave and did not come to work
+          attendanceStatus = "CASUAL_LEAVE";
+        } else if (d.title?.toLowerCase().includes("leave") || d.type === "LEAVE") {
+          attendanceStatus = "CASUAL_LEAVE";
+        } else if (isPast) {
+          // Past working day with no punch and no leave -> ABSENT
+          attendanceStatus = "ABSENT";
+        } else if (isToday) {
+          // RULE 3: For Today, status is only finalized after today ends or after checkout!
+          if (isTodayDayEnded) {
+            // Day/shift ended without check-in or leave -> finalize as ABSENT
+            attendanceStatus = "ABSENT";
+          } else {
+            // Shift is still ongoing -> do NOT show ABSENT yet (status is null/in progress)
+            attendanceStatus = null;
+          }
+        } else if (isFuture) {
+          // Future scheduled working days are neither absent nor present
+          attendanceStatus = null;
+        }
       }
 
       return {
@@ -166,7 +279,8 @@ export class CalendarService {
           ? {
               checkInTime: punch.checkIn?.time,
               checkOutTime: punch.checkOut?.time,
-              durationMinutes: punch.durationMinutes,
+              durationMinutes: punch.durationMinutes || 0,
+              status: punch.status,
             }
           : null,
       };
@@ -177,7 +291,8 @@ export class CalendarService {
       workingDays: enrichedDays.filter((d) => d.type === "WORKING_DAY").length,
       weeklyOffs: enrichedDays.filter((d) => d.type === "WEEKLY_OFF").length,
       holidays: enrichedDays.filter((d) => d.type === "HOLIDAY").length,
-      presentDays: enrichedDays.filter((d) => d.attendanceStatus === "PRESENT" || d.attendanceStatus === "HALF_DAY").length,
+      presentDays: enrichedDays.filter((d) => d.attendanceStatus === "PRESENT").length,
+      checkedIn: enrichedDays.filter((d) => d.attendanceStatus === "CHECKED_IN").length,
       absentDays: enrichedDays.filter((d) => d.attendanceStatus === "ABSENT").length,
       halfDays: enrichedDays.filter((d) => d.attendanceStatus === "HALF_DAY").length,
       notCheckedOut: enrichedDays.filter((d) => d.attendanceStatus === "NOT_CHECKED_OUT").length,
@@ -190,6 +305,8 @@ export class CalendarService {
       days: enrichedDays,
       stats,
       todayString: todayStr,
+      shiftEndTime,
+      isTodayDayEnded,
     };
   }
 

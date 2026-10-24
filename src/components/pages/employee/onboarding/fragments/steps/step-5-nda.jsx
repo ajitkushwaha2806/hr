@@ -16,6 +16,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
+import { UploadFrontendService } from "@/services/frontend/upload";
 import {
   getAgreementData,
   NDA_SECTIONS,
@@ -151,6 +152,21 @@ export default function Step5Nda({
     handleChange("ndaSignatureData", dataUrl);
     handleChange("ndaSignatureType", "draw");
     handleChange("ndaSignedAt", new Date().toISOString());
+
+    // Upload signature directly to S3
+    canvas.toBlob(async (blob) => {
+      if (blob) {
+        try {
+          const file = new File([blob], `signature-${Date.now()}.png`, { type: "image/png" });
+          const res = await UploadFrontendService.uploadDocument(file, "signatures");
+          if (res?.url) {
+            handleChange("ndaSignatureUrl", res.url);
+          }
+        } catch (e) {
+          console.warn("Direct S3 signature upload warning:", e);
+        }
+      }
+    }, "image/png");
   };
 
   const clearSignature = () => {
@@ -161,6 +177,37 @@ export default function Step5Nda({
     ctx.clearRect(0, 0, rect.width, rect.height);
     setHasDrawn(false);
     handleChange("ndaSignatureData", "");
+    handleChange("ndaSignatureUrl", "");
+  };
+
+  const uploadTypedSignatureToS3 = (name) => {
+    if (!name?.trim()) return;
+    try {
+      const offscreen = document.createElement("canvas");
+      offscreen.width = 400;
+      offscreen.height = 100;
+      const ctx = offscreen.getContext("2d");
+      ctx.clearRect(0, 0, 400, 100);
+      ctx.font = "italic bold 32px Georgia, serif";
+      ctx.fillStyle = PRIMARY_COLOR;
+      ctx.fillText(name.trim(), 20, 60);
+
+      offscreen.toBlob(async (blob) => {
+        if (blob) {
+          try {
+            const file = new File([blob], `signature-${Date.now()}.png`, { type: "image/png" });
+            const res = await UploadFrontendService.uploadDocument(file, "signatures");
+            if (res?.url) {
+              handleChange("ndaSignatureUrl", res.url);
+            }
+          } catch (e) {
+            console.warn("Typed signature S3 upload warning:", e);
+          }
+        }
+      }, "image/png");
+    } catch (e) {
+      console.warn("Typed signature canvas render error:", e);
+    }
   };
 
   const handleTypedNameChange = (name) => {
@@ -169,6 +216,9 @@ export default function Step5Nda({
       handleChange("ndaSignatureData", name.trim());
       handleChange("ndaSignatureType", "type");
       handleChange("ndaSignedAt", new Date().toISOString());
+      if (name.trim().length >= 2) {
+        uploadTypedSignatureToS3(name);
+      }
     }
   };
 
@@ -179,8 +229,10 @@ export default function Step5Nda({
       const name = formData.ndaSignerName || client.name;
       handleChange("ndaSignerName", name);
       handleChange("ndaSignatureData", name.trim());
+      if (name.trim()) uploadTypedSignatureToS3(name);
     } else {
       handleChange("ndaSignatureData", "");
+      handleChange("ndaSignatureUrl", "");
       setHasDrawn(false);
     }
   };
@@ -200,7 +252,7 @@ export default function Step5Nda({
             company={company}
             client={client}
             agreement={agreement}
-            signatureData={formData.ndaSignatureData}
+            signatureData={formData.ndaSignatureUrl || formData.ndaSignatureData}
           />
         ).toBlob();
       } catch (pdfErr) {
@@ -214,9 +266,23 @@ export default function Step5Nda({
             company={safeCompany}
             client={client}
             agreement={agreement}
-            signatureData={formData.ndaSignatureData}
+            signatureData={formData.ndaSignatureUrl || formData.ndaSignatureData}
           />
         ).toBlob();
+      }
+
+      // Upload generated signed PDF to S3 in background if not already uploaded
+      if (!formData.ndaAgreementPdfUrl) {
+        UploadFrontendService.uploadDocument(
+          new File([blob], `NDA_${(client.name || "Employee").replace(/\s+/g, "_")}.pdf`, {
+            type: "application/pdf",
+          }),
+          "nda"
+        ).then((res) => {
+          if (res?.url) {
+            handleChange("ndaAgreementPdfUrl", res.url);
+          }
+        }).catch(() => {});
       }
 
       const url = URL.createObjectURL(blob);
@@ -235,8 +301,61 @@ export default function Step5Nda({
     }
   };
 
+  // Automatically generate and upload signed NDA PDF to S3 as soon as e-signature & attestation are completed
+  useEffect(() => {
+    if (
+      formData.ndaAccepted &&
+      formData.ndaAttested &&
+      (formData.ndaSignatureUrl || formData.ndaSignatureData) &&
+      !formData.ndaAgreementPdfUrl
+    ) {
+      const uploadSignedNda = async () => {
+        try {
+          const { pdf } = await import("@react-pdf/renderer");
+          const { default: MagicScaleNdaPDF } = await import(
+            "../../constants/MagicScaleNdaPDF"
+          );
+          const blob = await pdf(
+            <MagicScaleNdaPDF
+              company={company}
+              client={client}
+              agreement={agreement}
+              signatureData={formData.ndaSignatureUrl || formData.ndaSignatureData}
+            />
+          ).toBlob();
+
+          const file = new File(
+            [blob],
+            `NDA_${(client.name || "Employee").replace(/\s+/g, "_")}.pdf`,
+            { type: "application/pdf" }
+          );
+          const res = await UploadFrontendService.uploadDocument(file, "nda");
+          if (res?.url) {
+            handleChange("ndaAgreementPdfUrl", res.url);
+          }
+        } catch (err) {
+          console.warn("Background NDA S3 upload notification:", err);
+        }
+      };
+
+      const timer = setTimeout(uploadSignedNda, 600);
+      return () => clearTimeout(timer);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    formData.ndaAccepted,
+    formData.ndaAttested,
+    formData.ndaSignatureUrl,
+    formData.ndaSignatureData,
+    formData.ndaAgreementPdfUrl,
+  ]);
+
   const signerName = formData.ndaSignerName || client.name;
-  const isSigned = Boolean(formData.ndaSignatureData && formData.ndaAccepted && formData.ndaAttested);
+  const isSigned = Boolean(
+    (formData.ndaSignatureUrl || formData.ndaSignatureData) &&
+      formData.ndaAccepted &&
+      formData.ndaAttested
+  );
 
   return (
     <div className="space-y-8 animate-in fade-in-50 duration-300">
@@ -674,12 +793,13 @@ export default function Step5Nda({
 
                       {/* Live E-Signature preview directly on the document */}
                       <div className="pt-2 flex flex-col sm:items-end">
-                        {formData.ndaSignatureData ? (
-                          formData.ndaSignatureData.startsWith("data:image") ? (
+                        {formData.ndaSignatureUrl || formData.ndaSignatureData ? (
+                          (formData.ndaSignatureUrl || formData.ndaSignatureData).startsWith("data:image") ||
+                          (formData.ndaSignatureUrl || formData.ndaSignatureData).startsWith("http") ? (
                             <div className="p-1 rounded bg-white border border-slate-200 shadow-xs">
                               {/* eslint-disable-next-line @next/next/no-img-element */}
                               <img
-                                src={formData.ndaSignatureData}
+                                src={formData.ndaSignatureUrl || formData.ndaSignatureData}
                                 alt="Employee E-Signature"
                                 className="h-10 sm:h-12 max-w-[140px] sm:max-w-[150px] object-contain"
                               />

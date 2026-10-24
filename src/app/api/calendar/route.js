@@ -1,5 +1,5 @@
 import { CalendarService } from "@/services/backend/calendar";
-import { getAuthContext } from "@/lib/api/helpers/auth";
+import { getAuthContext, getAuthUser } from "@/lib/api/helpers/auth";
 import { withErrorHandler, successResponse, BadRequestError } from "@/lib/api/response-handler";
 
 export const GET = withErrorHandler(async (req) => {
@@ -7,14 +7,24 @@ export const GET = withErrorHandler(async (req) => {
   const organizationId = orgId || "default_org";
 
   const { searchParams } = new URL(req.url);
-  const year = searchParams.get("year") ? Number(searchParams.get("year")) : 2026;
-  const month = searchParams.get("month") ? Number(searchParams.get("month")) : 10;
+  const now = new Date();
+  const year = searchParams.get("year") ? Number(searchParams.get("year")) : now.getFullYear();
+  const month = searchParams.get("month") ? Number(searchParams.get("month")) : now.getMonth() + 1;
+
+  let userEmail = null;
+  try {
+    const user = await getAuthUser();
+    userEmail = user?.primaryEmailAddress?.emailAddress || user?.emailAddresses?.[0]?.emailAddress || null;
+  } catch (err) {
+    console.warn("Could not retrieve clerk user in calendar route:", err);
+  }
 
   const result = await CalendarService.getMonthlyCalendar({
     organizationId,
     year,
     month,
     userId,
+    userEmail,
   });
 
   return successResponse(result, "Calendar days fetched successfully");

@@ -124,6 +124,14 @@ const EmployeeSchema = new mongoose.Schema(
         number: { type: String, default: "" },
         fileUrl: { type: String, default: "" },
       },
+      tenthResult: {
+        rollNumber: { type: String, default: "" },
+        fileUrl: { type: String, default: "" },
+      },
+      twelfthResult: {
+        rollNumber: { type: String, default: "" },
+        fileUrl: { type: String, default: "" },
+      },
     },
     bankDetails: {
       accountHolderName: { type: String, default: "" },
@@ -143,6 +151,8 @@ const EmployeeSchema = new mongoose.Schema(
       signedAt: { type: Date, default: null },
       signatureType: { type: String, default: "" },
       signatureData: { type: String, default: "" },
+      signatureUrl: { type: String, default: "" },
+      agreementPdfUrl: { type: String, default: "" },
       signerName: { type: String, default: "" },
       version: { type: String, default: "1.0" },
     },

@@ -82,6 +82,14 @@ export function validateStep(step, formData) {
       errs.panFileUrl = "PAN card document upload is required";
     }
 
+    // Educational Documents Validation
+    if (!formData.tenthResultUrl?.trim()) {
+      errs.tenthResultUrl = "10th marksheet / certificate upload is required";
+    }
+    if (!formData.twelfthResultUrl?.trim()) {
+      errs.twelfthResultUrl = "12th marksheet / certificate upload is required";
+    }
+
     // Bank Details Validation
     if (!formData.accountHolderName?.trim()) {
       errs.accountHolderName = "Account holder name is required";
@@ -110,7 +118,7 @@ export function validateStep(step, formData) {
     if (!formData.ndaAttested) {
       errs.ndaAttested = "You must certify your electronic signature under Section 10A of the Information Technology Act.";
     }
-    if (!formData.ndaSignatureData?.trim()) {
+    if (!formData.ndaSignatureUrl?.trim() && !formData.ndaSignatureData?.trim()) {
       errs.ndaSignatureData = "An electronic signature is required to execute the agreement.";
     }
     if (!formData.ndaSignerName?.trim()) {

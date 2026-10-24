@@ -77,12 +77,16 @@ export function getInitialFormData(clerkUser, user, employee) {
     emergencyRelation: employee?.emergencyContact?.relation || "",
     emergencyPhone: employee?.emergencyContact?.phone || "",
 
-    // Identity Documents
+    // Identity & Educational Documents
     aadharNumber: employee?.documents?.aadhar?.number || "",
     aadharFrontUrl: employee?.documents?.aadhar?.frontUrl || "",
     aadharBackUrl: employee?.documents?.aadhar?.backUrl || "",
     panNumber: employee?.documents?.pan?.number || "",
     panFileUrl: employee?.documents?.pan?.fileUrl || "",
+    tenthRollNumber: employee?.documents?.tenthResult?.rollNumber || "",
+    tenthResultUrl: employee?.documents?.tenthResult?.fileUrl || "",
+    twelfthRollNumber: employee?.documents?.twelfthResult?.rollNumber || "",
+    twelfthResultUrl: employee?.documents?.twelfthResult?.fileUrl || "",
 
     // Bank Details
     accountHolderName: employee?.bankDetails?.accountHolderName || clerkFullName || "",
@@ -92,11 +96,13 @@ export function getInitialFormData(clerkUser, user, employee) {
     branchName: employee?.bankDetails?.branchName || "",
     upiId: employee?.bankDetails?.upiId || "",
 
-    // Non-Disclosure Agreement (NDA) E-Signature
+    // Non-Disclosure Agreement (NDA) E-Signature & S3 links
     ndaAccepted: Boolean(employee?.nda?.isSigned),
     ndaAttested: Boolean(employee?.nda?.isSigned),
     ndaSignatureType: employee?.nda?.signatureType || "draw",
     ndaSignatureData: employee?.nda?.signatureData || "",
+    ndaSignatureUrl: employee?.nda?.signatureUrl || "",
+    ndaAgreementPdfUrl: employee?.nda?.agreementPdfUrl || "",
     ndaSignerName: employee?.nda?.signerName || clerkFullName || `${fName} ${lName}`.trim(),
     ndaSignedAt: employee?.nda?.signedAt ? new Date(employee.nda.signedAt).toISOString() : "",
     ndaVersion: employee?.nda?.version || "1.0",
@@ -161,6 +167,14 @@ export function buildOnboardingPayload(formData) {
         number: cleanPanNumber(formData.panNumber),
         fileUrl: formData.panFileUrl.trim(),
       },
+      tenthResult: {
+        rollNumber: (formData.tenthRollNumber || "").trim(),
+        fileUrl: (formData.tenthResultUrl || "").trim(),
+      },
+      twelfthResult: {
+        rollNumber: (formData.twelfthRollNumber || "").trim(),
+        fileUrl: (formData.twelfthResultUrl || "").trim(),
+      },
     },
     bankDetails: {
       accountHolderName:
@@ -173,10 +187,12 @@ export function buildOnboardingPayload(formData) {
       upiId: formData.upiId?.trim() || "",
     },
     nda: {
-      isSigned: Boolean(formData.ndaAccepted && formData.ndaAttested && formData.ndaSignatureData),
+      isSigned: Boolean(formData.ndaAccepted && formData.ndaAttested && (formData.ndaSignatureUrl || formData.ndaSignatureData)),
       signedAt: formData.ndaSignedAt || new Date().toISOString(),
       signatureType: formData.ndaSignatureType || "draw",
-      signatureData: (formData.ndaSignatureData || "").trim(),
+      signatureData: (formData.ndaSignatureUrl || formData.ndaSignatureData || "").trim(),
+      signatureUrl: (formData.ndaSignatureUrl || "").trim(),
+      agreementPdfUrl: (formData.ndaAgreementPdfUrl || "").trim(),
       signerName: (formData.ndaSignerName || `${formData.firstName || ""} ${formData.lastName || ""}`).trim(),
       version: formData.ndaVersion || "1.0",
     },

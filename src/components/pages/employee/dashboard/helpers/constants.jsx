@@ -11,6 +11,15 @@ export const CALENDAR_LEGENDS = [
     badgeClass: "bg-blue-500/10 text-blue-700 dark:text-blue-300",
   },
   {
+    id: "checked-in",
+    name: "Checked In",
+    label: "Checked In",
+    icon: CheckCircle2,
+    iconClass: "text-emerald-600 dark:text-emerald-400",
+    dotColor: "bg-emerald-500",
+    badgeClass: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300",
+  },
+  {
     id: "present",
     name: "Present",
     label: "Present",

@@ -2,15 +2,16 @@
 import { Button } from "@/components/ui/button";
 import { CalendarLegend } from "./calendar-legend";
 import { Skeleton } from "@/components/ui/skeleton";
+import { getTodayDateString } from "@/lib/utils";
 import { CALENDAR_LEGENDS } from "../helpers/constants";
 import { MONTH_NAMES, WEEKDAYS, resolveDayCategory, getDayCellStyles, getStatusBadge } from "./calendar-helpers";
-import { ChevronLeft, ChevronRight, Calendar, Sparkles, Coffee, CheckCircle2, CalendarDays, Briefcase, XCircle } from "lucide-react";
+import { ChevronLeft, ChevronRight, Calendar, Sparkles, Coffee, CheckCircle2, CalendarDays, Briefcase, XCircle, Clock } from "lucide-react";
 
 export function AttendanceCalendar({
   year = 2026,
   month = 10,
   days = [],
-  todayString = "2026-10-20",
+  todayString,
   onNextMonth,
   onPrevMonth,
   onJumpToday,
@@ -18,6 +19,7 @@ export function AttendanceCalendar({
   isFetching = false,
   legends = CALENDAR_LEGENDS,
 }) {
+  const currentTodayString = todayString || getTodayDateString("Asia/Kolkata");
   const monthName = MONTH_NAMES[month - 1] || "Month";
 
   const firstDayOfMonth = new Date(year, month - 1, 1);
@@ -26,15 +28,19 @@ export function AttendanceCalendar({
   const totalCells = mondayBasedOffset + days.length;
   const trailingBlanks = totalCells % 7 === 0 ? 0 : 7 - (totalCells % 7);
 
-  const isCurrentMonthView = () => year === 2026 && month === 10;
+  const isCurrentMonthView = () => {
+    const now = new Date();
+    return year === now.getFullYear() && month === (now.getMonth() + 1);
+  };
+
   const presentCount = days.filter((d) => d.attendanceStatus === "PRESENT").length;
+  const checkedInCount = days.filter((d) => d.attendanceStatus === "CHECKED_IN").length;
+  const halfDaysCount = days.filter((d) => d.attendanceStatus === "HALF_DAY").length;
   const absentCount = days.filter((d) => d.attendanceStatus === "ABSENT").length;
   const holidaysCount = days.filter((d) => d.type === "HOLIDAY").length;
   const weeklyOffCount = days.filter((d) => d.type === "WEEKLY_OFF").length;
   const workingDaysCount = days.filter((d) => d.type === "WORKING_DAY").length || days.length;
-  const leavesCount = days.filter(
-    (d) => d.attendanceStatus === "CASUAL_LEAVE" || d.attendanceStatus === "HALF_DAY"
-  ).length;
+  const leavesCount = days.filter((d) => d.attendanceStatus === "CASUAL_LEAVE").length;
 
   return (
     <div className="rounded-md border border-border/80 bg-white dark:bg-zinc-900 shadow-xs overflow-hidden transition-all">
@@ -108,6 +114,23 @@ export function AttendanceCalendar({
               <span>{presentCount} Present</span>
             </span>
 
+            {checkedInCount > 0 && (
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-sm text-[11px] font-semibold bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 shrink-0 whitespace-nowrap">
+                <span className="relative flex size-2 shrink-0">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full size-2 bg-emerald-500"></span>
+                </span>
+                <span>{checkedInCount} Working Now</span>
+              </span>
+            )}
+
+            {halfDaysCount > 0 && (
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-sm text-[11px] font-semibold bg-amber-500/10 text-amber-700 dark:text-amber-300 shrink-0 whitespace-nowrap">
+                <Clock className="size-3 shrink-0 text-amber-600 dark:text-amber-400" />
+                <span>{halfDaysCount} Half Day{halfDaysCount > 1 ? "s" : ""}</span>
+              </span>
+            )}
+
             {absentCount > 0 && (
               <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-sm text-[11px] font-semibold bg-rose-500/10 text-rose-700 dark:text-rose-300 shrink-0 whitespace-nowrap">
                 <XCircle className="size-3 shrink-0 text-rose-600 dark:text-rose-400" />
@@ -135,8 +158,8 @@ export function AttendanceCalendar({
             )}
 
             {leavesCount > 0 && (
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-sm text-[11px] font-semibold bg-amber-500/10 text-amber-700 dark:text-amber-300 shrink-0 whitespace-nowrap">
-                <CalendarDays className="size-3 shrink-0 text-amber-600 dark:text-amber-400" />
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-sm text-[11px] font-semibold bg-sky-500/10 text-sky-700 dark:text-sky-300 shrink-0 whitespace-nowrap">
+                <CalendarDays className="size-3 shrink-0 text-sky-600 dark:text-sky-400" />
                 <span>{leavesCount} Leave{leavesCount > 1 ? "s" : ""}</span>
               </span>
             )}
@@ -192,7 +215,7 @@ export function AttendanceCalendar({
             ))}
 
           {days.map((dayItem) => {
-            const category = resolveDayCategory(dayItem, todayString);
+            const category = resolveDayCategory(dayItem, currentTodayString);
             const { cellClass, numberClass } = getDayCellStyles(category);
 
             return (

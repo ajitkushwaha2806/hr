@@ -214,8 +214,8 @@ export default function MagicScaleNdaPDF({ company, client, agreement, signature
                 Designation: <Text style={styles.blackBold}>{client.designation}</Text>
               </Text>
               {signatureData ? (
-                signatureData.startsWith("data:image") ? (
-                  <Image src={signatureData} style={styles.signatureImage} alt="Receiving Party Signature" />
+                signatureData.startsWith("data:image") || signatureData.startsWith("http") ? (
+                  <Image src={signatureData} style={styles.signatureImage} />
                 ) : (
                   <Text style={[styles.blueBold, { marginTop: 8, fontSize: 11, fontStyle: "italic" }]}>
                     {signatureData}

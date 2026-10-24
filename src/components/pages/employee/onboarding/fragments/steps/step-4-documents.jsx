@@ -2,7 +2,7 @@
 import FloatingField from "../floating-field";
 import { DocumentUploadCard } from "@/components/ui/document-upload-card";
 import { formatAadharInput, formatPanInput } from "../../helpers/formatters";
-import { Shield, CreditCard, FileText, Landmark, Building2, Wallet } from "lucide-react";
+import { Shield, CreditCard, FileText, Landmark, Building2, Wallet, GraduationCap, Award, BookOpen } from "lucide-react";
 
 export default function Step4Documents({ formData, handleChange, errors = {} }) {
   return (
@@ -82,6 +82,83 @@ export default function Step4Documents({ formData, handleChange, errors = {} }) 
             error={errors.panFileUrl}
             required
           />
+        </div>
+      </div>
+
+      {/* Educational Qualification Documents: 10th & 12th Results */}
+      <div className="space-y-5 p-3.5 sm:p-5 rounded-md border border-border/60 bg-white dark:bg-zinc-900">
+        <div className="flex items-center justify-between flex-wrap gap-2">
+          <div className="flex items-center gap-2 text-xs font-semibold text-primary">
+            <GraduationCap className="size-4 text-primary" />
+            <span>Educational Qualification & Marksheets</span>
+          </div>
+          <span className="text-[11px] text-muted-foreground font-medium">
+            10th & 12th Standard Verification
+          </span>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 pt-1">
+          {/* 10th Standard / Matriculation */}
+          <div className="p-3.5 sm:p-4 rounded-lg border border-border/50 bg-slate-50/50 dark:bg-zinc-950/40 space-y-4 flex flex-col justify-between">
+            <div className="space-y-4">
+              <div className="flex items-center gap-2 text-xs font-bold text-foreground">
+                <Award className="size-3.5 text-indigo-500" />
+                <span>Class 10th (Secondary School)</span>
+              </div>
+
+              <FloatingField
+                id="tenthRollNumber"
+                label="10th Roll / Registration No."
+                icon={BookOpen}
+                placeholder="e.g. 10293847"
+                value={formData.tenthRollNumber}
+                onChange={(e) => handleChange("tenthRollNumber", e.target.value)}
+                error={errors.tenthRollNumber}
+                helperText="As printed on your 10th marksheet."
+              />
+            </div>
+
+            <DocumentUploadCard
+              label="10th Marksheet / Passing Certificate *"
+              description="Clear PDF or photo showing marks"
+              category="education"
+              value={formData.tenthResultUrl}
+              onChange={(url) => handleChange("tenthResultUrl", url)}
+              error={errors.tenthResultUrl}
+              required
+            />
+          </div>
+
+          {/* 12th Standard / Intermediate */}
+          <div className="p-3.5 sm:p-4 rounded-lg border border-border/50 bg-slate-50/50 dark:bg-zinc-950/40 space-y-4 flex flex-col justify-between">
+            <div className="space-y-4">
+              <div className="flex items-center gap-2 text-xs font-bold text-foreground">
+                <Award className="size-3.5 text-indigo-500" />
+                <span>Class 12th (Higher Secondary)</span>
+              </div>
+
+              <FloatingField
+                id="twelfthRollNumber"
+                label="12th Roll / Registration No."
+                icon={BookOpen}
+                placeholder="e.g. 12948572"
+                value={formData.twelfthRollNumber}
+                onChange={(e) => handleChange("twelfthRollNumber", e.target.value)}
+                error={errors.twelfthRollNumber}
+                helperText="As printed on your 12th marksheet."
+              />
+            </div>
+
+            <DocumentUploadCard
+              label="12th Marksheet / Passing Certificate *"
+              description="Clear PDF or photo showing marks"
+              category="education"
+              value={formData.twelfthResultUrl}
+              onChange={(url) => handleChange("twelfthResultUrl", url)}
+              error={errors.twelfthResultUrl}
+              required
+            />
+          </div>
         </div>
       </div>
 
