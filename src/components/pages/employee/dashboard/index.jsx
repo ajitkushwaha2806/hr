@@ -6,7 +6,7 @@ import { useCalendar } from "@/store/hooks/useCalendar";
 import { useAttendance } from "@/store/hooks/useAttendance";
 import AttendanceCalendar from "./fragments/attendance-calendar";
 import AttendancePunchBar from "./fragments/attendance-punch-bar";
-import { CheckCircle2, Clock, AlertCircle, Briefcase, XCircle } from "lucide-react";
+import { CheckCircle2, Clock, AlertCircle, XCircle } from "lucide-react";
 
 export default function EmployeeDashboard() {
   const { user } = useUser();
@@ -20,7 +20,6 @@ export default function EmployeeDashboard() {
     (d) => d.attendanceStatus === "PRESENT" || d.attendanceStatus === "HALF_DAY" || d.attendanceStatus === "CHECKED_IN"
   ).length;
   const absentDays = days.filter((d) => d.attendanceStatus === "ABSENT").length;
-  const workingDays = days.filter((d) => d.type === "WORKING_DAY").length;
   const totalWorkedMinutes = days.reduce((acc, d) => acc + (d.punch?.durationMinutes || 0), 0);
   const totalHours = Math.floor(totalWorkedMinutes / 60);
   const remainingMinutes = totalWorkedMinutes % 60;
@@ -115,7 +114,7 @@ export default function EmployeeDashboard() {
           ))}
         </div>
       ) : (
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5 sm:gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3">
           <div className="p-3.5 rounded-md bg-white dark:bg-zinc-900 border border-border/70 shadow-2xs flex flex-col justify-between">
             <div className="flex items-center justify-between">
               <span className="text-[11px] font-semibold text-muted-foreground">Present</span>
@@ -125,7 +124,7 @@ export default function EmployeeDashboard() {
             </div>
             <div className="mt-2">
               <div className="text-lg font-extrabold text-foreground tracking-tight">
-                {presentDays} <span className="text-xs font-medium text-muted-foreground">/ {workingDays}</span>
+                {presentDays}
               </div>
               <p className="text-[10.5px] text-emerald-600 dark:text-emerald-400 font-semibold mt-0.5">
                 Days Present
@@ -184,25 +183,8 @@ export default function EmployeeDashboard() {
               </p>
             </div>
           </div>
-
-          <div className="p-3.5 rounded-md bg-white dark:bg-zinc-900 border border-border/70 shadow-2xs flex flex-col justify-between">
-            <div className="flex items-center justify-between">
-              <span className="text-[11px] font-semibold text-muted-foreground">Working Days</span>
-              <div className="size-6 rounded-md bg-purple-500/15 text-purple-600 dark:text-purple-400 flex items-center justify-center">
-                <Briefcase className="w-3.5 h-3.5" />
-              </div>
-            </div>
-            <div className="mt-2">
-              <div className="text-lg font-extrabold text-foreground tracking-tight">
-                {workingDays} <span className="text-xs font-medium text-muted-foreground">Days</span>
-              </div>
-              <p className="text-[10.5px] text-purple-600 dark:text-purple-400 font-semibold mt-0.5">
-                Scheduled this Month
-              </p>
-            </div>
-          </div>
         </div>
-    )}
+      )}
 
       <div className="pt-1">
         <AttendanceCalendar

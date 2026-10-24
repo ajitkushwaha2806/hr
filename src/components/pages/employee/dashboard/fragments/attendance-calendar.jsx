@@ -5,7 +5,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { getTodayDateString } from "@/lib/utils";
 import { CALENDAR_LEGENDS } from "../helpers/constants";
 import { MONTH_NAMES, WEEKDAYS, resolveDayCategory, getDayCellStyles, getStatusBadge } from "./calendar-helpers";
-import { ChevronLeft, ChevronRight, Calendar, Sparkles, Coffee, CheckCircle2, CalendarDays, Briefcase, XCircle, Clock } from "lucide-react";
+import { ChevronLeft, ChevronRight, Calendar, Sparkles, Coffee, CheckCircle2, CalendarDays, XCircle, Clock } from "lucide-react";
 
 export function AttendanceCalendar({
   year = 2026,
@@ -39,7 +39,6 @@ export function AttendanceCalendar({
   const absentCount = days.filter((d) => d.attendanceStatus === "ABSENT").length;
   const holidaysCount = days.filter((d) => d.type === "HOLIDAY").length;
   const weeklyOffCount = days.filter((d) => d.type === "WEEKLY_OFF").length;
-  const workingDaysCount = days.filter((d) => d.type === "WORKING_DAY").length || days.length;
   const leavesCount = days.filter((d) => d.attendanceStatus === "CASUAL_LEAVE").length;
 
   return (
@@ -137,11 +136,6 @@ export function AttendanceCalendar({
                 <span>{absentCount} Absent</span>
               </span>
             )}
-
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-sm text-[11px] font-semibold bg-blue-500/10 text-blue-700 dark:text-blue-300 shrink-0 whitespace-nowrap">
-              <Briefcase className="size-3 shrink-0 text-blue-600 dark:text-blue-400" />
-              <span>{workingDaysCount} Working Days</span>
-            </span>
 
             {holidaysCount > 0 && (
               <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-sm text-[11px] font-semibold bg-purple-500/10 text-purple-700 dark:text-purple-300 shrink-0 whitespace-nowrap">
