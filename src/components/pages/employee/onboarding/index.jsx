@@ -44,9 +44,16 @@ export default function EmployeeOnboarding() {
         if (parsed && typeof parsed === "object") {
           setTimeout(() => {
             if (parsed.formData && typeof parsed.formData === "object") {
+              const draftData = { ...parsed.formData };
+              if (draftData.facePhoto && draftData.facePhoto.includes("clerk")) {
+                draftData.facePhoto = "";
+              }
+              if (draftData.avatar && draftData.avatar.includes("clerk")) {
+                draftData.avatar = "";
+              }
               setFormData((prev) => ({
                 ...prev,
-                ...parsed.formData,
+                ...draftData,
               }));
             }
             if (

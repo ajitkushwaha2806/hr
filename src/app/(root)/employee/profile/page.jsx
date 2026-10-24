@@ -5,7 +5,7 @@ import { RefreshCw, AlertCircle, ArrowRight } from "lucide-react";
 import EmployeeProfileView from "@/components/pages/employee/profile";
 
 export default function EmployeeProfilePage() {
-  const { employee, officeLocation, todayPunch, isLoading, error, refetch } = useEmployeeProfile();
+  const { employee, officeLocation, todayPunch, isLoading, error, refetch, updateProfile } = useEmployeeProfile();
 
   if (isLoading) {
     return (
@@ -81,6 +81,9 @@ export default function EmployeeProfilePage() {
       officeLocation={officeLocation}
       todayPunch={todayPunch}
       avatar={employee?.avatar}
+      onUpdatePhoto={async (newAvatarUrl) => {
+        await updateProfile({ avatar: newAvatarUrl, facePhoto: newAvatarUrl });
+      }}
     />
   );
 }

@@ -348,7 +348,12 @@ export class OnboardingService {
         signerName: data.nda?.signerName || `${firstName} ${lastName}`.trim(),
         version: data.nda?.version || "1.0",
       },
-      avatar: data.avatar?.trim() || data.facePhoto?.trim() || clerkUser.imageUrl || "",
+      avatar:
+        data.avatar && !data.avatar.includes("clerk")
+          ? data.avatar.trim()
+          : data.facePhoto && !data.facePhoto.includes("clerk")
+          ? data.facePhoto.trim()
+          : "",
     };
 
     if (employee) {

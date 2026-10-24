@@ -77,7 +77,7 @@ export default function Step1Personal({ formData, handleChange, errors = {} }) {
 
       <FaceCaptureCard
         value={
-          formData.facePhoto && !formData.facePhoto.includes("img.clerk.com")
+          formData.facePhoto && !formData.facePhoto.includes("clerk")
             ? formData.facePhoto
             : ""
         }

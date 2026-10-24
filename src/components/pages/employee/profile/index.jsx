@@ -4,7 +4,7 @@ import ProfileHeroHeader from "./profile-hero-header";
 import ProfileSectionCard from "./profile-section-card";
 import {  User,  Mail,  Phone,  Building2,  Briefcase,  MapPin,  CheckCircle2,  Calendar,  CreditCard,  FileText,  HeartHandshake,  Home,  Landmark,  BadgeCheck,  Globe, AlertCircle, Shield } from "lucide-react";
 
-export default function EmployeeProfileView({ employee, officeLocation, todayPunch, avatar }) {
+export default function EmployeeProfileView({ employee, officeLocation, todayPunch, avatar, onUpdatePhoto }) {
   const fullName = 
     employee?.name || 
     (employee?.firstName ? `${employee.firstName} ${employee.lastName || ""}`.trim() : "") ||
@@ -107,6 +107,8 @@ export default function EmployeeProfileView({ employee, officeLocation, todayPun
         status={empStatus}
         employmentType={empType}
         lastPunchTime={todayPunch?.checkInTime}
+        hasEnrolledFace={Boolean(employee?.hasEnrolledFace || employee?.avatar || employee?.facePhoto)}
+        onUpdatePhoto={onUpdatePhoto}
       />
 
       <ProfileSectionCard

@@ -107,12 +107,33 @@ export function getInitialFormData(clerkUser, user, employee) {
     ndaSignedAt: employee?.nda?.signedAt ? new Date(employee.nda.signedAt).toISOString() : "",
     ndaVersion: employee?.nda?.version || "1.0",
 
-    facePhoto: employee?.facePhoto || employee?.avatar || "",
-    avatar: employee?.avatar || user?.avatar || clerkUser?.imageUrl || "",
+    facePhoto:
+      employee?.facePhoto && !employee.facePhoto.includes("clerk")
+        ? employee.facePhoto
+        : employee?.avatar && !employee.avatar.includes("clerk")
+        ? employee.avatar
+        : "",
+    avatar:
+      employee?.avatar && !employee.avatar.includes("clerk")
+        ? employee.avatar
+        : employee?.facePhoto && !employee.facePhoto.includes("clerk")
+        ? employee.facePhoto
+        : "",
   };
 }
 
 export function buildOnboardingPayload(formData) {
+  const isClerkPhoto = (url) =>
+    typeof url === "string" &&
+    (url.includes("img.clerk.com") || url.includes("images.clerk.dev") || url.includes("clerk.com"));
+
+  const validPhoto =
+    formData.facePhoto && !isClerkPhoto(formData.facePhoto)
+      ? formData.facePhoto.trim()
+      : formData.avatar && !isClerkPhoto(formData.avatar)
+      ? formData.avatar.trim()
+      : "";
+
   return {
     firstName: formData.firstName.trim(),
     lastName: formData.lastName.trim(),
@@ -125,8 +146,8 @@ export function buildOnboardingPayload(formData) {
     designation: formData.designation.trim(),
     employmentType: formData.employmentType,
     workLocation: formData.workLocation,
-    avatar: (formData.facePhoto || formData.avatar || "").trim(),
-    facePhoto: (formData.facePhoto || formData.avatar || "").trim(),
+    avatar: validPhoto,
+    facePhoto: validPhoto,
 
     currentAddress: {
       street: formData.currentStreet.trim(),

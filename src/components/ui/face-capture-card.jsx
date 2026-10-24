@@ -1,8 +1,7 @@
-"use client";
-
 import { useState, useRef, useEffect, useCallback } from "react";
-import { Camera, RefreshCw, CheckCircle2, AlertCircle, Sparkles } from "lucide-react";
+import { Camera, RefreshCw, CheckCircle2, AlertCircle } from "lucide-react";
 import axios from "axios";
+import { cn } from "@/lib/utils";
 
 export default function FaceCaptureCard({
   value,
@@ -11,6 +10,10 @@ export default function FaceCaptureCard({
   allowRetake = true,
   label = "Biometric Face Registration",
   description = "Take a clear live selfie facing the camera in good lighting. This photo is used to verify your daily attendance.",
+  hideHeader = false,
+  className = "",
+  autoStart = false,
+  onCancel,
 }) {
   const [isCameraActive, setIsCameraActive] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
@@ -51,7 +54,7 @@ export default function FaceCaptureCard({
     }
   }, []);
 
-  const startCamera = async () => {
+  const startCamera = useCallback(async () => {
     setCameraError(null);
     if (typeof window === "undefined" || !navigator.mediaDevices?.getUserMedia) {
       setCameraError("Camera access is not supported by your browser or requires a secure context (HTTPS / localhost).");
@@ -85,6 +88,28 @@ export default function FaceCaptureCard({
       console.error("Camera access error:", err);
       setCameraError("Camera permission denied or camera unavailable. Please allow camera permissions to capture your selfie.");
       setIsCameraActive(false);
+    }
+  }, [attachStream, stopCamera]);
+
+  useEffect(() => {
+    if (!autoStart) return;
+    let active = true;
+    const timer = setTimeout(() => {
+      if (active) {
+        startCamera();
+      }
+    }, 50);
+
+    return () => {
+      active = false;
+      clearTimeout(timer);
+    };
+  }, [autoStart, startCamera]);
+
+  const handleCancel = () => {
+    stopCamera();
+    if (onCancel) {
+      onCancel();
     }
   };
 
@@ -147,23 +172,25 @@ export default function FaceCaptureCard({
   };
 
   return (
-    <div className="rounded-xl border border-border/70 bg-card p-4 sm:p-6 shadow-xs space-y-4">
+    <div className={cn("rounded-xl border border-border/70 bg-card p-4 sm:p-6 shadow-xs space-y-4", className)}>
       {/* Header Info */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-        <div>
-          <div className="flex items-center gap-2 flex-wrap">
-            <h3 className="font-semibold text-sm sm:text-base text-foreground tracking-tight">{label}</h3>
+      {!hideHeader && (
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div>
+            <div className="flex items-center gap-2 flex-wrap">
+              <h3 className="font-semibold text-sm sm:text-base text-foreground tracking-tight">{label}</h3>
+            </div>
+            <p className="text-xs text-muted-foreground mt-1 max-w-xl leading-relaxed">{description}</p>
           </div>
-          <p className="text-xs text-muted-foreground mt-1 max-w-xl leading-relaxed">{description}</p>
-        </div>
 
-        {value && !isCameraActive && (
-          <div className="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/20 shrink-0 whitespace-nowrap self-start sm:self-auto">
-            <CheckCircle2 className="size-3.5 text-emerald-500 shrink-0" />
-            Face Registered
-          </div>
-        )}
-      </div>
+          {value && !isCameraActive && (
+            <div className="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/20 shrink-0 whitespace-nowrap self-start sm:self-auto">
+              <CheckCircle2 className="size-3.5 text-emerald-500 shrink-0" />
+              Face Registered
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Errors */}
       {cameraError && (
@@ -212,7 +239,7 @@ export default function FaceCaptureCard({
             {/* Cancel Button top-right during camera */}
             <button
               type="button"
-              onClick={stopCamera}
+              onClick={handleCancel}
               className="absolute top-3 right-3 px-2.5 py-1 rounded-full bg-black/60 hover:bg-black/80 backdrop-blur-md text-white text-xs font-medium border border-white/20 transition-all shadow-sm"
             >
               Cancel
@@ -252,15 +279,17 @@ export default function FaceCaptureCard({
               <span className="text-[11px] text-zinc-300 font-medium hidden sm:inline-block truncate">
                 Verified for Biometric Check-in
               </span>
-              <button
-                type="button"
-                onClick={startCamera}
-                disabled={isUploading}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/95 hover:bg-white text-zinc-900 font-semibold text-xs shadow-md active:scale-95 transition-all whitespace-nowrap ml-auto"
-              >
-                <RefreshCw className="size-3 text-zinc-800" />
-                <span>Retake Photo</span>
-              </button>
+              {allowRetake && (
+                <button
+                  type="button"
+                  onClick={startCamera}
+                  disabled={isUploading}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/95 hover:bg-white text-zinc-900 font-semibold text-xs shadow-md active:scale-95 transition-all whitespace-nowrap ml-auto"
+                >
+                  <RefreshCw className="size-3 text-zinc-800" />
+                  <span>Retake Photo</span>
+                </button>
+              )}
             </div>
           </div>
         )}

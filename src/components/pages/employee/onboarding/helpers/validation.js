@@ -30,7 +30,11 @@ export function validateStep(step, formData) {
     } else if (!isValidPhoneNumber(formData.phone)) {
       errs.phone = "Please enter a valid 10-digit phone number";
     }
-    if (!formData.facePhoto?.trim() && !formData.avatar?.trim()) {
+    const hasLiveSelfie =
+      (formData.facePhoto?.trim() && !formData.facePhoto.includes("clerk")) ||
+      (formData.avatar?.trim() && !formData.avatar.includes("clerk"));
+
+    if (!hasLiveSelfie) {
       errs.facePhoto = "Biometric face registration is required for office attendance check-in";
     }
   } else if (step === 2) {
