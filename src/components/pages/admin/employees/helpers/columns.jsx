@@ -1,7 +1,8 @@
 import React from "react";
+import Link from "next/link";
 import { format } from "date-fns";
 import { Asset } from "@/components/common/Asset";
-import { MoreHorizontal, Edit, Trash2, Mail, Phone, Landmark } from "lucide-react";
+import { MoreHorizontal, Edit, Trash2, Mail, Phone, Landmark, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { EmployeeStatusBadge, DepartmentBadge, EmploymentTypeBadge } from "./badges";
 import {
@@ -12,20 +13,23 @@ import {
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 
-export const getEmployeeColumns = ({ onEdit, onDelete }) => [
+export const getEmployeeColumns = ({ onEdit, onDelete, onView }) => [
   {
     key: "employee",
     header: "Employee",
     sortable: true,
     render: (row) => (
-      <div className="flex items-center gap-3 min-w-0 sm:min-w-[200px] max-w-full">
+      <Link
+        href={`/admin/employees/${row._id}`}
+        className="flex items-center gap-3 min-w-0 sm:min-w-[200px] max-w-full group/emp hover:opacity-95"
+      >
         <Asset
           src={row.avatar}
           name={row.name || `${row.firstName} ${row.lastName}`}
-          className="size-9 rounded-full border border-border/60 shrink-0 shadow-2xs"
+          className="size-9 rounded-full border border-border/60 shrink-0 shadow-2xs group-hover/emp:ring-2 group-hover/emp:ring-primary/40 transition-all"
         />
         <div className="flex flex-col min-w-0 flex-1">
-          <span className="font-semibold text-xs text-foreground truncate block">
+          <span className="font-semibold text-xs text-foreground group-hover/emp:text-primary transition-colors truncate block">
             {row.name || `${row.firstName} ${row.lastName}`}
           </span>
           <span className="text-[11px] text-muted-foreground flex items-center gap-1 mt-0.5 min-w-0">
@@ -33,7 +37,7 @@ export const getEmployeeColumns = ({ onEdit, onDelete }) => [
             <span className="truncate">{row.email}</span>
           </span>
         </div>
-      </div>
+      </Link>
     ),
   },
   {
@@ -41,9 +45,12 @@ export const getEmployeeColumns = ({ onEdit, onDelete }) => [
     header: "Emp ID",
     sortable: true,
     render: (row) => (
-      <span className="font-mono text-xs font-semibold px-2 py-0.5 rounded bg-muted/60 text-muted-foreground border border-border/50 truncate max-w-full inline-block">
+      <Link
+        href={`/admin/employees/${row._id}`}
+        className="font-mono text-xs font-semibold px-2 py-0.5 rounded bg-muted/60 text-muted-foreground border border-border/50 truncate max-w-full inline-block hover:bg-muted hover:text-foreground hover:border-primary/40 transition-colors"
+      >
         {row.employeeId || "—"}
-      </span>
+      </Link>
     ),
   },
   {
@@ -145,7 +152,18 @@ export const getEmployeeColumns = ({ onEdit, onDelete }) => [
             </Button>
           }
         />
-        <DropdownMenuContent align="end" className="w-40 rounded-lg p-1 shadow-lg">
+        <DropdownMenuContent align="end" className="w-48 rounded-lg p-1 shadow-lg">
+          <DropdownMenuItem
+            render={
+              <Link
+                href={`/admin/employees/${row._id}`}
+                className="flex items-center gap-2 cursor-pointer text-xs font-medium py-1.5 w-full"
+              >
+                <Eye className="size-3.5 text-primary" />
+                <span>View Full Details</span>
+              </Link>
+            }
+          />
           <DropdownMenuItem
             onClick={() => onEdit?.(row)}
             className="flex items-center gap-2 cursor-pointer text-xs font-medium py-1.5"

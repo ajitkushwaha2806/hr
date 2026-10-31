@@ -133,4 +133,53 @@ export function useEmployeeProfile() {
   };
 }
 
+export function useEmployeeDetail(id, { year, month } = {}) {
+  const queryClient = useQueryClient();
+  const notification = useNotification();
+
+  const employeeQuery = useQuery({
+    queryKey: ["employee", id],
+    queryFn: () => EmployeeService.getEmployeeById(id),
+    select: (res) => res?.data || res || null,
+    enabled: Boolean(id),
+  });
+
+  const attendanceQuery = useQuery({
+    queryKey: ["employee-attendance", id, year, month],
+    queryFn: () => EmployeeService.getEmployeeAttendance(id, { year, month }),
+    select: (res) => res?.data || res || {},
+    enabled: Boolean(id && year && month),
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: (data) => EmployeeService.updateEmployee(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["employee", id] });
+      queryClient.invalidateQueries({ queryKey: ["employees"] });
+      notification.success(NOTIFICATION_MESSAGES.EMPLOYEE.UPDATE_SUCCESS);
+    },
+    onError: (err) => {
+      const msg = extractErrorMessage(err, NOTIFICATION_MESSAGES.EMPLOYEE.UPDATE_ERROR);
+      notification.error(msg);
+    },
+  });
+
+  return {
+    employee: employeeQuery.data,
+    isLoadingEmployee: employeeQuery.isLoading,
+    isFetchingEmployee: employeeQuery.isFetching,
+    employeeError: employeeQuery.error,
+    refetchEmployee: employeeQuery.refetch,
+
+    attendance: attendanceQuery.data,
+    isLoadingAttendance: attendanceQuery.isLoading,
+    isFetchingAttendance: attendanceQuery.isFetching,
+    attendanceError: attendanceQuery.error,
+    refetchAttendance: attendanceQuery.refetch,
+
+    updateEmployee: updateMutation.mutateAsync,
+    isUpdatingEmployee: updateMutation.isPending,
+  };
+}
+
 export default useEmployees;

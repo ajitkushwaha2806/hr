@@ -6,6 +6,7 @@ export const API_ENDPOINTS = {
     GET_BY_ID: (id) => `/api/employees/${id}`,
     UPDATE: (id) => `/api/employees/${id}`,
     DELETE: (id) => `/api/employees/${id}`,
+    ATTENDANCE: (id) => `/api/employees/${id}/attendance`,
   },
   ONBOARDING: {
     GET_STATUS: "/api/onboarding",

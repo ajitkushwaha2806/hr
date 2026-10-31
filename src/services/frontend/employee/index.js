@@ -36,6 +36,14 @@ export const EmployeeService = {
     const response = await api.delete(API_ENDPOINTS.EMPLOYEE.DELETE(id));
     return response.data;
   },
+
+  getEmployeeAttendance: async (id, { year, month } = {}) => {
+    const params = {};
+    if (year) params.year = year;
+    if (month) params.month = month;
+    const response = await api.get(API_ENDPOINTS.EMPLOYEE.ATTENDANCE(id), { params });
+    return response.data;
+  },
 };
 
 export default EmployeeService;

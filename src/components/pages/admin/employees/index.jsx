@@ -1,5 +1,6 @@
 "use client";
 import { Plus, RefreshCw } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { EmployeeFormSheet } from "./fragments";
 import { Button } from "@/components/ui/button";
 import DataTable from "@/components/global/table";
@@ -12,6 +13,7 @@ import { EMPLOYEE_STATUS_FILTERS, DEPARTMENTS, DEFAULT_PAGE_SIZE, EMPLOYEE_EMPTY
 
 
 export default function EmployeeManagement() {
+  const router = useRouter();
   const [statusFilter, setStatusFilter] = useState("all");
   const [departmentFilter, setDepartmentFilter] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
@@ -135,6 +137,8 @@ export default function EmployeeManagement() {
           pagination
           pageSize={DEFAULT_PAGE_SIZE}
           emptyState={EMPLOYEE_EMPTY_STATE}
+          onRowClick={(row) => router.push(`/admin/employees/${row._id}`)}
+          rowClassName="cursor-pointer hover:bg-muted/30 transition-colors"
         />
       </div>
 
