@@ -1,6 +1,7 @@
 import dbConnect from "@/lib/db";
 import Leave from "@/models/Leave";
 import Employee from "@/models/Employee";
+import User from "@/models/User";
 import { emailService } from "@/services/backend/email";
 import { BadRequestError, NotFoundError } from "@/lib/api/response-handler";
 
@@ -65,6 +66,57 @@ export class LeaveService {
 
     const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24)) + 1;
     return diffDays;
+  }
+
+  /**
+   * Resolves email addresses for organization admins & HR.
+   * Checks ADMIN_EMAIL env, DB admin users, and falls back to SUPPORT_EMAIL.
+   */
+  static async getAdminRecipients(organizationId) {
+    const recipients = new Set();
+
+    // 1. Explicit ADMIN_EMAIL environment variable
+    if (process.env.ADMIN_EMAIL) {
+      process.env.ADMIN_EMAIL.split(",").forEach((e) => {
+        const trimmed = e.trim().toLowerCase();
+        if (trimmed && trimmed.includes("@")) {
+          recipients.add(trimmed);
+        }
+      });
+    }
+
+    // 2. Query administrative users in MongoDB
+    try {
+      const adminRoles = ["SUPER_ADMIN", "HR_ADMIN", "HR_MANAGER", "org:admin"];
+      const userQuery = {
+        role: { $in: adminRoles },
+        status: "ACTIVE",
+      };
+      if (organizationId) {
+        userQuery.$or = [
+          { organizationId },
+          { organizationId: { $exists: false } },
+          { organizationId: null },
+        ];
+      }
+      const adminUsers = await User.find(userQuery).select("email").lean();
+
+      adminUsers.forEach((u) => {
+        if (u.email && u.email.includes("@")) {
+          recipients.add(u.email.toLowerCase().trim());
+        }
+      });
+    } catch (err) {
+      console.error("[LeaveService] Failed to query admin users for notification:", err);
+    }
+
+    // 3. Fallback to configured support/company email
+    if (recipients.size === 0) {
+      const fallback = process.env.SUPPORT_EMAIL || "truehr.payroll@gmail.com";
+      recipients.add(fallback.toLowerCase().trim());
+    }
+
+    return Array.from(recipients);
   }
 
   static async getMyLeaves(clerkUser, organizationId, targetMonth = null) {
@@ -221,6 +273,41 @@ export class LeaveService {
       appliedAt: new Date(),
     });
 
+    // Asynchronously dispatch notification to organization admins / HR
+    this.getAdminRecipients(orgId)
+      .then((adminEmails) => {
+        const portalUrl = `${process.env.NEXT_PUBLIC_BASE_APP || process.env.NEXT_PUBLIC_APP_URL || "https://truehr.magicscale.in"}/admin/leaves`;
+
+        return Promise.all(
+          adminEmails.map((adminEmail) =>
+            emailService.sendTemplateEmail({
+              to: adminEmail,
+              template: "leave-requested-admin",
+              data: {
+                employeeName: newLeave.employeeName,
+                employeeId: employee.employeeId || "",
+                department: employee.department || "General",
+                leaveType: newLeave.type,
+                dayType: newLeave.dayType,
+                startDate: newLeave.startDate,
+                endDate: newLeave.endDate,
+                daysCount: newLeave.daysCount,
+                reason: newLeave.reason,
+                appliedAt: new Date().toLocaleDateString("en-IN", {
+                  day: "2-digit",
+                  month: "short",
+                  year: "numeric",
+                }),
+                reviewUrl: portalUrl,
+              },
+            })
+          )
+        );
+      })
+      .catch((err) => {
+        console.error("[LeaveService] Warning: Failed to dispatch leave request email to admins:", err);
+      });
+
     return newLeave;
   }
 
@@ -322,28 +409,38 @@ export class LeaveService {
     await leave.save();
 
     // Asynchronously dispatch email notification to the employee
-    if (leave.employeeEmail) {
-      emailService
-        .sendTemplateEmail({
-          to: leave.employeeEmail,
-          template: "leave-status",
-          data: {
-            name: leave.employeeName || "Employee",
-            status: newStatus,
-            leaveType: leave.type,
-            dayType: leave.dayType,
-            startDate: leave.startDate,
-            endDate: leave.endDate,
-            daysCount: leave.daysCount,
-            adminRemarks: leave.adminRemarks,
-            reviewedBy: leave.reviewedBy,
-            portalUrl: `${process.env.NEXT_PUBLIC_BASE_APP || process.env.NEXT_PUBLIC_APP_URL || process.env.APP_URL || "https://truehr.magicscale.in"}/employee/leaves`,
-          },
-        })
-        .catch((err) => {
-          console.error("[Email Notification Warning] Failed to send leave review email:", err);
-        });
-    }
+    (async () => {
+      try {
+        let recipientEmail = leave.employeeEmail;
+        if (!recipientEmail && leave.employeeId) {
+          const emp = await Employee.findById(leave.employeeId).select("email").lean();
+          recipientEmail = emp?.email;
+        }
+
+        if (recipientEmail) {
+          const portalUrl = `${process.env.NEXT_PUBLIC_BASE_APP || process.env.NEXT_PUBLIC_APP_URL || "https://truehr.magicscale.in"}/employee/leaves`;
+
+          await emailService.sendTemplateEmail({
+            to: recipientEmail,
+            template: "leave-status",
+            data: {
+              name: leave.employeeName || "Team Member",
+              status: newStatus,
+              leaveType: leave.type,
+              dayType: leave.dayType,
+              startDate: leave.startDate,
+              endDate: leave.endDate,
+              daysCount: leave.daysCount,
+              adminRemarks: leave.adminRemarks,
+              reviewedBy: leave.reviewedBy,
+              portalUrl,
+            },
+          });
+        }
+      } catch (err) {
+        console.error("[LeaveService] Warning: Failed to send leave review status email to employee:", err);
+      }
+    })();
 
     return leave;
   }

@@ -1,5 +1,6 @@
 import { welcomeEmployeeTemplate } from "./welcome-employee.js";
 import { leaveStatusTemplate } from "./leave-status.js";
+import { leaveRequestedAdminTemplate } from "./leave-requested-admin.js";
 import { attendanceAlertTemplate } from "./attendance-alert.js";
 import { lateAttendanceTemplate } from "./late-attendance.js";
 import { payslipReadyTemplate } from "./payslip-ready.js";
@@ -12,6 +13,7 @@ const templateRegistry = new Map();
 [
   welcomeEmployeeTemplate,
   leaveStatusTemplate,
+  leaveRequestedAdminTemplate,
   attendanceAlertTemplate,
   lateAttendanceTemplate,
   payslipReadyTemplate,
@@ -100,6 +102,7 @@ export function renderTemplate(template, data = {}) {
 export {
   welcomeEmployeeTemplate,
   leaveStatusTemplate,
+  leaveRequestedAdminTemplate,
   attendanceAlertTemplate,
   lateAttendanceTemplate,
   payslipReadyTemplate,
