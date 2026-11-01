@@ -24,6 +24,7 @@ import {
   AttendanceCalendar,
   EmployeeProfileTab,
   AttendanceLogTable,
+  SendEmailModal,
 } from "./fragments";
 
 export default function EmployeeDetailView({ employeeId }) {
@@ -38,6 +39,7 @@ export default function EmployeeDetailView({ employeeId }) {
 
   // Edit sheet modal state
   const [isEditOpen, setIsEditOpen] = useState(false);
+  const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
 
   // Hook fetching both employee profile and monthly attendance
   const {
@@ -154,6 +156,16 @@ export default function EmployeeDetailView({ employeeId }) {
         </div>
 
         <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setIsEmailModalOpen(true)}
+            className="h-8 text-xs gap-1.5 rounded-lg shadow-2xs"
+          >
+            <Mail className="size-3.5" />
+            <span>Send Email</span>
+          </Button>
+
           <Button
             variant="outline"
             size="sm"
@@ -348,6 +360,13 @@ export default function EmployeeDetailView({ employeeId }) {
         employee={employee}
         onSave={handleSaveEmployee}
         isLoading={isUpdatingEmployee}
+      />
+
+      {/* Send Email Modal */}
+      <SendEmailModal
+        isOpen={isEmailModalOpen}
+        onClose={() => setIsEmailModalOpen(false)}
+        employee={employee}
       />
     </div>
   );

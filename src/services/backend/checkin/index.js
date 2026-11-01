@@ -4,7 +4,21 @@ import { getTodayDateString } from "@/lib/utils";
 import AttendancePunch from "@/models/AttendancePunch";
 import { FaceMatchService } from "@/services/backend/facematch";
 import { OfficeLocationService } from "@/services/backend/location";
+import { sendTemplateEmail } from "@/services/backend/email";
 import { BadRequestError, NotFoundError, UnauthorizedError } from "@/lib/api/response-handler";
+
+function formatTime12h(dateObj) {
+  try {
+    return new Intl.DateTimeFormat("en-US", {
+      timeZone: "Asia/Kolkata",
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true,
+    }).format(dateObj instanceof Date ? dateObj : new Date(dateObj));
+  } catch {
+    return "--:--";
+  }
+}
 
 export class CheckInService {
   static async getEmployeeForUser(clerkUser, organizationId) {
@@ -210,11 +224,101 @@ export class CheckInService {
       await punch.save();
     }
 
+    // Evaluate if check-in is late compared to office shift start
+    let isLate = false;
+    let lateMinutes = 0;
+    let consecutiveLateDays = 1;
+
+    try {
+      const shiftStartStr = officeLocation?.shiftStart || "10:00";
+      const [shiftH = 10, shiftM = 0] = shiftStartStr.split(":").map(Number);
+      const shiftMinutes = shiftH * 60 + shiftM;
+      const gracePeriod = Number(officeLocation?.gracePeriod) || 0;
+      const thresholdMinutes = shiftMinutes + gracePeriod;
+
+      const punchIST = new Intl.DateTimeFormat("en-GB", {
+        timeZone: "Asia/Kolkata",
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: false,
+      }).format(checkInData.time);
+
+      const [punchH = 0, punchM = 0] = punchIST.split(":").map(Number);
+      const punchMinutes = punchH * 60 + punchM;
+
+      if (punchMinutes > thresholdMinutes) {
+        isLate = true;
+        lateMinutes = punchMinutes - shiftMinutes;
+
+        // Count consecutive late days in reverse chronological order
+        const pastPunches = await AttendancePunch.find({
+          organizationId: orgId,
+          employeeId: employee._id,
+          date: { $lt: todayDate },
+          "checkIn.status": "SUCCESS",
+        })
+          .sort({ date: -1 })
+          .limit(7)
+          .lean();
+
+        for (const past of pastPunches) {
+          if (!past.checkIn?.time) break;
+          const pastIST = new Intl.DateTimeFormat("en-GB", {
+            timeZone: "Asia/Kolkata",
+            hour: "2-digit",
+            minute: "2-digit",
+            hour12: false,
+          }).format(new Date(past.checkIn.time));
+          const [pH = 0, pM = 0] = pastIST.split(":").map(Number);
+          const pMinutes = pH * 60 + pM;
+          if (pMinutes > thresholdMinutes) {
+            consecutiveLateDays++;
+          } else {
+            break; // Streak broken by an on-time day
+          }
+        }
+
+        // Trigger Late Attendance Email (Advisory policy notice — does NOT mark absent)
+        const recipientEmail =
+          employee.email ||
+          clerkUser?.primaryEmailAddress?.emailAddress ||
+          clerkUser?.emailAddresses?.[0]?.emailAddress;
+
+        if (recipientEmail) {
+          sendTemplateEmail({
+            to: recipientEmail,
+            template: "late-attendance",
+            data: {
+              employeeName: employee.firstName || employee.name || "Team Member",
+              employeeId: employee.employeeId || "",
+              date: todayDate,
+              punchTime: formatTime12h(checkInData.time),
+              shiftStartTime: formatTime12h(
+                new Date(new Date().setHours(shiftH, shiftM, 0, 0))
+              ),
+              lateMinutes,
+              consecutiveLateDays,
+              officeName: officeLocation?.officeName || "Headquarters",
+            },
+          }).catch((emailErr) => {
+            console.error("[CheckInService] Failed to send late attendance email:", emailErr);
+          });
+        }
+      }
+    } catch (lateCheckErr) {
+      console.error("[CheckInService] Error processing late attendance check:", lateCheckErr);
+    }
+
     return {
-      message: "Check-in successful! Face verified & office location confirmed.",
+      message: isLate
+        ? `Check-in successful! Note: Marked late by ${lateMinutes} mins (Streak: ${consecutiveLateDays} day${consecutiveLateDays > 1 ? "s" : ""}).`
+        : "Check-in successful! Face verified & office location confirmed.",
       punch,
       distanceMeters: geofenceResult.distanceMeters,
       faceMatchConfidence: faceMatchResult.confidence,
+      isLate,
+      lateMinutes,
+      consecutiveLateDays: isLate ? consecutiveLateDays : 0,
     };
   }
 

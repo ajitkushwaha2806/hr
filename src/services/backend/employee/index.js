@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import dbConnect from "@/lib/db";
 import Employee from "@/models/Employee";
+import { emailService } from "@/services/backend/email";
 import { NotFoundError, ConflictError } from "@/lib/api/response-handler";
 
 export class EmployeeService {
@@ -165,9 +166,30 @@ export class EmployeeService {
     });
 
     const obj = newEmployee.toObject();
+    const fullName = `${obj.firstName || ""} ${obj.lastName || ""}`.trim();
+
+    if (obj.email) {
+      emailService
+        .sendTemplateEmail({
+          to: obj.email,
+          template: "welcome-employee",
+          data: {
+            name: fullName,
+            employeeId: obj.employeeId,
+            department: obj.department || "General",
+            designation: obj.designation || "",
+            email: obj.email,
+            loginUrl: `${process.env.NEXT_PUBLIC_BASE_APP || process.env.NEXT_PUBLIC_APP_URL || process.env.APP_URL || "https://truehr.magicscale.in"}/sign-in`,
+          },
+        })
+        .catch((err) => {
+          console.error("[Email Notification Warning] Failed to send welcome onboarding email:", err);
+        });
+    }
+
     return {
       ...obj,
-      name: `${obj.firstName || ""} ${obj.lastName || ""}`.trim(),
+      name: fullName,
     };
   }
 

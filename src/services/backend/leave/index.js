@@ -1,6 +1,7 @@
 import dbConnect from "@/lib/db";
 import Leave from "@/models/Leave";
 import Employee from "@/models/Employee";
+import { emailService } from "@/services/backend/email";
 import { BadRequestError, NotFoundError } from "@/lib/api/response-handler";
 
 export class LeaveService {
@@ -319,6 +320,30 @@ export class LeaveService {
     leave.reviewedAt = new Date();
 
     await leave.save();
+
+    // Asynchronously dispatch email notification to the employee
+    if (leave.employeeEmail) {
+      emailService
+        .sendTemplateEmail({
+          to: leave.employeeEmail,
+          template: "leave-status",
+          data: {
+            name: leave.employeeName || "Employee",
+            status: newStatus,
+            leaveType: leave.type,
+            dayType: leave.dayType,
+            startDate: leave.startDate,
+            endDate: leave.endDate,
+            daysCount: leave.daysCount,
+            adminRemarks: leave.adminRemarks,
+            reviewedBy: leave.reviewedBy,
+            portalUrl: `${process.env.NEXT_PUBLIC_BASE_APP || process.env.NEXT_PUBLIC_APP_URL || process.env.APP_URL || "https://truehr.magicscale.in"}/employee/leaves`,
+          },
+        })
+        .catch((err) => {
+          console.error("[Email Notification Warning] Failed to send leave review email:", err);
+        });
+    }
 
     return leave;
   }
