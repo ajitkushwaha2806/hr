@@ -162,8 +162,7 @@ export const GET = withErrorHandler(async (req, { params }) => {
     calendarMap[cd.dateString] = cd;
   }
 
-  // Today date
-  const now = new Date();
+  // Today date string
   const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
 
   let totalWorkingDays = 0;
