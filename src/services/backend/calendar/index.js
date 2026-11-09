@@ -86,19 +86,54 @@ export class CalendarService {
     let currentYear = Number(year) || now.getFullYear();
     let currentMonth = Number(month) || now.getMonth() + 1;
 
-    // Enforce max date boundary: 2027 December 31
-    if (currentYear > 2027 || (currentYear === 2027 && currentMonth > 12)) {
-      currentYear = 2027;
+    // Enforce reasonable max date boundary: 2030 December 31
+    if (currentYear > 2030 || (currentYear === 2030 && currentMonth > 12)) {
+      currentYear = 2030;
       currentMonth = 12;
     }
 
-    const days = await CalendarDay.find({
+    let days = await CalendarDay.find({
       organizationId,
       year: currentYear,
       month: currentMonth,
     })
       .sort({ day: 1 })
       .lean();
+
+    if (days.length === 0) {
+      const daysInMonth = new Date(currentYear, currentMonth, 0).getDate();
+      const newDays = [];
+      for (let dayNum = 1; dayNum <= daysInMonth; dayNum++) {
+        const curr = new Date(currentYear, currentMonth - 1, dayNum);
+        const dateString = this.formatDateString(curr);
+        const defaultInfo = this.getDefaultDayInfo(curr);
+        newDays.push({
+          organizationId,
+          date: curr,
+          dateString,
+          year: currentYear,
+          month: currentMonth,
+          day: dayNum,
+          dayOfWeek: defaultInfo.dayOfWeek,
+          type: defaultInfo.type,
+          title: defaultInfo.title,
+          description: null,
+          isCustom: false,
+        });
+      }
+      try {
+        await CalendarDay.insertMany(newDays, { ordered: false });
+        days = await CalendarDay.find({
+          organizationId,
+          year: currentYear,
+          month: currentMonth,
+        })
+          .sort({ day: 1 })
+          .lean();
+      } catch (e) {
+        console.warn("Could not auto-seed month days:", e);
+      }
+    }
 
     let employeePunches = [];
     let approvedLeaves = [];
@@ -334,9 +369,31 @@ export class CalendarService {
       throw new Error(`Invalid day type: ${type}`);
     }
 
-    const record = await CalendarDay.findOne({ organizationId, dateString });
+    let record = await CalendarDay.findOne({ organizationId, dateString });
+    if (!record && organizationId !== "default_org") {
+      record = await CalendarDay.findOne({ organizationId: "default_org", dateString });
+    }
+
     if (!record) {
-      throw new Error(`Calendar day ${dateString} not found`);
+      const [y, m, d] = dateString.split("-").map(Number);
+      const dateObj = new Date(y, m - 1, d);
+      const defaultInfo = this.getDefaultDayInfo(dateObj);
+      record = new CalendarDay({
+        organizationId,
+        date: dateObj,
+        dateString,
+        year: y,
+        month: m,
+        day: d,
+        dayOfWeek: defaultInfo.dayOfWeek,
+        type,
+        title: title || (type === "WEEKLY_OFF" ? "Weekly Off" : type === "HOLIDAY" ? "Holiday" : "Working Day"),
+        description: description || null,
+        isCustom: true,
+        updatedBy,
+      });
+      await record.save();
+      return record.toObject();
     }
 
     record.type = type;
@@ -352,7 +409,10 @@ export class CalendarService {
   static async clearDay({ organizationId, dateString }) {
     await dbConnect();
 
-    const record = await CalendarDay.findOne({ organizationId, dateString });
+    let record = await CalendarDay.findOne({ organizationId, dateString });
+    if (!record && organizationId !== "default_org") {
+      record = await CalendarDay.findOne({ organizationId: "default_org", dateString });
+    }
     if (!record) {
       throw new Error(`Calendar day ${dateString} not found`);
     }

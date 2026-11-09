@@ -26,6 +26,7 @@ export function Breadcrumbs() {
       return "Details";
     }
     if (str.toLowerCase() === "team") return "Employees";
+    if (str.toLowerCase() === "calendar") return "Company Calendar";
     const decoded = decodeURIComponent(str).replace(/-/g, " ");
     return decoded.charAt(0).toUpperCase() + decoded.slice(1);
   };

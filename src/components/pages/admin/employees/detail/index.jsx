@@ -164,43 +164,48 @@ export default function EmployeeDetailView({
 
   return (
     <div className="flex flex-col m-2 sm:m-4 space-y-3 sm:space-y-4 min-w-0 pb-28 sm:pb-8">
-      {/* Top Navigation & Action Buttons: Compact single line on mobile */}
-      <div className="flex items-center justify-between gap-2 min-w-0">
-        <div className="flex items-center gap-2 text-xs text-muted-foreground min-w-0">
+      {/* Top Navigation & Action Bar */}
+      <div className="bg-card dark:bg-zinc-900 border border-border/80 rounded-md px-3 py-2 sm:px-4 sm:py-2.5 shadow-2xs flex items-center justify-between gap-3 min-w-0 transition-all">
+        {/* Left: Back Link & Breadcrumb */}
+        <div className="flex items-center gap-2 sm:gap-3 min-w-0">
           <Link
             href={backUrl}
-            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md bg-muted/60 hover:bg-muted text-foreground transition-colors font-medium text-xs shadow-2xs shrink-0"
+            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md bg-muted/60 hover:bg-muted text-foreground transition-all duration-150 font-medium text-xs border border-border/60 hover:border-primary/40 shrink-0 shadow-2xs active:scale-95"
           >
-            <ArrowLeft className="size-3.5" />
+            <ArrowLeft className="size-3.5 text-muted-foreground" />
             <span>{backLabel}</span>
           </Link>
-          <span className="hidden sm:inline text-muted-foreground/40">/</span>
-          <span className="hidden sm:inline font-semibold text-foreground truncate max-w-[200px] lg:max-w-none">
-            {fullName}
-          </span>
-          <span className="hidden sm:inline font-mono text-[11px] px-1.5 py-0.5 rounded-md bg-muted text-muted-foreground border border-border/50">
-            {employee.employeeId}
-          </span>
+
+          <div className="hidden sm:block h-4 w-px bg-border/80 shrink-0" />
+
+          <div className="hidden sm:flex items-center gap-2 min-w-0">
+            <span className="font-semibold text-xs sm:text-sm text-foreground truncate max-w-[200px] lg:max-w-none">
+              {fullName}
+            </span>
+            <span className="font-mono text-[11px] font-semibold px-2 py-0.5 rounded-md bg-muted text-muted-foreground border border-border/60 shrink-0">
+              {employee.employeeId}
+            </span>
+          </div>
         </div>
 
-        <div className="flex items-center gap-1.5 shrink-0">
+        {/* Right: Quick Action Buttons */}
+        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
           <Button
             variant="outline"
             size="sm"
             onClick={() => setIsEmailModalOpen(true)}
-            className="h-8 text-xs gap-1.5 rounded-md shadow-2xs px-2.5"
+            className="h-8 text-xs font-semibold gap-1.5 rounded-md border-border/80 hover:bg-muted active:scale-95 transition-all shadow-2xs px-2.5 sm:px-3 cursor-pointer"
             title="Send Email to Employee"
           >
-            <Mail className="size-3.5" />
+            <Mail className="size-3.5 text-muted-foreground" />
             <span className="hidden sm:inline">Send Email</span>
           </Button>
 
           {allowEdit && (
             <Button
-              variant="outline"
               size="sm"
               onClick={() => setIsEditOpen(true)}
-              className="h-8 text-xs gap-1.5 rounded-md shadow-2xs px-2.5"
+              className="h-8 text-xs font-semibold gap-1.5 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 active:scale-95 transition-all shadow-2xs px-2.5 sm:px-3 cursor-pointer"
               title="Edit Profile"
             >
               <Edit className="size-3.5" />

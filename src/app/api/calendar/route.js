@@ -1,6 +1,6 @@
 import { CalendarService } from "@/services/backend/calendar";
-import { getAuthContext, getAuthUser } from "@/lib/api/helpers/auth";
-import { withErrorHandler, successResponse, BadRequestError } from "@/lib/api/response-handler";
+import { getAuthContext, getAuthUser, getUserRoleContext } from "@/lib/api/helpers/auth";
+import { withErrorHandler, successResponse, BadRequestError, ForbiddenError } from "@/lib/api/response-handler";
 
 export const GET = withErrorHandler(async (req) => {
   const { orgId, userId } = await getAuthContext();
@@ -31,7 +31,14 @@ export const GET = withErrorHandler(async (req) => {
 });
 
 export const PUT = withErrorHandler(async (req) => {
-  const { orgId, userId } = await getAuthContext();
+  const { orgId, orgRole, userId } = await getAuthContext();
+  const clerkUser = await getAuthUser();
+  const callerContext = await getUserRoleContext(clerkUser, orgId, orgRole);
+
+  if (!callerContext?.isAdmin) {
+    throw new ForbiddenError("Access denied. Only organization administrators have permission to manage company calendar days.");
+  }
+
   const organizationId = orgId || "default_org";
 
   const body = await req.json();
@@ -64,7 +71,14 @@ export const PUT = withErrorHandler(async (req) => {
 });
 
 export const POST = withErrorHandler(async (req) => {
-  const { orgId } = await getAuthContext();
+  const { orgId, orgRole } = await getAuthContext();
+  const clerkUser = await getAuthUser();
+  const callerContext = await getUserRoleContext(clerkUser, orgId, orgRole);
+
+  if (!callerContext?.isAdmin) {
+    throw new ForbiddenError("Access denied. Only organization administrators have permission to seed company calendar.");
+  }
+
   const organizationId = orgId || "default_org";
 
   const body = await req.json().catch(() => ({}));

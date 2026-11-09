@@ -14,7 +14,7 @@ import {
   Hourglass,
   CalendarDays,
   AlertTriangle,
-  SlidersHorizontal,
+  Pencil,
   Check,
   Loader2,
 } from "lucide-react";
@@ -249,9 +249,6 @@ export function AttendanceCalendar({
             <CalendarIcon className="size-4 text-primary" />
             Monthly Attendance Calendar
           </h3>
-          <p className="text-xs text-muted-foreground mt-0.5">
-            Click on any day to inspect check-in/out timestamps, selfie captures, and geofence verification
-          </p>
         </div>
 
         {/* Legend: Horizontally scrollable on mobile */}
@@ -409,11 +406,11 @@ export function AttendanceCalendar({
       {/* Day Inspection Modal: Native bottom-sheet on mobile, centered card on desktop */}
       {selectedDay && (
         <div
-          className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in duration-150"
+          className="fixed inset-0 z-[70] bg-black/60 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in duration-150"
           onClick={() => setSelectedDay(null)}
         >
           <div
-            className="bg-card text-card-foreground border-t sm:border border-border p-4 sm:p-5 rounded-t-md sm:rounded-md max-w-lg w-full space-y-4 shadow-2xl max-h-[88vh] overflow-y-auto animate-in slide-in-from-bottom-5 sm:zoom-in-95 duration-150"
+            className="bg-card text-card-foreground border-t sm:border border-border p-4 sm:p-5 pb-8 sm:pb-5 pb-safe rounded-t-md sm:rounded-md max-w-lg w-full space-y-4 shadow-2xl max-h-[88vh] overflow-y-auto animate-in slide-in-from-bottom-5 sm:zoom-in-95 duration-150"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Mobile Drag Indicator */}
@@ -481,7 +478,7 @@ export function AttendanceCalendar({
               <div className="p-3 rounded-md bg-primary/5 border border-primary/20 space-y-2.5">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-semibold text-foreground flex items-center gap-1.5">
-                    <SlidersHorizontal className="size-3.5 text-primary" />
+                    <Pencil className="size-3.5 text-primary" />
                     <span>Admin Attendance Override</span>
                   </span>
                   {selectedDay.manualOverride?.isOverridden && (

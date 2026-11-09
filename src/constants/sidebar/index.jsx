@@ -1,4 +1,4 @@
-import { LayoutDashboard, Users, Building2, Clock, CalendarDays, ShieldCheck, User, Sparkles } from "lucide-react";
+import { LayoutDashboard, Users, Building2, Clock, CalendarDays, Calendar, ShieldCheck, User, Sparkles } from "lucide-react";
 
 export const EMPLOYEE_SIDEBAR_CONFIG = {
   portal: "employee",
@@ -81,6 +81,11 @@ export const ADMIN_SIDEBAR_CONFIG = {
         title: "Attendance Logs",
         url: "/admin/attendance",
         icon: <Clock />,
+      },
+      {
+        title: "Company Calendar",
+        url: "/admin/calendar",
+        icon: <Calendar />,
       },
       {
         title: "Leave Approvals",

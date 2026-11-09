@@ -14,7 +14,7 @@ import {
   CalendarCheck2,
   ChevronDown,
   ChevronUp,
-  SlidersHorizontal,
+  Pencil,
   Check,
   Loader2,
 } from "lucide-react";
@@ -268,9 +268,9 @@ export function AttendanceLogTable({
                         type="button"
                         onClick={() => handleOpenEditModal(d)}
                         className="p-1 text-muted-foreground hover:text-primary rounded-md border border-border/50 hover:bg-muted cursor-pointer"
-                        title="Override Attendance Status (Admin Only)"
+                        title="Edit Attendance Status"
                       >
-                        <SlidersHorizontal className="size-3" />
+                        <Pencil className="size-3" />
                       </button>
                     )}
                   </div>
@@ -568,11 +568,10 @@ export function AttendanceLogTable({
                           variant="ghost"
                           size="sm"
                           onClick={() => handleOpenEditModal(d)}
-                          className="h-7 text-xs px-2 rounded-md gap-1 text-muted-foreground hover:text-primary hover:bg-muted"
-                          title="Override Attendance Status (Admin Only)"
+                          className="size-7 p-0 rounded-md text-muted-foreground hover:text-primary hover:bg-muted ml-auto flex items-center justify-center cursor-pointer"
+                          title="Edit Attendance Status"
                         >
-                          <SlidersHorizontal className="size-3" />
-                          <span>Override</span>
+                          <Pencil className="size-3.5" />
                         </Button>
                       </td>
                     )}
@@ -587,7 +586,7 @@ export function AttendanceLogTable({
       {/* Selfie Preview Modal */}
       {selectedSelfie && (
         <div
-          className="fixed inset-0 z-50 bg-black/75 backdrop-blur-xs flex items-center justify-center p-4"
+          className="fixed inset-0 z-[70] bg-black/75 backdrop-blur-xs flex items-center justify-center p-4"
           onClick={() => setSelectedSelfie(null)}
         >
           <div
@@ -621,7 +620,7 @@ export function AttendanceLogTable({
       {/* Admin Status Override Modal */}
       {editingDay && (
         <div
-          className="fixed inset-0 z-50 bg-black/70 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-150"
+          className="fixed inset-0 z-[70] bg-black/70 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-150"
           onClick={() => setEditingDay(null)}
         >
           <div
@@ -631,7 +630,7 @@ export function AttendanceLogTable({
             <div className="flex items-center justify-between border-b border-border/60 pb-3">
               <div className="flex items-center gap-2">
                 <div className="size-8 rounded-md bg-primary/10 text-primary flex items-center justify-center font-bold">
-                  <SlidersHorizontal className="size-4" />
+                  <Pencil className="size-4" />
                 </div>
                 <div>
                   <h4 className="font-semibold text-sm">Change Attendance Status</h4>

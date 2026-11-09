@@ -78,7 +78,7 @@ export function MobileNav() {
   return (
     <nav 
       aria-label="Mobile Navigation"
-      className="fixed bottom-0 left-0 right-0 h-16 pb-safe bg-white/95 dark:bg-zinc-950/95 backdrop-blur-xl border-t border-border/40 flex items-center justify-around px-2 sm:hidden z-50 shadow-[0_-4px_20px_rgba(0,0,0,0.04)] dark:shadow-[0_-4px_20px_rgba(0,0,0,0.25)]"
+      className="fixed bottom-0 left-0 right-0 h-16 pb-safe bg-white/95 dark:bg-zinc-950/95 backdrop-blur-xl border-t border-border/40 flex items-center justify-around px-2 sm:hidden z-30 shadow-[0_-4px_20px_rgba(0,0,0,0.04)] dark:shadow-[0_-4px_20px_rgba(0,0,0,0.25)]"
     >
       {navItems.map(({ item, label }) => {
         const isActive =
@@ -124,19 +124,22 @@ export function MobileNav() {
         );
       })}
 
-      <button
-        onClick={toggleSidebar}
-        type="button"
-        aria-label="Open more menu"
-        className="flex flex-col items-center justify-center flex-1 h-full py-1 text-muted-foreground transition-all duration-200 select-none active:scale-95 group hover:text-foreground"
-      >
-        <div className="flex items-center justify-center w-12 h-7 rounded-full transition-all duration-200 bg-transparent group-hover:bg-muted/60">
-          <Menu className="w-5 h-5 stroke-[1.8] transition-transform duration-200 group-hover:scale-105 group-hover:text-foreground" />
-        </div>
-        <span className="text-[10.5px] mt-0.5 font-medium tracking-tight text-muted-foreground/90">
-          More
-        </span>
-      </button>
+      {/* "More" button: Hidden for Team Lead in employee portal so TL has exactly 5 clean items */}
+      {(!isTeamLead || isAdmin) && (
+        <button
+          onClick={toggleSidebar}
+          type="button"
+          aria-label="Open more menu"
+          className="flex flex-col items-center justify-center flex-1 h-full py-1 text-muted-foreground transition-all duration-200 select-none active:scale-95 group hover:text-foreground"
+        >
+          <div className="flex items-center justify-center w-12 h-7 rounded-full transition-all duration-200 bg-transparent group-hover:bg-muted/60">
+            <Menu className="w-5 h-5 stroke-[1.8] transition-transform duration-200 group-hover:scale-105 group-hover:text-foreground" />
+          </div>
+          <span className="text-[10.5px] mt-0.5 font-medium tracking-tight text-muted-foreground/90">
+            More
+          </span>
+        </button>
+      )}
     </nav>
   );
 }

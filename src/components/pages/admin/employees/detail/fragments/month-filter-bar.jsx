@@ -104,16 +104,18 @@ export function MonthFilterBar({
           value={`${year}-${month}`}
           onValueChange={handleSelectChange}
         >
-          <SelectTrigger className="h-8 text-xs flex-1 sm:w-[170px] rounded-md bg-muted/30">
+          <SelectTrigger className="h-8 text-xs flex-1 sm:w-auto sm:min-w-[175px] rounded-md bg-muted/30">
             <SelectValue placeholder="Select Month">
               {MONTH_NAMES[month - 1]} {year}
             </SelectValue>
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent className="w-auto min-w-[225px]">
             {ALLOWED_OPTIONS.map((opt) => (
-              <SelectItem key={opt.key} value={opt.key} className="text-xs">
-                <span className="font-medium">{opt.label}</span>
-                <span className="text-[10px] text-muted-foreground ml-1.5 opacity-80">({opt.badge})</span>
+              <SelectItem key={opt.key} value={opt.key} className="text-xs whitespace-nowrap pr-8">
+                <span className="font-medium whitespace-nowrap">{opt.label}</span>
+                <span className="text-[10px] text-muted-foreground ml-1.5 opacity-80 whitespace-nowrap">
+                  ({opt.badge})
+                </span>
               </SelectItem>
             ))}
           </SelectContent>
