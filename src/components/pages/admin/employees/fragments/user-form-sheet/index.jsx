@@ -493,7 +493,7 @@ export default function EmployeeFormSheet({ isOpen, onClose, employee, onSave, i
                     <SelectTrigger className="h-9 text-xs bg-background">
                       <SelectValue placeholder="+ Assign a Team Lead..." />
                     </SelectTrigger>
-                    <SelectContent className="max-h-60">
+                    <SelectContent className="max-h-60 z-[100] w-(--anchor-width) min-w-[280px]">
                       <SelectItem value="placeholder" disabled className="text-xs text-muted-foreground">
                         Select a Team Lead to add...
                       </SelectItem>

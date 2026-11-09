@@ -124,7 +124,7 @@ function DatePicker({
         align="start"
         side="bottom"
         sideOffset={6}
-        className="rounded-md border border-border/80 bg-popover shadow-xl p-3 z-50 w-auto"
+        className="rounded-md border border-border/80 bg-popover shadow-xl p-3 z-[100] w-auto"
       >
         <div className="flex items-center gap-2 pb-2.5 mb-2 border-b border-border/60">
           <select
@@ -296,7 +296,7 @@ function FloatingDatePicker({
           align="start"
           side="bottom"
           sideOffset={6}
-          className="rounded-md border border-border/80 bg-white dark:bg-zinc-900 shadow-xl p-3 z-50 w-auto"
+          className="rounded-md border border-border/80 bg-white dark:bg-zinc-900 shadow-xl p-3 z-[100] w-auto"
         >
           <div className="flex items-center gap-2 pb-2.5 mb-2 border-b border-border/60">
             <select
