@@ -13,14 +13,14 @@ import {
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 
-export const getEmployeeColumns = ({ onEdit, onDelete }) => [
+export const getEmployeeColumns = ({ onEdit, onDelete, basePath = "/admin/employees", allowEdit = true }) => [
   {
     key: "employee",
     header: "Employee",
     sortable: true,
     render: (row) => (
       <Link
-        href={`/admin/employees/${row._id}`}
+        href={`${basePath}/${row._id}`}
         className="flex items-center gap-3 min-w-0 sm:min-w-[200px] max-w-full group/emp hover:opacity-95"
       >
         <Asset
@@ -60,7 +60,7 @@ export const getEmployeeColumns = ({ onEdit, onDelete }) => [
     sortable: true,
     render: (row) => (
       <Link
-        href={`/admin/employees/${row._id}`}
+        href={`${basePath}/${row._id}`}
         className="font-mono text-xs font-semibold px-2 py-0.5 rounded bg-muted/60 text-muted-foreground border border-border/50 truncate max-w-full inline-block hover:bg-muted hover:text-foreground hover:border-primary/40 transition-colors"
       >
         {row.employeeId || "—"}
@@ -166,11 +166,11 @@ export const getEmployeeColumns = ({ onEdit, onDelete }) => [
             </Button>
           }
         />
-        <DropdownMenuContent align="end" className="w-48 rounded-lg p-1 shadow-lg">
+        <DropdownMenuContent align="end" className="w-48 rounded-md p-1 shadow-lg">
           <DropdownMenuItem
             render={
               <Link
-                href={`/admin/employees/${row._id}`}
+                href={`${basePath}/${row._id}`}
                 className="flex items-center gap-2 cursor-pointer text-xs font-medium py-1.5 w-full"
               >
                 <Eye className="size-3.5 text-primary" />
@@ -178,21 +178,25 @@ export const getEmployeeColumns = ({ onEdit, onDelete }) => [
               </Link>
             }
           />
-          <DropdownMenuItem
-            onClick={() => onEdit?.(row)}
-            className="flex items-center gap-2 cursor-pointer text-xs font-medium py-1.5"
-          >
-            <Edit className="size-3.5 text-muted-foreground" />
-            <span>Edit Profile</span>
-          </DropdownMenuItem>
-          <DropdownMenuSeparator className="my-1" />
-          <DropdownMenuItem
-            onClick={() => onDelete?.(row)}
-            className="flex items-center gap-2 cursor-pointer text-xs font-medium text-destructive hover:bg-destructive/10 py-1.5"
-          >
-            <Trash2 className="size-3.5" />
-            <span>Delete</span>
-          </DropdownMenuItem>
+          {allowEdit && (
+            <>
+              <DropdownMenuItem
+                onClick={() => onEdit?.(row)}
+                className="flex items-center gap-2 cursor-pointer text-xs font-medium py-1.5"
+              >
+                <Edit className="size-3.5 text-muted-foreground" />
+                <span>Edit Profile</span>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator className="my-1" />
+              <DropdownMenuItem
+                onClick={() => onDelete?.(row)}
+                className="flex items-center gap-2 cursor-pointer text-xs font-medium text-destructive hover:bg-destructive/10 py-1.5"
+              >
+                <Trash2 className="size-3.5" />
+                <span>Delete</span>
+              </DropdownMenuItem>
+            </>
+          )}
         </DropdownMenuContent>
       </DropdownMenu>
     ),

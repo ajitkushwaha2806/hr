@@ -54,7 +54,7 @@ export function MobileNav() {
                   title: "My Team",
                   url: "/employee/team",
                 },
-                label: "Team",
+                label: "Employees",
               },
               {
                 item: items.find((i) => i.title.includes("Attendance")) || {

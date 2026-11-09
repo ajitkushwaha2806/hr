@@ -167,7 +167,7 @@ export function SendEmailModal({ isOpen, onClose, employee }) {
       onClick={onClose}
     >
       <div
-        className="bg-card text-card-foreground border-t sm:border border-border p-4 sm:p-5 rounded-t-2xl sm:rounded-2xl max-w-lg w-full space-y-4 shadow-2xl max-h-[88vh] overflow-y-auto animate-in slide-in-from-bottom-5 sm:zoom-in-95 duration-150"
+        className="bg-card text-card-foreground border-t sm:border border-border p-4 sm:p-5 rounded-t-md sm:rounded-md max-w-lg w-full space-y-4 shadow-2xl max-h-[88vh] overflow-y-auto animate-in slide-in-from-bottom-5 sm:zoom-in-95 duration-150"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Mobile Drag Handle */}
@@ -176,7 +176,7 @@ export function SendEmailModal({ isOpen, onClose, employee }) {
         {/* Header */}
         <div className="flex items-center justify-between border-b border-border/60 pb-3">
           <div className="flex items-center gap-2.5">
-            <div className="size-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center font-bold">
+            <div className="size-9 rounded-md bg-primary/10 text-primary flex items-center justify-center font-bold">
               <Mail className="size-4" />
             </div>
             <div>
@@ -188,7 +188,7 @@ export function SendEmailModal({ isOpen, onClose, employee }) {
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted cursor-pointer"
+            className="p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted cursor-pointer"
           >
             <X className="size-4" />
           </button>
@@ -200,7 +200,7 @@ export function SendEmailModal({ isOpen, onClose, employee }) {
           <div className="space-y-1.5">
             <Label className="text-xs font-medium">Select Email Template</Label>
             <Select value={template} onValueChange={setTemplate}>
-              <SelectTrigger className="w-full text-xs h-9 rounded-lg">
+              <SelectTrigger className="w-full text-xs h-9 rounded-md">
                 <SelectValue placeholder="Choose a template" />
               </SelectTrigger>
               <SelectContent>
@@ -218,7 +218,7 @@ export function SendEmailModal({ isOpen, onClose, employee }) {
 
           {/* Dynamic Template Fields */}
           {template === "late-attendance" && (
-            <div className="space-y-3 p-3.5 bg-orange-50/50 dark:bg-orange-950/20 border border-orange-200/60 rounded-xl">
+            <div className="space-y-3 p-3.5 bg-orange-50/50 dark:bg-orange-950/20 border border-orange-200/60 rounded-md">
               <div className="flex items-center gap-1.5 text-orange-800 dark:text-orange-300 font-semibold text-xs">
                 <span>⏰</span>
                 <span>Late Attendance Policy Advisory</span>
@@ -236,7 +236,7 @@ export function SendEmailModal({ isOpen, onClose, employee }) {
                     max="480"
                     value={lateMinutes}
                     onChange={(e) => setLateMinutes(e.target.value)}
-                    className="h-8 text-xs rounded-lg bg-background"
+                    className="h-8 text-xs rounded-md bg-background"
                   />
                 </div>
 
@@ -246,7 +246,7 @@ export function SendEmailModal({ isOpen, onClose, employee }) {
                     value={String(consecutiveLateDays)}
                     onValueChange={(val) => setConsecutiveLateDays(Number(val))}
                   >
-                    <SelectTrigger className="w-full text-xs h-8 rounded-lg bg-background">
+                    <SelectTrigger className="w-full text-xs h-8 rounded-md bg-background">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -258,21 +258,21 @@ export function SendEmailModal({ isOpen, onClose, employee }) {
                 </div>
               </div>
 
-              <div className="text-[11px] text-amber-700 dark:text-amber-400 bg-amber-500/10 p-2 rounded-lg border border-amber-500/20">
+              <div className="text-[11px] text-amber-700 dark:text-amber-400 bg-amber-500/10 p-2 rounded-md border border-amber-500/20">
                 ℹ️ Note: This email is purely an advisory notification and does not alter the employee&apos;s actual attendance punch status.
               </div>
             </div>
           )}
 
           {template === "general-notification" && (
-            <div className="space-y-3 p-3.5 bg-muted/20 border border-border/50 rounded-xl">
+            <div className="space-y-3 p-3.5 bg-muted/20 border border-border/50 rounded-md">
               <div className="space-y-1">
                 <Label className="text-xs">Email Subject Line</Label>
                 <Input
                   value={subject}
                   onChange={(e) => setSubject(e.target.value)}
                   placeholder="e.g. Schedule Update for Next Week"
-                  className="h-8 text-xs rounded-lg"
+                  className="h-8 text-xs rounded-md"
                   required
                 />
               </div>
@@ -283,7 +283,7 @@ export function SendEmailModal({ isOpen, onClose, employee }) {
                   value={headline}
                   onChange={(e) => setHeadline(e.target.value)}
                   placeholder="e.g. Important Announcement from HR"
-                  className="h-8 text-xs rounded-lg"
+                  className="h-8 text-xs rounded-md"
                 />
               </div>
 
@@ -293,7 +293,7 @@ export function SendEmailModal({ isOpen, onClose, employee }) {
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
                   placeholder="Type your message to the employee here..."
-                  className="text-xs rounded-lg min-h-[90px]"
+                  className="text-xs rounded-md min-h-[90px]"
                   required
                 />
               </div>
@@ -301,7 +301,7 @@ export function SendEmailModal({ isOpen, onClose, employee }) {
           )}
 
           {template === "welcome-employee" && (
-            <div className="p-3.5 bg-emerald-50/50 dark:bg-emerald-950/20 border border-emerald-200/60 rounded-xl space-y-2">
+            <div className="p-3.5 bg-emerald-50/50 dark:bg-emerald-950/20 border border-emerald-200/60 rounded-md space-y-2">
               <div className="flex items-center gap-1.5 text-emerald-700 dark:text-emerald-300 font-semibold text-xs">
                 <Sparkles className="size-3.5" />
                 <span>Onboarding Welcome Invite</span>
@@ -313,11 +313,11 @@ export function SendEmailModal({ isOpen, onClose, employee }) {
           )}
 
           {template === "attendance-alert" && (
-            <div className="space-y-3 p-3.5 bg-amber-50/50 dark:bg-amber-950/20 border border-amber-200/60 rounded-xl">
+            <div className="space-y-3 p-3.5 bg-amber-50/50 dark:bg-amber-950/20 border border-amber-200/60 rounded-md">
               <div className="space-y-1">
                 <Label className="text-xs">Alert Category</Label>
                 <Select value={alertType} onValueChange={setAlertType}>
-                  <SelectTrigger className="w-full text-xs h-8 rounded-lg bg-background">
+                  <SelectTrigger className="w-full text-xs h-8 rounded-md bg-background">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -335,7 +335,7 @@ export function SendEmailModal({ isOpen, onClose, employee }) {
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
                   placeholder="e.g. Our system recorded that you did not clock out on your previous shift..."
-                  className="text-xs rounded-lg bg-background"
+                  className="text-xs rounded-md bg-background"
                 />
               </div>
 
@@ -344,14 +344,14 @@ export function SendEmailModal({ isOpen, onClose, employee }) {
                 <Input
                   value={actionRequired}
                   onChange={(e) => setActionRequired(e.target.value)}
-                  className="h-8 text-xs rounded-lg bg-background"
+                  className="h-8 text-xs rounded-md bg-background"
                 />
               </div>
             </div>
           )}
 
           {template === "payslip-ready" && (
-            <div className="p-3.5 bg-sky-50/50 dark:bg-sky-950/20 border border-sky-200/60 rounded-xl space-y-2">
+            <div className="p-3.5 bg-sky-50/50 dark:bg-sky-950/20 border border-sky-200/60 rounded-md space-y-2">
               <div className="flex items-center gap-1.5 text-sky-700 dark:text-sky-300 font-semibold text-xs">
                 <CheckCircle2 className="size-3.5" />
                 <span>Monthly Payroll Notification</span>
@@ -370,7 +370,7 @@ export function SendEmailModal({ isOpen, onClose, employee }) {
               size="sm"
               onClick={onClose}
               disabled={isSending}
-              className="h-8 text-xs rounded-lg"
+              className="h-8 text-xs rounded-md"
             >
               Cancel
             </Button>
@@ -378,7 +378,7 @@ export function SendEmailModal({ isOpen, onClose, employee }) {
               type="submit"
               size="sm"
               disabled={isSending}
-              className="h-8 text-xs gap-1.5 rounded-lg shadow-xs"
+              className="h-8 text-xs gap-1.5 rounded-md shadow-xs"
             >
               {isSending ? (
                 <>

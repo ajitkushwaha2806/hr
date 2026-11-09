@@ -9,8 +9,6 @@ const MONTH_NAMES = [
   "July", "August", "September", "October", "November", "December",
 ];
 
-const AVAILABLE_YEARS = [2025, 2026, 2027];
-
 export function MonthFilterBar({
   year,
   month,
@@ -23,15 +21,46 @@ export function MonthFilterBar({
   isRefreshing = false,
 }) {
   const currentDate = new Date();
-  const isCurrentMonth =
-    year === currentDate.getFullYear() && month === currentDate.getMonth() + 1;
+  const currentYear = currentDate.getFullYear();
+  const currentMonth = currentDate.getMonth() + 1; // 1-12
+
+  const pastDate = new Date(currentYear, currentMonth - 2, 1);
+  const pastYear = pastDate.getFullYear();
+  const pastMonth = pastDate.getMonth() + 1; // 1-12
+
+  const isCurrentMonth = year === currentYear && month === currentMonth;
+  const isPastMonth = year === pastYear && month === pastMonth;
+
+  // Only past month and current month are allowed
+  const ALLOWED_OPTIONS = [
+    {
+      year: currentYear,
+      month: currentMonth,
+      key: `${currentYear}-${currentMonth}`,
+      label: `${MONTH_NAMES[currentMonth - 1]} ${currentYear}`,
+      badge: "Current",
+    },
+    {
+      year: pastYear,
+      month: pastMonth,
+      key: `${pastYear}-${pastMonth}`,
+      label: `${MONTH_NAMES[pastMonth - 1]} ${pastYear}`,
+      badge: "Past Month",
+    },
+  ];
+
+  const handleSelectChange = (val) => {
+    const [selectedYear, selectedMonth] = val.split("-").map(Number);
+    if (onYearChange && selectedYear !== year) onYearChange(selectedYear);
+    if (onMonthChange && selectedMonth !== month) onMonthChange(selectedMonth);
+  };
 
   return (
-    <div className="p-3 bg-card border border-border/60 rounded-xl shadow-2xs space-y-2.5 sm:space-y-0 sm:flex sm:items-center sm:justify-between sm:gap-3">
+    <div className="p-3 bg-card border border-border/60 rounded-md shadow-2xs space-y-2.5 sm:space-y-0 sm:flex sm:items-center sm:justify-between sm:gap-3">
       {/* Current selection label & Controls */}
       <div className="flex items-center justify-between sm:justify-start gap-2">
         <div className="flex items-center gap-2 min-w-0">
-          <div className="size-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
+          <div className="size-8 rounded-md bg-primary/10 text-primary flex items-center justify-center shrink-0">
             <CalendarIcon className="size-4" />
           </div>
           <div className="flex items-center gap-1.5 min-w-0">
@@ -60,7 +89,7 @@ export function MonthFilterBar({
             size="icon"
             onClick={onRefresh}
             disabled={isRefreshing}
-            className="size-8 rounded-lg sm:hidden shrink-0"
+            className="size-8 rounded-md sm:hidden shrink-0"
             title="Refresh Attendance Data"
           >
             <RefreshCw className={`size-3.5 ${isRefreshing ? "animate-spin text-primary" : ""}`} />
@@ -70,50 +99,35 @@ export function MonthFilterBar({
 
       {/* Selectors and Arrow Navigation: Perfectly responsive row */}
       <div className="flex items-center gap-1.5 sm:gap-2 w-full sm:w-auto">
-        {/* Month Dropdown */}
+        {/* Month Dropdown: restricted exclusively to Current Month and Past Month */}
         <Select
-          value={String(month)}
-          onValueChange={(val) => onMonthChange(parseInt(val, 10))}
+          value={`${year}-${month}`}
+          onValueChange={handleSelectChange}
         >
-          <SelectTrigger className="h-8 text-xs flex-1 sm:w-[130px] rounded-lg bg-muted/30">
-            <SelectValue placeholder="Month">
-              {MONTH_NAMES[month - 1]}
+          <SelectTrigger className="h-8 text-xs flex-1 sm:w-[170px] rounded-md bg-muted/30">
+            <SelectValue placeholder="Select Month">
+              {MONTH_NAMES[month - 1]} {year}
             </SelectValue>
           </SelectTrigger>
-          <SelectContent className="max-h-60">
-            {MONTH_NAMES.map((name, idx) => (
-              <SelectItem key={name} value={String(idx + 1)} className="text-xs">
-                {name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-
-        {/* Year Dropdown */}
-        <Select
-          value={String(year)}
-          onValueChange={(val) => onYearChange(parseInt(val, 10))}
-        >
-          <SelectTrigger className="h-8 text-xs w-[80px] sm:w-[90px] rounded-lg bg-muted/30 shrink-0">
-            <SelectValue placeholder="Year" />
-          </SelectTrigger>
           <SelectContent>
-            {AVAILABLE_YEARS.map((y) => (
-              <SelectItem key={y} value={String(y)} className="text-xs">
-                {y}
+            {ALLOWED_OPTIONS.map((opt) => (
+              <SelectItem key={opt.key} value={opt.key} className="text-xs">
+                <span className="font-medium">{opt.label}</span>
+                <span className="text-[10px] text-muted-foreground ml-1.5 opacity-80">({opt.badge})</span>
               </SelectItem>
             ))}
           </SelectContent>
         </Select>
 
-        {/* Prev / Next buttons */}
-        <div className="flex items-center border border-border/60 rounded-lg overflow-hidden bg-background shrink-0">
+        {/* Prev / Next buttons: strictly restricted between Past Month and Current Month */}
+        <div className="flex items-center border border-border/60 rounded-md overflow-hidden bg-background shrink-0">
           <Button
             variant="ghost"
             size="icon"
             onClick={onPrevMonth}
-            className="size-8 rounded-none hover:bg-muted"
-            title="Previous Month"
+            disabled={isPastMonth}
+            className="size-8 rounded-none hover:bg-muted disabled:opacity-30 disabled:pointer-events-none cursor-pointer"
+            title={isPastMonth ? "Past month is the earliest allowed" : "Previous Month"}
           >
             <ChevronLeft className="size-4" />
           </Button>
@@ -122,8 +136,9 @@ export function MonthFilterBar({
             variant="ghost"
             size="icon"
             onClick={onNextMonth}
-            className="size-8 rounded-none hover:bg-muted"
-            title="Next Month"
+            disabled={isCurrentMonth}
+            className="size-8 rounded-none hover:bg-muted disabled:opacity-30 disabled:pointer-events-none cursor-pointer"
+            title={isCurrentMonth ? "Cannot view future months" : "Next Month"}
           >
             <ChevronRight className="size-4" />
           </Button>
@@ -135,7 +150,7 @@ export function MonthFilterBar({
             variant="outline"
             size="sm"
             onClick={onJumpToCurrent}
-            className="h-8 text-xs px-2.5 rounded-lg hidden sm:flex shrink-0"
+            className="h-8 text-xs px-2.5 rounded-md hidden sm:flex shrink-0"
           >
             Today
           </Button>
@@ -148,7 +163,7 @@ export function MonthFilterBar({
             size="icon"
             onClick={onRefresh}
             disabled={isRefreshing}
-            className="size-8 rounded-lg hidden sm:flex shrink-0"
+            className="size-8 rounded-md hidden sm:flex shrink-0"
             title="Refresh Attendance Data"
           >
             <RefreshCw className={`size-3.5 ${isRefreshing ? "animate-spin text-primary" : ""}`} />
@@ -158,4 +173,3 @@ export function MonthFilterBar({
     </div>
   );
 }
-

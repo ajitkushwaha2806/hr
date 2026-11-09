@@ -74,7 +74,7 @@ export default function EmployeeManagement() {
 
   return (
     <div className="flex flex-col m-2 sm:m-4 space-y-4 sm:space-y-6 min-w-0 pb-24 sm:pb-8"> 
-      <div className="bg-white dark:bg-zinc-900 p-3 sm:p-5 rounded-xl border border-border/40 shadow-xs min-w-0">
+      <div className="bg-white dark:bg-zinc-900 p-3 sm:p-5 rounded-md border border-border/40 shadow-xs min-w-0">
         <DataTable
           title="Employee Directory"
           subtitle="View, search, and manage all employees in your organization"

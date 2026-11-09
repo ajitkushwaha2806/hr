@@ -22,9 +22,10 @@ export function Breadcrumbs() {
   const formatTitle = (str, idx) => {
     if (isMongoId(str)) {
       const prev = segments[idx - 1]?.toLowerCase();
-      if (prev === "employees") return "Employee Details";
+      if (prev === "employees" || prev === "team") return "Employee Details";
       return "Details";
     }
+    if (str.toLowerCase() === "team") return "Employees";
     const decoded = decodeURIComponent(str).replace(/-/g, " ");
     return decoded.charAt(0).toUpperCase() + decoded.slice(1);
   };

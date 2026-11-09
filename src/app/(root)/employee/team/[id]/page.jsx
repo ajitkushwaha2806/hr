@@ -9,8 +9,9 @@ export default function TeamMemberDetailPage({ params }) {
     <EmployeeDetailView
       employeeId={id}
       backUrl="/employee/team"
-      backLabel="My Team"
+      backLabel="Employees"
       allowEdit={false}
+      isTeamLead={true}
     />
   );
 }

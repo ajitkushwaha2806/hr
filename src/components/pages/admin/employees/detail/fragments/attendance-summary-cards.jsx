@@ -1,10 +1,10 @@
 "use client";
-import React from "react";
+import React, { useState } from "react";
+import { cn } from "@/lib/utils";
 import {
   XCircle,
   CalendarCheck2,
   Clock,
-  Coffee,
   AlertTriangle,
   TrendingUp,
   Hourglass,
@@ -12,6 +12,8 @@ import {
 } from "lucide-react";
 
 export function AttendanceSummaryCards({ stats = {}, isLoading = false }) {
+  const [isBreakdownExpanded, setIsBreakdownExpanded] = useState(false);
+
   const {
     totalWorkingDays = 0,
     fullDaysPresent = 0,
@@ -25,8 +27,6 @@ export function AttendanceSummaryCards({ stats = {}, isLoading = false }) {
     totalPayLossDays = 0,
     unapprovedAbsentDays = 0,
     absent = 0,
-    holidays = 0,
-    weeklyOffs = 0,
     noPunchOut = 0,
     inProgress = 0,
     attendancePercentage = 0,
@@ -107,32 +107,23 @@ export function AttendanceSummaryCards({ stats = {}, isLoading = false }) {
       bg: "bg-indigo-50/70 dark:bg-indigo-950/20 border-indigo-200/60 dark:border-indigo-800/40",
       iconBg: "bg-indigo-500/10 text-indigo-600 dark:text-indigo-400",
     },
-    {
-      title: "Weekends & Offs",
-      value: `${weeklyOffs}d`,
-      subtitle: `${holidays} Official Holiday${holidays === 1 ? "" : "s"}`,
-      icon: Coffee,
-      color: "text-slate-600 dark:text-slate-400",
-      bg: "bg-slate-50/80 dark:bg-zinc-900 border-border/60",
-      iconBg: "bg-slate-500/10 text-slate-600 dark:text-slate-400",
-    },
   ];
 
   if (isLoading) {
     return (
-      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
-        {[...Array(7)].map((_, i) => (
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5 sm:gap-3">
+        {[...Array(6)].map((_, i) => (
           <div
             key={i}
-            className="h-28 rounded-xl bg-card border border-border/40 p-3.5 flex flex-col justify-between animate-pulse"
+            className="h-28 rounded-md bg-card border border-border/40 p-3.5 flex flex-col justify-between animate-pulse"
           >
             <div className="flex justify-between items-center">
-              <div className="h-3 w-16 bg-muted rounded" />
-              <div className="size-7 rounded-lg bg-muted" />
+              <div className="h-3 w-16 bg-muted rounded-md" />
+              <div className="size-7 rounded-md bg-muted" />
             </div>
             <div>
-              <div className="h-6 w-12 bg-muted rounded mb-1" />
-              <div className="h-2.5 w-24 bg-muted rounded" />
+              <div className="h-6 w-12 bg-muted rounded-md mb-1" />
+              <div className="h-2.5 w-24 bg-muted rounded-md" />
             </div>
           </div>
         ))}
@@ -142,20 +133,20 @@ export function AttendanceSummaryCards({ stats = {}, isLoading = false }) {
 
   return (
     <div className="space-y-3">
-      {/* Cards Grid */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-3">
+      {/* Cards Grid: Exactly 6 data cards in a symmetrical 2-col (mobile) / 3-col (tablet) / 6-col (desktop) layout */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5 sm:gap-3">
         {cards.map((c, i) => {
           const Icon = c.icon;
           return (
             <div
               key={i}
-              className={`rounded-xl border p-3 flex flex-col justify-between transition-all duration-200 hover:shadow-xs ${c.bg}`}
+              className={`rounded-md border p-3 flex flex-col justify-between transition-all duration-200 hover:shadow-xs ${c.bg}`}
             >
               <div className="flex items-center justify-between gap-1.5 mb-2">
                 <span className="text-[11px] font-medium text-muted-foreground truncate" title={c.title}>
                   {c.title}
                 </span>
-                <div className={`size-6 rounded-lg flex items-center justify-center shrink-0 ${c.iconBg}`}>
+                <div className={`size-6 rounded-md flex items-center justify-center shrink-0 ${c.iconBg}`}>
                   <Icon className="size-3.5" />
                 </div>
               </div>
@@ -164,7 +155,7 @@ export function AttendanceSummaryCards({ stats = {}, isLoading = false }) {
                 <div className="flex items-baseline gap-1.5">
                   <span className={`text-xl font-bold tracking-tight ${c.color}`}>{c.value}</span>
                   {c.pill && (
-                    <span className={`text-[9px] font-semibold px-1.5 py-0.2 rounded-full ${c.pillColor}`}>
+                    <span className={`text-[9px] font-semibold px-1.5 py-0.2 rounded-md ${c.pillColor}`}>
                       {c.pill}
                     </span>
                   )}
@@ -189,34 +180,50 @@ export function AttendanceSummaryCards({ stats = {}, isLoading = false }) {
 
       {/* Pay Loss Deductions Banner (Approved LOP + 2x Unapproved Absences) */}
       {totalPayLossDays > 0 && (
-        <div className="flex flex-wrap items-center justify-between gap-2 p-2.5 rounded-lg bg-rose-50 dark:bg-rose-950/30 border border-rose-200/80 dark:border-rose-800/50 text-xs text-rose-800 dark:text-rose-300">
-          <div className="flex items-center gap-2">
-            <AlertTriangle className="size-4 shrink-0 text-rose-600 dark:text-rose-400" />
-            <span className="font-semibold">
-              Total Pay Loss Deductions: {totalPayLossDays} Day(s)
-            </span>
-            <span className="text-muted-foreground text-[11px]">
-              ({lopDays}d Approved LOP [1x] + {unapprovedAbsentDays}d Unapproved Absence [2x Penalty = {unapprovedAbsentDays * 2}d])
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 p-2.5 sm:p-3 rounded-md bg-rose-50/90 dark:bg-rose-950/30 border border-rose-200/80 dark:border-rose-900/50 text-xs text-rose-800 dark:text-rose-300">
+          <div className="flex items-start sm:items-center gap-2 min-w-0 flex-1">
+            <AlertTriangle className="size-4 shrink-0 text-rose-600 dark:text-rose-400 mt-0.5 sm:mt-0" />
+            <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 min-w-0 flex-1">
+              <span className="font-bold text-xs sm:text-sm text-rose-900 dark:text-rose-200 shrink-0">
+                Total Pay Loss Deductions: {totalPayLossDays} Day{totalPayLossDays === 1 ? "" : "s"}
+              </span>
+
+              {/* Breakdown with truncate and view more toggle */}
+              <div className="text-[11px] text-muted-foreground min-w-0 flex-1">
+                <span className={cn("inline text-rose-700/80 dark:text-rose-300/70", !isBreakdownExpanded && "line-clamp-1 sm:line-clamp-none")}>
+                  ({lopDays}d Approved LOP [1x] + {unapprovedAbsentDays}d Unapproved Absence [2x Penalty = {unapprovedAbsentDays * 2}d])
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setIsBreakdownExpanded((prev) => !prev)}
+                  className="sm:hidden ml-1 font-semibold text-rose-600 dark:text-rose-400 hover:underline cursor-pointer inline-block"
+                >
+                  {isBreakdownExpanded ? "view less" : "view more..."}
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div className="shrink-0 flex items-center self-start sm:self-auto">
+            <span className="font-bold text-[9.5px] px-2 py-0.5 rounded-md bg-rose-600 text-white tracking-wide uppercase shadow-2xs">
+              Double Pay Loss Policy Active
             </span>
           </div>
-          <span className="font-bold text-[10px] px-2 py-0.5 rounded bg-rose-600 text-white tracking-wide uppercase">
-            Double Pay Loss Policy Active
-          </span>
         </div>
       )}
 
       {/* Special status alert banner if any missed checkouts or currently clocked in */}
       {(noPunchOut > 0 || inProgress > 0) && (
-        <div className="flex flex-wrap items-center gap-2 p-2.5 rounded-lg bg-amber-50 dark:bg-amber-950/30 border border-amber-200/80 dark:border-amber-800/50 text-xs text-amber-800 dark:text-amber-300">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-2 p-2.5 rounded-md bg-amber-50/90 dark:bg-amber-950/30 border border-amber-200/80 dark:border-amber-800/50 text-xs text-amber-800 dark:text-amber-300">
           <AlertTriangle className="size-4 shrink-0 text-amber-600 dark:text-amber-400" />
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-xs">
             {inProgress > 0 && (
-              <span className="font-medium">
+              <span className="font-medium text-amber-900 dark:text-amber-200">
                 Active Session: Currently clocked in today.
               </span>
             )}
             {noPunchOut > 0 && (
-              <span className="font-medium">
+              <span className="font-medium text-amber-900 dark:text-amber-200">
                 Warning: {noPunchOut} day{noPunchOut > 1 ? "s" : ""} marked as &quot;Missed Punch Out&quot;.
               </span>
             )}

@@ -402,13 +402,13 @@ export default function EmployeeFormSheet({ isOpen, onClose, employee, onSave, i
               <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground/80">
                 Team Hierarchy & Permissions
               </span>
-              <div className="p-3.5 rounded-lg border border-border/60 bg-muted/20 space-y-3">
+              <div className="p-3.5 rounded-md border border-border/60 bg-muted/20 space-y-3">
                 <label className="flex items-start gap-2.5 cursor-pointer select-none">
                   <input
                     type="checkbox"
                     checked={Boolean(formData.isTeamLead)}
                     onChange={(e) => handleChange("isTeamLead", e.target.checked)}
-                    className="mt-0.5 size-4 rounded border-border text-primary focus:ring-primary cursor-pointer"
+                    className="mt-0.5 size-4 rounded-md border-border text-primary focus:ring-primary cursor-pointer"
                   />
                   <div className="flex flex-col">
                     <span className="text-xs font-semibold text-foreground flex items-center gap-1.5">
@@ -431,16 +431,22 @@ export default function EmployeeFormSheet({ isOpen, onClose, employee, onSave, i
 
                   {/* Selected Team Leads Badges */}
                   {formData.teamLeads?.length > 0 ? (
-                    <div className="flex flex-wrap gap-1.5 p-2 rounded-lg bg-background border border-border/60">
+                    <div className="flex flex-wrap gap-1.5 p-2 rounded-md bg-background border border-border/60">
                       {formData.teamLeads.map((tlId) => {
                         const found = teamLeads.find((t) => (t._id || t.id) === tlId);
+                        const getTLName = (item) => {
+                          if (!item) return null;
+                          if (item.name) return item.name;
+                          const fn = `${item.firstName || ""} ${item.lastName || ""}`.trim();
+                          if (fn) return fn;
+                          return item.email || null;
+                        };
+
                         const name =
-                          found?.name ||
-                          (employee?.teamLead?._id === tlId
-                            ? employee.teamLead.name || `${employee.teamLead.firstName || ""} ${employee.teamLead.lastName || ""}`.trim()
-                            : null) ||
+                          getTLName(found) ||
+                          (employee?.teamLead?._id === tlId ? getTLName(employee.teamLead) : null) ||
                           (Array.isArray(employee?.teamLeads) &&
-                            employee.teamLeads.find((t) => (t._id || t) === tlId)?.name) ||
+                            getTLName(employee.teamLeads.find((t) => (t._id || t) === tlId))) ||
                           "Team Lead";
 
                         const designation = found?.designation || "";
@@ -470,7 +476,7 @@ export default function EmployeeFormSheet({ isOpen, onClose, employee, onSave, i
                       })}
                     </div>
                   ) : (
-                    <div className="px-3 py-2 rounded-lg bg-muted/30 border border-dashed border-border/60 text-xs text-muted-foreground italic">
+                    <div className="px-3 py-2 rounded-md bg-muted/30 border border-dashed border-border/60 text-xs text-muted-foreground italic">
                       None (Reports directly to Admin / Management)
                     </div>
                   )}
@@ -505,7 +511,7 @@ export default function EmployeeFormSheet({ isOpen, onClose, employee, onSave, i
                               <div className="flex items-center justify-between w-full gap-3 py-0.5">
                                 <div className="flex flex-col text-left">
                                   <span className="font-semibold text-foreground flex items-center gap-1">
-                                    {tl.name}
+                                    {tl.name || `${tl.firstName || ""} ${tl.lastName || ""}`.trim() || tl.email || "Team Lead"}
                                     {tl.isTeamLead && (
                                       <span className="ml-1 text-[9px] font-bold px-1.5 py-0.2 rounded bg-violet-100 text-violet-700 dark:bg-violet-950/60 dark:text-violet-300">
                                         TL

@@ -94,6 +94,32 @@ const AttendancePunchSchema = new mongoose.Schema(
       default: "IN_PROGRESS",
       index: true,
     },
+    manualOverride: {
+      isOverridden: {
+        type: Boolean,
+        default: false,
+      },
+      status: {
+        type: String,
+        default: null,
+      },
+      note: {
+        type: String,
+        default: "",
+      },
+      overriddenBy: {
+        type: String,
+        default: null,
+      },
+      overriddenByName: {
+        type: String,
+        default: null,
+      },
+      overriddenAt: {
+        type: Date,
+        default: null,
+      },
+    },
   },
   {
     timestamps: true,

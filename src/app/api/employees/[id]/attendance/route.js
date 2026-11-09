@@ -6,7 +6,7 @@ import AttendancePunch from "@/models/AttendancePunch";
 import CalendarDay from "@/models/CalendarDay";
 import Leave from "@/models/Leave";
 import { getAuthContext, getAuthUser, getUserRoleContext } from "@/lib/api/helpers/auth";
-import { withErrorHandler, successResponse, BadRequestError, NotFoundError } from "@/lib/api/response-handler";
+import { withErrorHandler, successResponse, BadRequestError, NotFoundError, ForbiddenError } from "@/lib/api/response-handler";
 
 export const GET = withErrorHandler(async (req, { params }) => {
   const { orgId, orgRole } = await getAuthContext();
@@ -17,8 +17,24 @@ export const GET = withErrorHandler(async (req, { params }) => {
   if (!id) throw new BadRequestError("Employee ID is required");
 
   const { searchParams } = new URL(req.url);
-  const year = parseInt(searchParams.get("year")) || new Date().getFullYear();
-  const month = parseInt(searchParams.get("month")) || new Date().getMonth() + 1;
+  const parsedYear = parseInt(searchParams.get("year"), 10);
+  const parsedMonth = parseInt(searchParams.get("month"), 10);
+
+  const now = new Date();
+  const currentYear = now.getFullYear();
+  const currentMonth = now.getMonth() + 1;
+
+  const pastDate = new Date(currentYear, currentMonth - 2, 1);
+  const pastYear = pastDate.getFullYear();
+  const pastMonth = pastDate.getMonth() + 1;
+
+  // Restrict access: strictly allowing data of past month and current month only
+  let year = currentYear;
+  let month = currentMonth;
+  if (parsedYear === pastYear && parsedMonth === pastMonth) {
+    year = pastYear;
+    month = pastMonth;
+  }
 
   await dbConnect();
 
@@ -219,7 +235,57 @@ export const GET = withErrorHandler(async (req, { params }) => {
         );
       }
 
-      if (hasPunch) {
+      // Priority 1: Admin manual override status for this day
+      if (punch?.manualOverride?.isOverridden && punch.manualOverride.status) {
+        const over = punch.manualOverride.status;
+        if (over === "PRESENT") {
+          fullDaysPresent++;
+          dayStatus = "PRESENT";
+          dayClassification = "FULL_DAY_PRESENT";
+          isFullDay = true;
+          leaveTypeLabel = "Admin Override (Full Day Present)";
+        } else if (over === "HALF_DAY") {
+          halfDaysPresent++;
+          dayStatus = "HALF_DAY";
+          dayClassification = "HALF_DAY_PRESENT";
+          isHalfDay = true;
+          leaveTypeLabel = "Admin Override (Half Day)";
+        } else if (over === "ABSENT") {
+          absent++;
+          unapprovedAbsentDays++;
+          dayStatus = "ABSENT";
+          dayClassification = "DOUBLE_PAY_LOSS";
+          payLossMultiplier = 2.0;
+          isDoublePayLoss = true;
+          leaveTypeLabel = "Admin Override (Marked Absent - 2x LOP)";
+        } else if (over === "CASUAL_LEAVE") {
+          fullDayLeaves++;
+          casualFullDays++;
+          dayStatus = "ON_LEAVE";
+          dayClassification = "FULL_DAY_CASUAL";
+          isFullDay = true;
+          payLossMultiplier = 0.0;
+          leaveTypeLabel = "Admin Override (Casual Leave - Paid)";
+        } else if (over === "LOP") {
+          fullDayLeaves++;
+          lopFullDays++;
+          dayStatus = "ON_LEAVE";
+          dayClassification = "FULL_DAY_LOP";
+          isFullDay = true;
+          payLossMultiplier = 1.0;
+          leaveTypeLabel = "Admin Override (Loss of Pay - 1x LOP)";
+        } else if (over === "HOLIDAY") {
+          holidays++;
+          dayStatus = "HOLIDAY";
+          dayClassification = "HOLIDAY";
+          leaveTypeLabel = "Admin Override (Holiday)";
+        } else if (over === "WEEKLY_OFF") {
+          weeklyOffs++;
+          dayStatus = "WEEKLY_OFF";
+          dayClassification = "WEEKLY_OFF";
+          leaveTypeLabel = "Admin Override (Weekly Off)";
+        }
+      } else if (hasPunch) {
         totalMinutesWorked += durationMinutes;
 
         const hasCheckOut = Boolean(punch.checkOut?.time || punch.status === "COMPLETED");
@@ -335,6 +401,7 @@ export const GET = withErrorHandler(async (req, { params }) => {
       leaveTypeLabel,
       leave: leaveDoc || null,
       punch: punch || null,
+      manualOverride: punch?.manualOverride || null,
       isLeave,
       isFuture,
       isToday,
@@ -432,4 +499,135 @@ export const GET = withErrorHandler(async (req, { params }) => {
     },
     "Employee attendance retrieved successfully"
   );
+});
+
+export const PATCH = withErrorHandler(async (req, { params }) => {
+  const { orgId, orgRole } = await getAuthContext();
+  const clerkUser = await getAuthUser();
+  const callerContext = await getUserRoleContext(clerkUser, orgId, orgRole);
+
+  // STRICT ACCESS CONTROL:
+  // "only admin should have acess to change the attandance status on any day for any employee in his org"
+  if (!callerContext?.isAdmin) {
+    throw new ForbiddenError("Access denied. Only organization administrators have permission to change attendance status.");
+  }
+
+  const { id } = await params;
+  if (!id) throw new BadRequestError("Employee ID is required");
+
+  const body = await req.json();
+  const { date, status, note } = body;
+
+  if (!date || typeof date !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+    throw new BadRequestError("Valid date string in YYYY-MM-DD format is required");
+  }
+
+  const validStatuses = [
+    "PRESENT",
+    "HALF_DAY",
+    "ABSENT",
+    "CASUAL_LEAVE",
+    "LOP",
+    "WEEKLY_OFF",
+    "HOLIDAY",
+    "RESET",
+  ];
+
+  if (!status || !validStatuses.includes(status)) {
+    throw new BadRequestError(`Invalid status. Must be one of: ${validStatuses.join(", ")}`);
+  }
+
+  await dbConnect();
+
+  // Find employee and ensure employee belongs to this organization
+  const isObjectId = mongoose.isValidObjectId(id);
+  const objId = isObjectId ? new mongoose.Types.ObjectId(id) : null;
+  const empBaseQuery = isObjectId
+    ? { $or: [{ _id: objId }, { _id: id }, { employeeId: id }, { clerkId: id }] }
+    : { $or: [{ employeeId: id }, { clerkId: id }] };
+
+  let employee = null;
+  if (orgId) {
+    employee = await Employee.findOne({
+      $and: [
+        empBaseQuery,
+        {
+          $or: [
+            { organizationId: orgId },
+            { organizationId: "default_org" },
+            { organizationId: { $exists: false } },
+            { organizationId: null },
+          ],
+        },
+      ],
+    }).lean();
+  }
+
+  if (!employee) {
+    employee = await Employee.findOne(empBaseQuery).lean();
+  }
+
+  if (!employee) {
+    throw new NotFoundError("Employee record not found in organization.");
+  }
+
+  const effectiveOrgId = employee.organizationId || orgId || "default_org";
+  const employeeObjectId = employee._id;
+  const adminName =
+    `${clerkUser?.firstName || ""} ${clerkUser?.lastName || ""}`.trim() || clerkUser?.username || "Admin";
+
+  // Reset case
+  if (status === "RESET") {
+    const updated = await AttendancePunch.findOneAndUpdate(
+      {
+        employeeId: employeeObjectId,
+        date,
+      },
+      {
+        $set: {
+          "manualOverride.isOverridden": false,
+          "manualOverride.status": null,
+          "manualOverride.note": note || "Reset to automatic biometric calculation by Admin",
+          "manualOverride.overriddenBy": clerkUser?.id || "admin",
+          "manualOverride.overriddenByName": adminName,
+          "manualOverride.overriddenAt": new Date(),
+        },
+      },
+      { new: true }
+    );
+
+    return successResponse(updated, "Attendance status reset to automatic calculation.");
+  }
+
+  // Set manual override
+  const updated = await AttendancePunch.findOneAndUpdate(
+    {
+      organizationId: effectiveOrgId,
+      employeeId: employeeObjectId,
+      date,
+    },
+    {
+      $set: {
+        organizationId: effectiveOrgId,
+        employeeId: employeeObjectId,
+        clerkId: employee.clerkId || null,
+        date,
+        manualOverride: {
+          isOverridden: true,
+          status,
+          note: note || `Manual override set to ${status} by Admin`,
+          overriddenBy: clerkUser?.id || "admin",
+          overriddenByName: adminName,
+          overriddenAt: new Date(),
+        },
+      },
+    },
+    {
+      upsert: true,
+      new: true,
+      setDefaultsOnInsert: true,
+    }
+  );
+
+  return successResponse(updated, `Attendance status for ${date} updated to ${status} by Admin.`);
 });

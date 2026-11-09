@@ -44,6 +44,11 @@ export const EmployeeService = {
     const response = await api.get(API_ENDPOINTS.EMPLOYEE.ATTENDANCE(id), { params });
     return response.data;
   },
+
+  updateAttendanceStatus: async (id, { date, status, note } = {}) => {
+    const response = await api.patch(API_ENDPOINTS.EMPLOYEE.ATTENDANCE(id), { date, status, note });
+    return response.data;
+  },
 };
 
 export default EmployeeService;
