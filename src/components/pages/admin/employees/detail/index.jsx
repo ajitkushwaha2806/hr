@@ -27,7 +27,12 @@ import {
   SendEmailModal,
 } from "./fragments";
 
-export default function EmployeeDetailView({ employeeId }) {
+export default function EmployeeDetailView({
+  employeeId,
+  backUrl = "/admin/employees",
+  backLabel = "Employees",
+  allowEdit = true,
+}) {
   const router = useRouter();
 
   // Active view tab: "attendance" | "profile"
@@ -122,11 +127,11 @@ export default function EmployeeDetailView({ employeeId }) {
         </div>
         <Button
           variant="outline"
-          onClick={() => router.push("/admin/employees")}
+          onClick={() => router.push(backUrl)}
           className="gap-2 text-xs"
         >
           <ArrowLeft className="size-4" />
-          Back to Employee Directory
+          Back to {backLabel}
         </Button>
       </div>
     );
@@ -140,11 +145,11 @@ export default function EmployeeDetailView({ employeeId }) {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
         <div className="flex items-center gap-2 text-xs text-muted-foreground">
           <Link
-            href="/admin/employees"
+            href={backUrl}
             className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-muted/60 hover:bg-muted text-foreground transition-colors font-medium text-xs shadow-2xs shrink-0"
           >
             <ArrowLeft className="size-3.5" />
-            <span>Employees</span>
+            <span>{backLabel}</span>
           </Link>
           <span className="hidden sm:inline text-muted-foreground/40">/</span>
           <span className="hidden sm:inline font-semibold text-foreground truncate max-w-[200px] lg:max-w-none">
@@ -166,15 +171,17 @@ export default function EmployeeDetailView({ employeeId }) {
             <span>Send Email</span>
           </Button>
 
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setIsEditOpen(true)}
-            className="h-8 text-xs gap-1.5 rounded-lg shadow-2xs flex-1 sm:flex-initial justify-center"
-          >
-            <Edit className="size-3.5" />
-            <span>Edit Profile</span>
-          </Button>
+          {allowEdit && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setIsEditOpen(true)}
+              className="h-8 text-xs gap-1.5 rounded-lg shadow-2xs flex-1 sm:flex-initial justify-center"
+            >
+              <Edit className="size-3.5" />
+              <span>Edit Profile</span>
+            </Button>
+          )}
         </div>
       </div>
 

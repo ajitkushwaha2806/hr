@@ -50,8 +50,15 @@ export function MobileNav() {
         ...(isTeamLead
           ? [
               {
+                item: items.find((i) => i.title === "My Team") || {
+                  title: "My Team",
+                  url: "/employee/team",
+                },
+                label: "Team",
+              },
+              {
                 item: items.find((i) => i.title.includes("Attendance")) || {
-                  title: "Attendance Logs",
+                  title: "Team Attendance",
                   url: "/employee/attendance",
                 },
                 label: "Attendance",
