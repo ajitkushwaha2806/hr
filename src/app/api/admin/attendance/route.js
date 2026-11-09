@@ -1,11 +1,15 @@
 import { CheckInService } from "@/services/backend/checkin";
 import { getAuthContext, getAuthUser, getUserRoleContext } from "@/lib/api/helpers/auth";
-import { withErrorHandler, successResponse } from "@/lib/api/response-handler";
+import { withErrorHandler, successResponse, ForbiddenError } from "@/lib/api/response-handler";
 
 export const GET = withErrorHandler(async (req) => {
   const { orgId, orgRole } = await getAuthContext();
   const clerkUser = await getAuthUser();
   const callerContext = await getUserRoleContext(clerkUser, orgId, orgRole);
+
+  if (!callerContext.isAdmin) {
+    throw new ForbiddenError("Admin access required. Team Leads must view team attendance via Employee Portal.");
+  }
 
   const organizationId = orgId || "default_org";
 

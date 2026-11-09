@@ -173,7 +173,130 @@ export function AttendanceLogTable({ dailyBreakdown = [], isLoading = false }) {
         </span>
       </div>
 
-      <div className="overflow-x-auto">
+      {/* Mobile Card View (sm:hidden) */}
+      <div className="divide-y divide-border/40 sm:hidden">
+        {activeDays.length === 0 ? (
+          <div className="py-8 text-center text-xs text-muted-foreground">
+            No attendance records found for this period.
+          </div>
+        ) : (
+          activeDays.map((d) => {
+            const punch = d.punch;
+            const checkIn = punch?.checkIn;
+            const checkOut = punch?.checkOut;
+
+            return (
+              <div
+                key={`mobile-${d.date}`}
+                className={`p-3.5 space-y-2.5 transition-colors ${d.isToday ? "bg-primary/5" : ""}`}
+              >
+                {/* Top: Date & Status */}
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-1.5">
+                    <span className="font-bold text-xs text-foreground">
+                      {format(new Date(d.date), "EEE, MMM dd")}
+                    </span>
+                    {d.isToday && (
+                      <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-primary text-primary-foreground">
+                        TODAY
+                      </span>
+                    )}
+                  </div>
+                  <div>{getStatusBadge(d)}</div>
+                </div>
+
+                {/* Subtitle / Holiday if any */}
+                {d.calendarTitle && (
+                  <p className="text-[10px] text-purple-600 dark:text-purple-400 font-medium">
+                    {d.calendarTitle}
+                  </p>
+                )}
+
+                {/* In / Out / Duration Stats */}
+                {(checkIn || checkOut) ? (
+                  <div className="grid grid-cols-3 gap-2 p-2 rounded-lg bg-muted/30 border border-border/40 text-[11px]">
+                    {/* Check In */}
+                    <div>
+                      <span className="text-[9px] uppercase tracking-wider text-muted-foreground font-semibold block">
+                        In
+                      </span>
+                      <div className="flex items-center gap-1 mt-0.5">
+                        <span className="font-mono font-bold text-foreground">
+                          {formatTime(checkIn?.time)}
+                        </span>
+                        {checkIn?.selfieUrl && (
+                          <button
+                            onClick={() =>
+                              setSelectedSelfie({
+                                title: `Check-In Selfie · ${format(new Date(d.date), "MMM dd, yyyy")}`,
+                                url: checkIn.selfieUrl,
+                                confidence: checkIn.faceMatchConfidence,
+                                distance: checkIn.distanceMeters,
+                              })
+                            }
+                            className="size-4 rounded overflow-hidden border border-border cursor-pointer shrink-0"
+                            title="View Check-In Selfie"
+                          >
+                            <img src={checkIn.selfieUrl} alt="Selfie" className="size-full object-cover" />
+                          </button>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Check Out */}
+                    <div>
+                      <span className="text-[9px] uppercase tracking-wider text-muted-foreground font-semibold block">
+                        Out
+                      </span>
+                      <div className="flex items-center gap-1 mt-0.5">
+                        <span className="font-mono font-bold text-foreground">
+                          {formatTime(checkOut?.time)}
+                        </span>
+                        {checkOut?.selfieUrl && (
+                          <button
+                            onClick={() =>
+                              setSelectedSelfie({
+                                title: `Check-Out Selfie · ${format(new Date(d.date), "MMM dd, yyyy")}`,
+                                url: checkOut.selfieUrl,
+                                confidence: checkOut.faceMatchConfidence,
+                                distance: checkOut.distanceMeters,
+                              })
+                            }
+                            className="size-4 rounded overflow-hidden border border-border cursor-pointer shrink-0"
+                            title="View Check-Out Selfie"
+                          >
+                            <img src={checkOut.selfieUrl} alt="Selfie" className="size-full object-cover" />
+                          </button>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Duration & Policy */}
+                    <div>
+                      <span className="text-[9px] uppercase tracking-wider text-muted-foreground font-semibold block">
+                        Duration
+                      </span>
+                      <span className="font-semibold text-foreground mt-0.5 block">
+                        {punch?.durationMinutes
+                          ? `${Math.floor(punch.durationMinutes / 60)}h ${punch.durationMinutes % 60}m`
+                          : "—"}
+                      </span>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-[11px] text-muted-foreground/80 flex items-center justify-between">
+                    <span>Classification:</span>
+                    <div>{getShiftClassificationBadge(d)}</div>
+                  </div>
+                )}
+              </div>
+            );
+          })
+        )}
+      </div>
+
+      {/* Desktop Table View */}
+      <div className="hidden sm:block overflow-x-auto">
         <table className="w-full text-left text-xs">
           <thead className="bg-muted/40 border-b border-border/60 text-muted-foreground uppercase text-[10px] tracking-wider font-semibold">
             <tr>

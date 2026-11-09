@@ -83,13 +83,13 @@ export function EmployeeProfileTab({ employee }) {
       {/* 2-column or 3-column layout of all A-Z sections */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Section 1: Personal Information */}
-        <div className="bg-card border border-border/60 rounded-xl p-5 shadow-2xs space-y-4">
-          <div className="flex items-center justify-between border-b border-border/50 pb-3">
+        <div className="bg-card border border-border/60 rounded-xl p-4 sm:p-5 shadow-2xs space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between items-start gap-2 border-b border-border/50 pb-3">
             <h3 className="font-semibold text-sm text-foreground flex items-center gap-2">
-              <User className="size-4 text-primary" />
+              <User className="size-4 text-primary shrink-0" />
               Personal Information
             </h3>
-            <span className="text-xs font-mono text-muted-foreground bg-muted/60 px-2 py-0.5 rounded">
+            <span className="text-xs font-mono text-muted-foreground bg-muted/60 px-2 py-0.5 rounded shrink-0">
               {employee.gender || "Not specified"}
             </span>
           </div>
@@ -129,13 +129,15 @@ export function EmployeeProfileTab({ employee }) {
         </div>
 
         {/* Section 2: Employment & Compensation */}
-        <div className="bg-card border border-border/60 rounded-xl p-5 shadow-2xs space-y-4">
-          <div className="flex items-center justify-between border-b border-border/50 pb-3">
+        <div className="bg-card border border-border/60 rounded-xl p-4 sm:p-5 shadow-2xs space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between items-start gap-2 border-b border-border/50 pb-3">
             <h3 className="font-semibold text-sm text-foreground flex items-center gap-2">
-              <Briefcase className="size-4 text-primary" />
+              <Briefcase className="size-4 text-primary shrink-0" />
               Employment & Role Details
             </h3>
-            <EmployeeStatusBadge status={employee.status || "Active"} />
+            <div className="shrink-0">
+              <EmployeeStatusBadge status={employee.status || "Active"} />
+            </div>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
@@ -174,12 +176,17 @@ export function EmployeeProfileTab({ employee }) {
               }
             />
             <InfoItem
-              label="Reporting Team Lead"
+              label="Reporting Team Leads"
               value={
-                employee.teamLead
+                Array.isArray(employee.teamLeads) && employee.teamLeads.length > 0
+                  ? employee.teamLeads
+                      .map((tl) => (typeof tl === "object" ? tl.name || `${tl.firstName || ""} ${tl.lastName || ""}`.trim() : "Team Lead"))
+                      .filter(Boolean)
+                      .join(", ")
+                  : employee.teamLead
                   ? (typeof employee.teamLead === "object"
                       ? employee.teamLead.name || `${employee.teamLead.firstName || ""} ${employee.teamLead.lastName || ""}`.trim()
-                      : "Assigned")
+                      : "Assigned Team Lead")
                   : "Direct Admin / Management"
               }
             />
@@ -200,13 +207,13 @@ export function EmployeeProfileTab({ employee }) {
         </div>
 
         {/* Section 3: Bank & Financial Details */}
-        <div className="bg-card border border-border/60 rounded-xl p-5 shadow-2xs space-y-4">
-          <div className="flex items-center justify-between border-b border-border/50 pb-3">
+        <div className="bg-card border border-border/60 rounded-xl p-4 sm:p-5 shadow-2xs space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between items-start gap-2 border-b border-border/50 pb-3">
             <h3 className="font-semibold text-sm text-foreground flex items-center gap-2">
-              <Landmark className="size-4 text-primary" />
+              <Landmark className="size-4 text-primary shrink-0" />
               Bank & Salary Account
             </h3>
-            <span className="text-[11px] text-muted-foreground font-mono">
+            <span className="text-[11px] text-muted-foreground font-mono shrink-0">
               {bank.ifscCode || "IFSC Not Set"}
             </span>
           </div>
@@ -271,13 +278,13 @@ export function EmployeeProfileTab({ employee }) {
         </div>
 
         {/* Section 4: Emergency Contact */}
-        <div className="bg-card border border-border/60 rounded-xl p-5 shadow-2xs space-y-4">
-          <div className="flex items-center justify-between border-b border-border/50 pb-3">
+        <div className="bg-card border border-border/60 rounded-xl p-4 sm:p-5 shadow-2xs space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between items-start gap-1 border-b border-border/50 pb-3">
             <h3 className="font-semibold text-sm text-foreground flex items-center gap-2">
-              <HeartHandshake className="size-4 text-primary" />
+              <HeartHandshake className="size-4 text-primary shrink-0" />
               Emergency Contact
             </h3>
-            <span className="text-xs text-muted-foreground">In case of incident</span>
+            <span className="text-xs text-muted-foreground shrink-0">In case of incident</span>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
@@ -302,14 +309,14 @@ export function EmployeeProfileTab({ employee }) {
       </div>
 
       {/* Section 5: Addresses (Current & Permanent) */}
-      <div className="bg-card border border-border/60 rounded-xl p-5 shadow-2xs space-y-4">
-        <div className="flex items-center justify-between border-b border-border/50 pb-3">
+      <div className="bg-card border border-border/60 rounded-xl p-4 sm:p-5 shadow-2xs space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between items-start gap-2 border-b border-border/50 pb-3">
           <h3 className="font-semibold text-sm text-foreground flex items-center gap-2">
-            <MapPin className="size-4 text-primary" />
+            <MapPin className="size-4 text-primary shrink-0" />
             Residential Addresses
           </h3>
           {isSameAddress && (
-            <span className="text-[11px] font-medium px-2.5 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20">
+            <span className="text-[11px] font-medium px-2.5 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20 shrink-0">
               Permanent Address same as Current
             </span>
           )}
@@ -366,10 +373,10 @@ export function EmployeeProfileTab({ employee }) {
       </div>
 
       {/* Section 6: Uploaded Documents */}
-      <div className="bg-card border border-border/60 rounded-xl p-5 shadow-2xs space-y-4">
-        <div className="flex items-center justify-between border-b border-border/50 pb-3">
+      <div className="bg-card border border-border/60 rounded-xl p-4 sm:p-5 shadow-2xs space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between items-start gap-1.5 border-b border-border/50 pb-3">
           <h3 className="font-semibold text-sm text-foreground flex items-center gap-2">
-            <FileText className="size-4 text-primary" />
+            <FileText className="size-4 text-primary shrink-0" />
             Verification & Identity Documents
           </h3>
           <span className="text-xs text-muted-foreground">Identity & Education certificates</span>
@@ -412,24 +419,24 @@ export function EmployeeProfileTab({ employee }) {
       </div>
 
       {/* Section 7: NDA & Legal Agreement */}
-      <div className="bg-card border border-border/60 rounded-xl p-5 shadow-2xs space-y-4">
-        <div className="flex items-center justify-between border-b border-border/50 pb-3">
+      <div className="bg-card border border-border/60 rounded-xl p-4 sm:p-5 shadow-2xs space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between items-start gap-2.5 border-b border-border/50 pb-3">
           <h3 className="font-semibold text-sm text-foreground flex items-center gap-2">
-            <ShieldCheck className="size-4 text-primary" />
-            Non-Disclosure Agreement (NDA) & Legal
+            <ShieldCheck className="size-4 text-primary shrink-0" />
+            <span>Non-Disclosure Agreement (NDA) & Legal</span>
           </h3>
           {nda.isSigned ? (
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-400 dark:border-emerald-800">
-              <CheckCircle2 className="size-3" /> Signed & Legally Executed
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-400 dark:border-emerald-800 shrink-0">
+              <CheckCircle2 className="size-3.5 shrink-0" /> Signed & Legally Executed
             </span>
           ) : (
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200">
-              <AlertCircle className="size-3" /> Pending Signature
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200 shrink-0">
+              <AlertCircle className="size-3.5 shrink-0" /> Pending Signature
             </span>
           )}
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs">
+        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 text-xs">
           <InfoItem label="Signer Name" value={nda.signerName || "—"} />
           <InfoItem label="Signed On" value={formatDateTime(nda.signedAt)} />
           <InfoItem label="Agreement Version" value={`v${nda.version || "1.0"}`} />
@@ -438,12 +445,12 @@ export function EmployeeProfileTab({ employee }) {
 
         {/* Signature & Document links */}
         {(nda.signatureData || nda.signatureUrl || nda.agreementPdfUrl) && (
-          <div className="pt-3 border-t border-border/50 flex flex-wrap items-center justify-between gap-4">
+          <div className="pt-3 border-t border-border/50 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             {/* Signature preview */}
             {(nda.signatureData || nda.signatureUrl) && (
-              <div className="flex items-center gap-3">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
                 <span className="text-xs text-muted-foreground">Digital Signature:</span>
-                <div className="h-12 w-32 border border-border/60 rounded-lg bg-white p-1 flex items-center justify-center">
+                <div className="h-12 w-32 border border-border/60 rounded-lg bg-white p-1 flex items-center justify-center shrink-0">
                   <img
                     src={nda.signatureData || nda.signatureUrl}
                     alt="Employee Signature"
@@ -459,9 +466,9 @@ export function EmployeeProfileTab({ employee }) {
                 href={nda.agreementPdfUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border/60 text-xs font-medium hover:bg-muted text-primary"
+                className="inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg border border-border/60 text-xs font-medium hover:bg-muted text-primary w-full sm:w-auto"
               >
-                <Download className="size-3.5" />
+                <Download className="size-3.5 shrink-0" />
                 <span>Download Signed NDA (PDF)</span>
               </a>
             )}
@@ -491,7 +498,7 @@ export function EmployeeProfileTab({ employee }) {
           onClick={() => setPreviewDoc(null)}
         >
           <div
-            className="bg-card text-card-foreground border border-border p-4 rounded-2xl max-w-2xl w-full space-y-3 shadow-2xl max-h-[90vh] flex flex-col"
+            className="bg-card text-card-foreground border border-border p-4 rounded-2xl w-[95vw] sm:max-w-2xl space-y-3 shadow-2xl max-h-[90vh] flex flex-col"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between border-b border-border/50 pb-2">

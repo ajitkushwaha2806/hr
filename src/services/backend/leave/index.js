@@ -112,15 +112,32 @@ export class LeaveService {
       console.error("[LeaveService] Failed to query admin users for notification:", err);
     }
 
-    // 3. Directly include the employee's designated Team Lead (if assigned)
+    // 3. Directly include all of the employee's designated Team Leads (multiple TL support)
+    const tlIds = new Set();
+    if (Array.isArray(employee?.teamLeads)) {
+      employee.teamLeads.forEach((id) => {
+        const strId = id?._id || id;
+        if (strId) tlIds.add(strId.toString());
+      });
+    }
     if (employee?.teamLead) {
+      const strId = employee.teamLead?._id || employee.teamLead;
+      if (strId) tlIds.add(strId.toString());
+    }
+
+    if (tlIds.size > 0) {
       try {
-        const tl = await Employee.findById(employee.teamLead).select("email firstName lastName").lean();
-        if (tl?.email && tl.email.includes("@")) {
-          recipients.add(tl.email.toLowerCase().trim());
-        }
+        const leads = await Employee.find({
+          _id: { $in: Array.from(tlIds) },
+        }).select("email firstName lastName").lean();
+
+        leads.forEach((tl) => {
+          if (tl?.email && tl.email.includes("@")) {
+            recipients.add(tl.email.toLowerCase().trim());
+          }
+        });
       } catch (err) {
-        console.error("[LeaveService] Failed to query applicant team lead email:", err);
+        console.error("[LeaveService] Failed to query applicant team leads email:", err);
       }
     }
 

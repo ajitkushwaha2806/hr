@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import dbConnect from "@/lib/db";
 import Employee from "@/models/Employee";
+import User from "@/models/User";
 import AttendancePunch from "@/models/AttendancePunch";
 import CalendarDay from "@/models/CalendarDay";
 import Leave from "@/models/Leave";
@@ -23,8 +24,9 @@ export const GET = withErrorHandler(async (req, { params }) => {
 
   // Resolve employee doc by ObjectId, employeeId, or clerkId
   const isObjectId = mongoose.isValidObjectId(id);
+  const objId = isObjectId ? new mongoose.Types.ObjectId(id) : null;
   const empBaseQuery = isObjectId
-    ? { $or: [{ _id: id }, { employeeId: id }, { clerkId: id }] }
+    ? { $or: [{ _id: objId }, { _id: id }, { employeeId: id }, { clerkId: id }] }
     : { $or: [{ employeeId: id }, { clerkId: id }] };
 
   let employee = null;
@@ -44,9 +46,26 @@ export const GET = withErrorHandler(async (req, { params }) => {
     }).lean();
   }
 
-  // Fallback: search without organizationId filter if not found
+  // Fallback 1: search without organizationId filter if not found
   if (!employee) {
     employee = await Employee.findOne(empBaseQuery).lean();
+  }
+
+  // Fallback 2: Check User collection if id corresponds to a User record
+  if (!employee && isObjectId) {
+    const userDoc = await User.findById(id).lean();
+    if (userDoc) {
+      if (userDoc.employeeProfile) {
+        employee = await Employee.findById(userDoc.employeeProfile).lean();
+      } else if (userDoc.clerkId || userDoc.email) {
+        employee = await Employee.findOne({
+          $or: [
+            ...(userDoc.clerkId ? [{ clerkId: userDoc.clerkId }] : []),
+            ...(userDoc.email ? [{ email: userDoc.email.toLowerCase().trim() }] : []),
+          ],
+        }).lean();
+      }
+    }
   }
 
   if (!employee) {

@@ -88,6 +88,7 @@ export class EmployeeService {
     const [employees, total, totalAll, activeCount, onLeaveCount, probationCount] = await Promise.all([
       Employee.find(query)
         .populate("teamLead", "firstName lastName employeeId email avatar isTeamLead")
+        .populate("teamLeads", "firstName lastName employeeId email avatar isTeamLead")
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(limitNum)
@@ -99,16 +100,28 @@ export class EmployeeService {
       Employee.countDocuments({ ...baseCountFilter, status: "Probation" }),
     ]);
 
-    const employeesWithFullName = employees.map((emp) => ({
-      ...emp,
-      name: `${emp.firstName || ""} ${emp.lastName || ""}`.trim(),
-      teamLead: emp.teamLead
-        ? {
-            ...emp.teamLead,
-            name: `${emp.teamLead.firstName || ""} ${emp.teamLead.lastName || ""}`.trim(),
-          }
-        : null,
-    }));
+    const employeesWithFullName = employees.map((emp) => {
+      const mappedLeads = Array.isArray(emp.teamLeads) && emp.teamLeads.length > 0
+        ? emp.teamLeads.map((tl) => ({
+            ...tl,
+            name: `${tl.firstName || ""} ${tl.lastName || ""}`.trim() || tl.name,
+          }))
+        : emp.teamLead
+        ? [
+            {
+              ...emp.teamLead,
+              name: `${emp.teamLead.firstName || ""} ${emp.teamLead.lastName || ""}`.trim(),
+            },
+          ]
+        : [];
+
+      return {
+        ...emp,
+        name: `${emp.firstName || ""} ${emp.lastName || ""}`.trim(),
+        teamLead: mappedLeads[0] || null,
+        teamLeads: mappedLeads,
+      };
+    });
 
     return {
       employees: employeesWithFullName,
@@ -126,7 +139,8 @@ export class EmployeeService {
 
   static _buildBaseIdQuery(id) {
     if (mongoose.isValidObjectId(id)) {
-      return { $or: [{ _id: id }, { employeeId: id }, { clerkId: id }] };
+      const objId = new mongoose.Types.ObjectId(id);
+      return { $or: [{ _id: objId }, { _id: id }, { employeeId: id }, { clerkId: id }] };
     }
     return { $or: [{ employeeId: id }, { clerkId: id }] };
   }
@@ -157,34 +171,69 @@ export class EmployeeService {
     const query = this._buildIdQuery(id, organizationId);
     let employee = await Employee.findOne(query)
       .populate("teamLead", "firstName lastName employeeId email avatar isTeamLead")
+      .populate("teamLeads", "firstName lastName employeeId email avatar isTeamLead")
       .lean();
 
-    // Fallback: if not found with org scope (e.g. legacy org ID or global admin view), search without org filter
+    // Fallback 1: if not found with org scope (e.g. legacy org ID or global admin view), search without org filter
     if (!employee && organizationId) {
       employee = await Employee.findOne(this._buildBaseIdQuery(id))
         .populate("teamLead", "firstName lastName employeeId email avatar isTeamLead")
+        .populate("teamLeads", "firstName lastName employeeId email avatar isTeamLead")
         .lean();
+    }
+
+    // Fallback 2: Check if id is a User._id (from User collection) and resolve its employee profile
+    if (!employee && mongoose.isValidObjectId(id)) {
+      const userDoc = await User.findById(id).lean();
+      if (userDoc) {
+        if (userDoc.employeeProfile) {
+          employee = await Employee.findById(userDoc.employeeProfile)
+            .populate("teamLead", "firstName lastName employeeId email avatar isTeamLead")
+            .populate("teamLeads", "firstName lastName employeeId email avatar isTeamLead")
+            .lean();
+        } else if (userDoc.clerkId || userDoc.email) {
+          employee = await Employee.findOne({
+            $or: [
+              ...(userDoc.clerkId ? [{ clerkId: userDoc.clerkId }] : []),
+              ...(userDoc.email ? [{ email: userDoc.email.toLowerCase().trim() }] : []),
+            ],
+          })
+            .populate("teamLead", "firstName lastName employeeId email avatar isTeamLead")
+            .populate("teamLeads", "firstName lastName employeeId email avatar isTeamLead")
+            .lean();
+        }
+      }
     }
 
     if (!employee) {
       throw new NotFoundError("Employee not found");
     }
+
+    const mappedLeads = Array.isArray(employee.teamLeads) && employee.teamLeads.length > 0
+      ? employee.teamLeads.map((tl) => ({
+          ...tl,
+          name: `${tl.firstName || ""} ${tl.lastName || ""}`.trim() || tl.name,
+        }))
+      : employee.teamLead
+      ? [
+          {
+            ...employee.teamLead,
+            name: `${employee.teamLead.firstName || ""} ${employee.teamLead.lastName || ""}`.trim(),
+          },
+        ]
+      : [];
+
     return {
       ...employee,
       name: `${employee.firstName || ""} ${employee.lastName || ""}`.trim(),
-      teamLead: employee.teamLead
-        ? {
-            ...employee.teamLead,
-            name: `${employee.teamLead.firstName || ""} ${employee.teamLead.lastName || ""}`.trim(),
-          }
-        : null,
+      teamLead: mappedLeads[0] || null,
+      teamLeads: mappedLeads,
     };
   }
 
   static async getTeamLeads(organizationId = null) {
     await dbConnect();
     const query = {
-      isTeamLead: true,
       status: { $nin: ["Terminated", "Inactive"] },
     };
     if (organizationId) {
@@ -195,13 +244,14 @@ export class EmployeeService {
         { organizationId: null },
       ];
     }
-    const leads = await Employee.find(query)
-      .select("firstName lastName employeeId email department designation avatar")
+    const employees = await Employee.find(query)
+      .select("firstName lastName employeeId email department designation avatar isTeamLead role")
+      .sort({ isTeamLead: -1, firstName: 1 })
       .lean();
 
-    return leads.map((l) => ({
+    return employees.map((l) => ({
       ...l,
-      name: `${l.firstName || ""} ${l.lastName || ""}`.trim(),
+      name: `${l.firstName || ""} ${l.lastName || ""}`.trim() || l.name,
     }));
   }
 
@@ -257,8 +307,18 @@ export class EmployeeService {
     }
 
     const isTeamLead = Boolean(data.isTeamLead || data.role === "TEAM_LEAD");
-    const sanitizedTeamLead =
-      data.teamLead && mongoose.Types.ObjectId.isValid(data.teamLead) ? data.teamLead : null;
+
+    // Multiple Team Leads support
+    let sanitizedTeamLeads = [];
+    if (Array.isArray(data.teamLeads)) {
+      sanitizedTeamLeads = data.teamLeads
+        .map((id) => (id?._id || id)?.toString())
+        .filter((id) => id && mongoose.Types.ObjectId.isValid(id));
+    } else if (data.teamLead && mongoose.Types.ObjectId.isValid(data.teamLead)) {
+      sanitizedTeamLeads = [data.teamLead.toString()];
+    }
+
+    const sanitizedTeamLead = sanitizedTeamLeads[0] || null;
 
     const newEmployee = await Employee.create({
       ...data,
@@ -266,6 +326,7 @@ export class EmployeeService {
       email: data.email.toLowerCase().trim(),
       isTeamLead,
       teamLead: sanitizedTeamLead,
+      teamLeads: sanitizedTeamLeads,
       role: isTeamLead ? "TEAM_LEAD" : (data.role || "org:member"),
     });
 
@@ -348,9 +409,18 @@ export class EmployeeService {
       updatePayload.employeeId = formattedId;
     }
 
-    if (data.teamLead !== undefined) {
-      updatePayload.teamLead =
-        data.teamLead && mongoose.Types.ObjectId.isValid(data.teamLead) ? data.teamLead : null;
+    if (data.teamLeads !== undefined || data.teamLead !== undefined) {
+      let sanitizedTeamLeads = [];
+      if (Array.isArray(data.teamLeads)) {
+        sanitizedTeamLeads = data.teamLeads
+          .map((id) => (id?._id || id)?.toString())
+          .filter((id) => id && mongoose.Types.ObjectId.isValid(id));
+      } else if (data.teamLead && mongoose.Types.ObjectId.isValid(data.teamLead)) {
+        sanitizedTeamLeads = [data.teamLead.toString()];
+      }
+
+      updatePayload.teamLeads = sanitizedTeamLeads;
+      updatePayload.teamLead = sanitizedTeamLeads[0] || null;
     }
 
     if (data.isTeamLead !== undefined) {
@@ -373,17 +443,28 @@ export class EmployeeService {
       { new: true, runValidators: true }
     )
       .populate("teamLead", "firstName lastName employeeId email avatar isTeamLead")
+      .populate("teamLeads", "firstName lastName employeeId email avatar isTeamLead")
       .lean();
+
+    const mappedLeads = Array.isArray(updated.teamLeads) && updated.teamLeads.length > 0
+      ? updated.teamLeads.map((tl) => ({
+          ...tl,
+          name: `${tl.firstName || ""} ${tl.lastName || ""}`.trim() || tl.name,
+        }))
+      : updated.teamLead
+      ? [
+          {
+            ...updated.teamLead,
+            name: `${updated.teamLead.firstName || ""} ${updated.teamLead.lastName || ""}`.trim(),
+          },
+        ]
+      : [];
 
     return {
       ...updated,
       name: `${updated.firstName || ""} ${updated.lastName || ""}`.trim(),
-      teamLead: updated.teamLead
-        ? {
-            ...updated.teamLead,
-            name: `${updated.teamLead.firstName || ""} ${updated.teamLead.lastName || ""}`.trim(),
-          }
-        : null,
+      teamLead: mappedLeads[0] || null,
+      teamLeads: mappedLeads,
     };
   }
 

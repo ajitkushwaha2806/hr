@@ -163,13 +163,16 @@ export function SendEmailModal({ isOpen, onClose, employee }) {
 
   return (
     <div
-      className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-150"
+      className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in duration-150"
       onClick={onClose}
     >
       <div
-        className="bg-card text-card-foreground border border-border p-5 rounded-2xl max-w-lg w-full space-y-4 shadow-2xl max-h-[90vh] overflow-y-auto"
+        className="bg-card text-card-foreground border-t sm:border border-border p-4 sm:p-5 rounded-t-2xl sm:rounded-2xl max-w-lg w-full space-y-4 shadow-2xl max-h-[88vh] overflow-y-auto animate-in slide-in-from-bottom-5 sm:zoom-in-95 duration-150"
         onClick={(e) => e.stopPropagation()}
       >
+        {/* Mobile Drag Handle */}
+        <div className="w-10 h-1 rounded-full bg-muted-foreground/30 mx-auto -mt-1 mb-1 sm:hidden" />
+
         {/* Header */}
         <div className="flex items-center justify-between border-b border-border/60 pb-3">
           <div className="flex items-center gap-2.5">

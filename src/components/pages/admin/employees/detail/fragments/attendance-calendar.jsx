@@ -183,16 +183,16 @@ export function AttendanceCalendar({
   if (isLoading) {
     return (
       <div className="bg-card border border-border/60 rounded-xl p-4 sm:p-6 shadow-2xs">
-        <div className="grid grid-cols-7 gap-2 mb-3">
+        <div className="hidden sm:grid grid-cols-7 gap-2 mb-3">
           {WEEKDAYS.map((w) => (
             <div key={w} className="text-center font-medium text-xs text-muted-foreground py-1">
               {w}
             </div>
           ))}
         </div>
-        <div className="grid grid-cols-7 gap-2">
-          {[...Array(35)].map((_, i) => (
-            <div key={i} className="h-24 sm:h-28 rounded-lg bg-muted/40 animate-pulse border border-border/30" />
+        <div className="grid grid-cols-4 sm:grid-cols-7 gap-1.5 sm:gap-2">
+          {[...Array(28)].map((_, i) => (
+            <div key={i} className="min-h-[76px] sm:min-h-[105px] rounded-lg bg-muted/40 animate-pulse border border-border/30" />
           ))}
         </div>
       </div>
@@ -213,38 +213,38 @@ export function AttendanceCalendar({
           </p>
         </div>
 
-        {/* Legend */}
-        <div className="flex items-center gap-2.5 flex-wrap text-[11px] text-muted-foreground">
+        {/* Legend: Horizontally scrollable on mobile */}
+        <div className="flex items-center gap-2 sm:gap-2.5 overflow-x-auto scrollbar-none py-1 text-[10.5px] sm:text-[11px] text-muted-foreground whitespace-nowrap">
           <span className="flex items-center gap-1">
-            <span className="size-2 rounded-full bg-emerald-500" /> Full Day
+            <span className="size-2 rounded-full bg-emerald-500 shrink-0" /> Full Day
           </span>
           <span className="flex items-center gap-1">
-            <span className="size-2 rounded-full bg-amber-500" /> Half Day
+            <span className="size-2 rounded-full bg-amber-500 shrink-0" /> Half Day
           </span>
           <span className="flex items-center gap-1">
-            <span className="size-2 rounded-full bg-rose-500" /> Absent
+            <span className="size-2 rounded-full bg-rose-500 shrink-0" /> Absent (2x LOP)
           </span>
           <span className="flex items-center gap-1">
-            <span className="size-2 rounded-full bg-sky-500" /> Half Leave
+            <span className="size-2 rounded-full bg-sky-500 shrink-0" /> Casual Leave
           </span>
           <span className="flex items-center gap-1">
-            <span className="size-2 rounded-full bg-blue-500" /> Full Leave
+            <span className="size-2 rounded-full bg-indigo-500 shrink-0" /> LOP Leave
           </span>
           <span className="flex items-center gap-1">
-            <span className="size-2 rounded-full bg-purple-500" /> Holiday
+            <span className="size-2 rounded-full bg-purple-500 shrink-0" /> Holiday
           </span>
           <span className="flex items-center gap-1">
-            <span className="size-2 rounded-full bg-zinc-400" /> Weekend
+            <span className="size-2 rounded-full bg-zinc-400 shrink-0" /> Weekend
           </span>
         </div>
       </div>
 
-      {/* Weekday Labels */}
-      <div className="grid grid-cols-7 gap-1.5 sm:gap-2">
+      {/* Weekday Labels (Hidden on mobile where 4-day columns flow directly) */}
+      <div className="hidden sm:grid grid-cols-7 gap-1 sm:gap-2">
         {WEEKDAYS.map((dayName, idx) => (
           <div
             key={dayName}
-            className={`text-center font-semibold text-xs py-1.5 uppercase tracking-wider ${
+            className={`text-center font-semibold text-[11px] sm:text-xs py-1 uppercase tracking-wider ${
               idx === 0 || idx === 6 ? "text-muted-foreground/80" : "text-foreground"
             }`}
           >
@@ -253,13 +253,13 @@ export function AttendanceCalendar({
         ))}
       </div>
 
-      {/* Calendar Days Grid */}
-      <div className="grid grid-cols-7 gap-1.5 sm:gap-2">
-        {/* Leading empty placeholder cells */}
+      {/* Calendar Days Grid: 4 columns in a row on mobile screen, 7 on desktop */}
+      <div className="grid grid-cols-4 sm:grid-cols-7 gap-1.5 sm:gap-2">
+        {/* Leading empty placeholder cells (hidden on mobile for natural 4-day flow) */}
         {[...Array(firstDayOfWeek)].map((_, i) => (
           <div
             key={`empty-${i}`}
-            className="h-20 sm:h-28 rounded-lg bg-muted/10 border border-transparent"
+            className="hidden sm:block h-16 sm:h-28 rounded-lg bg-muted/10 border border-transparent"
           />
         ))}
 
@@ -279,26 +279,38 @@ export function AttendanceCalendar({
             <div
               key={item.date}
               onClick={() => isClickable && setSelectedDay(item)}
-              className={`group relative h-20 sm:h-28 rounded-lg border p-1.5 sm:p-2 flex flex-col justify-between transition-all duration-150 ${
+              className={`group relative min-h-[76px] sm:min-h-[105px] h-auto rounded-lg border p-1.5 sm:p-2 flex flex-col justify-between transition-all duration-150 ${
                 config.cardBorder
               } ${config.bgTint} ${
-                isClickable ? "cursor-pointer hover:shadow-xs" : ""
+                isClickable ? "cursor-pointer hover:shadow-xs active:scale-[0.98]" : ""
               } ${item.isToday ? "ring-2 ring-primary ring-offset-1 ring-offset-background" : ""}`}
             >
               {/* Day number & Status badge */}
-              <div className="flex items-center justify-between">
-                <span
-                  className={`text-xs sm:text-sm font-semibold rounded-full size-6 flex items-center justify-center ${
-                    item.isToday
-                      ? "bg-primary text-primary-foreground font-bold"
-                      : "text-foreground group-hover:text-primary transition-colors"
-                  }`}
-                >
-                  {item.day}
-                </span>
+              <div className="flex items-center justify-between w-full gap-1">
+                <div className="flex items-center gap-1.5 min-w-0">
+                  <span
+                    className={`text-xs sm:text-sm font-semibold rounded-full size-5 sm:size-6 flex items-center justify-center shrink-0 ${
+                      item.isToday
+                        ? "bg-primary text-primary-foreground font-bold"
+                        : "text-foreground group-hover:text-primary transition-colors"
+                    }`}
+                  >
+                    {item.day}
+                  </span>
+                  <span className="sm:hidden text-[10px] font-bold text-muted-foreground/80 uppercase tracking-tight truncate">
+                    {format(new Date(item.date), "EEE")}
+                  </span>
+                </div>
 
+                {/* Mobile: Clean status dot */}
                 <span
-                  className={`text-[9px] sm:text-[10px] font-medium px-1.5 py-0.5 rounded-full border truncate max-w-[65px] sm:max-w-[85px] ${config.badgeBg}`}
+                  className={`sm:hidden size-2 rounded-full shrink-0 ${config.dot}`}
+                  title={config.label}
+                />
+
+                {/* Desktop: Full text badge */}
+                <span
+                  className={`hidden sm:inline-block text-[9px] sm:text-[10px] font-medium px-1.5 py-0.5 rounded-full border truncate max-w-[85px] ${config.badgeBg}`}
                   title={config.label}
                 >
                   {config.label}
@@ -306,26 +318,26 @@ export function AttendanceCalendar({
               </div>
 
               {/* Punch / Info Content */}
-              <div className="mt-1 flex flex-col justify-end text-[10px] sm:text-[11px] space-y-0.5 overflow-hidden">
+              <div className="mt-1 flex flex-col justify-end text-[9px] sm:text-[11px] space-y-0.5 overflow-hidden">
                 {checkIn && (
                   <div className="flex items-center gap-1 text-muted-foreground truncate">
-                    <Clock className="size-2.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
-                    <span className="font-mono">{formatTime(checkIn.time)}</span>
+                    <Clock className="size-2 sm:size-2.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                    <span className="font-mono text-[9px] sm:text-[10px] truncate">{formatTime(checkIn.time)}</span>
                   </div>
                 )}
 
                 {checkOut && (
-                  <div className="flex items-center gap-1 text-muted-foreground truncate">
+                  <div className="hidden sm:flex items-center gap-1 text-muted-foreground truncate">
                     <Clock className="size-2.5 text-blue-600 dark:text-blue-400 shrink-0" />
-                    <span className="font-mono">{formatTime(checkOut.time)}</span>
+                    <span className="font-mono text-[10px]">{formatTime(checkOut.time)}</span>
                   </div>
                 )}
 
                 {durationHours && (
-                  <div className="hidden sm:flex items-center justify-between text-[10px] font-semibold text-foreground/80 truncate">
+                  <div className="flex items-center justify-between text-[9px] sm:text-[10px] font-semibold text-foreground/80 truncate">
                     <span>{durationHours}</span>
                     {item.isHalfDay && (
-                      <span className="text-[9px] text-amber-600 dark:text-amber-400 font-bold">
+                      <span className="text-[8.5px] sm:text-[9px] text-amber-600 dark:text-amber-400 font-bold">
                         (0.5d)
                       </span>
                     )}
@@ -333,7 +345,7 @@ export function AttendanceCalendar({
                 )}
 
                 {item.calendarType === "HOLIDAY" && item.calendarTitle && (
-                  <p className="text-[10px] text-purple-700 dark:text-purple-300 font-medium truncate">
+                  <p className="text-[9px] sm:text-[10px] text-purple-700 dark:text-purple-300 font-medium truncate">
                     {item.calendarTitle}
                   </p>
                 )}
@@ -353,16 +365,19 @@ export function AttendanceCalendar({
         })}
       </div>
 
-      {/* Day Inspection Modal */}
+      {/* Day Inspection Modal: Native bottom-sheet on mobile, centered card on desktop */}
       {selectedDay && (
         <div
-          className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-150"
+          className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in duration-150"
           onClick={() => setSelectedDay(null)}
         >
           <div
-            className="bg-card text-card-foreground border border-border p-5 rounded-2xl max-w-lg w-full space-y-4 shadow-xl max-h-[90vh] overflow-y-auto"
+            className="bg-card text-card-foreground border-t sm:border border-border p-4 sm:p-5 rounded-t-2xl sm:rounded-2xl max-w-lg w-full space-y-4 shadow-2xl max-h-[88vh] overflow-y-auto animate-in slide-in-from-bottom-5 sm:zoom-in-95 duration-150"
             onClick={(e) => e.stopPropagation()}
           >
+            {/* Mobile Drag Indicator */}
+            <div className="w-10 h-1 rounded-full bg-muted-foreground/30 mx-auto -mt-1 mb-2 sm:hidden" />
+
             {/* Modal Header */}
             <div className="flex items-center justify-between border-b border-border/60 pb-3">
               <div className="flex items-center gap-2.5">

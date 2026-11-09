@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
+import { User, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -29,7 +30,7 @@ function getEmployeeFormData(employee) {
       joiningDate: new Date().toISOString().split("T")[0],
       salary: "",
       isTeamLead: false,
-      teamLead: "",
+      teamLeads: [],
       city: "",
       bankName: "",
       accountHolderName: "",
@@ -38,6 +39,18 @@ function getEmployeeFormData(employee) {
       branchName: "",
       upiId: "",
     };
+  }
+
+  // Extract initial teamLeads array
+  const initialTeamLeads = [];
+  if (Array.isArray(employee.teamLeads) && employee.teamLeads.length > 0) {
+    employee.teamLeads.forEach((tl) => {
+      const id = (tl?._id || tl)?.toString();
+      if (id && !initialTeamLeads.includes(id)) initialTeamLeads.push(id);
+    });
+  } else if (employee.teamLead) {
+    const id = (employee.teamLead?._id || employee.teamLead)?.toString();
+    if (id && !initialTeamLeads.includes(id)) initialTeamLeads.push(id);
   }
 
   return {
@@ -55,7 +68,7 @@ function getEmployeeFormData(employee) {
       : new Date().toISOString().split("T")[0],
     salary: employee.salary != null ? String(employee.salary) : "",
     isTeamLead: Boolean(employee.isTeamLead || employee.role === "TEAM_LEAD"),
-    teamLead: employee.teamLead?._id || employee.teamLead || "",
+    teamLeads: initialTeamLeads,
     city: employee.address?.city || "",
     bankName: employee.bankDetails?.bankName || "",
     accountHolderName: employee.bankDetails?.accountHolderName || "",
@@ -114,6 +127,25 @@ export default function EmployeeFormSheet({ isOpen, onClose, employee, onSave, i
     }
   };
 
+  const handleAddTeamLead = (leadId) => {
+    if (!leadId || leadId === "placeholder") return;
+    setFormData((prev) => {
+      const current = Array.isArray(prev.teamLeads) ? prev.teamLeads : [];
+      if (current.includes(leadId)) return prev;
+      return {
+        ...prev,
+        teamLeads: [...current, leadId],
+      };
+    });
+  };
+
+  const handleRemoveTeamLead = (leadId) => {
+    setFormData((prev) => ({
+      ...prev,
+      teamLeads: (Array.isArray(prev.teamLeads) ? prev.teamLeads : []).filter((id) => id !== leadId),
+    }));
+  };
+
   const validate = () => {
     const errs = {};
     if (!formData.firstName.trim()) errs.firstName = "First name is required";
@@ -151,7 +183,8 @@ export default function EmployeeFormSheet({ isOpen, onClose, employee, onSave, i
       joiningDate: formData.joiningDate ? new Date(formData.joiningDate) : new Date(),
       salary: formData.salary ? Number(formData.salary) : 0,
       isTeamLead: Boolean(formData.isTeamLead),
-      teamLead: formData.teamLead ? formData.teamLead : null,
+      teamLeads: formData.teamLeads || [],
+      teamLead: (formData.teamLeads && formData.teamLeads[0]) || null,
       address: {
         city: formData.city.trim(),
       },
@@ -174,8 +207,8 @@ export default function EmployeeFormSheet({ isOpen, onClose, employee, onSave, i
         side="right"
         className="w-full sm:max-w-lg p-0 flex flex-col bg-white dark:bg-zinc-950 border-l border-border/50 shadow-2xl"
       >
-        <SheetHeader className="px-6 py-5 border-b border-border/40 shrink-0">
-          <SheetTitle className="text-lg font-bold text-foreground">
+        <SheetHeader className="px-4 sm:px-6 py-4 sm:py-5 border-b border-border/40 shrink-0">
+          <SheetTitle className="text-base sm:text-lg font-bold text-foreground">
             {isEditMode ? "Edit Employee Profile" : "Onboard New Employee"}
           </SheetTitle>
           <SheetDescription className="text-xs text-muted-foreground mt-0.5">
@@ -186,7 +219,7 @@ export default function EmployeeFormSheet({ isOpen, onClose, employee, onSave, i
         </SheetHeader>
 
         <form onSubmit={handleSubmit} className="flex-1 flex flex-col overflow-hidden">
-          <div className="flex-1 overflow-y-auto px-6 py-5 space-y-5">
+          <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-4 sm:py-5 space-y-5">
             {/* Basic Info */}
             <div className="space-y-3.5">
               <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground/80">
@@ -387,30 +420,116 @@ export default function EmployeeFormSheet({ isOpen, onClose, employee, onSave, i
                   </div>
                 </label>
 
-                <div className="space-y-1.5 pt-2.5 border-t border-border/40">
-                  <Label className="text-xs font-semibold">Reports To (Team Lead)</Label>
+                {/* Reports To (Team Leads) with Multiple TL Support */}
+                <div className="space-y-2 pt-2.5 border-t border-border/40">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-xs font-semibold">Reports To (Team Leads)</Label>
+                    <span className="text-[10px] text-muted-foreground">
+                      {formData.teamLeads?.length || 0} assigned
+                    </span>
+                  </div>
+
+                  {/* Selected Team Leads Badges */}
+                  {formData.teamLeads?.length > 0 ? (
+                    <div className="flex flex-wrap gap-1.5 p-2 rounded-lg bg-background border border-border/60">
+                      {formData.teamLeads.map((tlId) => {
+                        const found = teamLeads.find((t) => (t._id || t.id) === tlId);
+                        const name =
+                          found?.name ||
+                          (employee?.teamLead?._id === tlId
+                            ? employee.teamLead.name || `${employee.teamLead.firstName || ""} ${employee.teamLead.lastName || ""}`.trim()
+                            : null) ||
+                          (Array.isArray(employee?.teamLeads) &&
+                            employee.teamLeads.find((t) => (t._id || t) === tlId)?.name) ||
+                          "Team Lead";
+
+                        const designation = found?.designation || "";
+
+                        return (
+                          <span
+                            key={tlId}
+                            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium bg-primary/10 text-primary border border-primary/20 shadow-2xs"
+                          >
+                            <User className="size-3 shrink-0" />
+                            <span className="font-semibold">{name}</span>
+                            {designation && (
+                              <span className="text-[10px] opacity-75 hidden sm:inline">
+                                ({designation})
+                              </span>
+                            )}
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveTeamLead(tlId)}
+                              className="size-3.5 rounded-full hover:bg-primary/20 flex items-center justify-center cursor-pointer ml-0.5"
+                              title={`Remove ${name}`}
+                            >
+                              <X className="size-2.5" />
+                            </button>
+                          </span>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <div className="px-3 py-2 rounded-lg bg-muted/30 border border-dashed border-border/60 text-xs text-muted-foreground italic">
+                      None (Reports directly to Admin / Management)
+                    </div>
+                  )}
+
+                  {/* Dropdown to add another Team Lead */}
                   <Select
-                    value={formData.teamLead || "none"}
-                    onValueChange={(val) => handleChange("teamLead", val === "none" ? "" : val)}
+                    value="placeholder"
+                    onValueChange={(val) => {
+                      if (val && val !== "placeholder") {
+                        handleAddTeamLead(val);
+                      }
+                    }}
                   >
-                    <SelectTrigger className="h-9 text-xs">
-                      <SelectValue placeholder="Select Team Lead or Direct Admin" />
+                    <SelectTrigger className="h-9 text-xs bg-background">
+                      <SelectValue placeholder="+ Assign a Team Lead..." />
                     </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="none" className="text-xs">
-                        None (Direct Management / Admin)
+                    <SelectContent className="max-h-60">
+                      <SelectItem value="placeholder" disabled className="text-xs text-muted-foreground">
+                        Select a Team Lead to add...
                       </SelectItem>
                       {teamLeads
                         .filter((tl) => !employee?._id || tl._id !== employee._id)
-                        .map((tl) => (
-                          <SelectItem key={tl._id} value={tl._id} className="text-xs">
-                            {tl.name} ({tl.department || "General"} · {tl.designation || "Lead"})
-                          </SelectItem>
-                        ))}
+                        .map((tl) => {
+                          const isAssigned = formData.teamLeads?.includes(tl._id);
+                          return (
+                            <SelectItem
+                              key={tl._id}
+                              value={tl._id}
+                              disabled={isAssigned}
+                              className="text-xs cursor-pointer"
+                            >
+                              <div className="flex items-center justify-between w-full gap-3 py-0.5">
+                                <div className="flex flex-col text-left">
+                                  <span className="font-semibold text-foreground flex items-center gap-1">
+                                    {tl.name}
+                                    {tl.isTeamLead && (
+                                      <span className="ml-1 text-[9px] font-bold px-1.5 py-0.2 rounded bg-violet-100 text-violet-700 dark:bg-violet-950/60 dark:text-violet-300">
+                                        TL
+                                      </span>
+                                    )}
+                                  </span>
+                                  <span className="text-[10.5px] text-muted-foreground">
+                                    {tl.department || "General"} · {tl.designation || "Lead"} · {tl.employeeId || ""}
+                                  </span>
+                                </div>
+                                {isAssigned && (
+                                  <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400">
+                                    Assigned
+                                  </span>
+                                )}
+                              </div>
+                            </SelectItem>
+                          );
+                        })}
                     </SelectContent>
                   </Select>
+
                   <span className="text-[10.5px] text-muted-foreground block">
-                    Leave request emails from this employee will route only to this TL and company Admins.
+                    Leave request emails from this employee will route only to these designated TLs and company Admins.
                   </span>
                 </div>
               </div>

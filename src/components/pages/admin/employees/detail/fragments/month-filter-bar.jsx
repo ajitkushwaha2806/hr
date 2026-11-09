@@ -27,33 +27,58 @@ export function MonthFilterBar({
     year === currentDate.getFullYear() && month === currentDate.getMonth() + 1;
 
   return (
-    <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 p-3 bg-card border border-border/60 rounded-xl shadow-2xs">
+    <div className="p-3 bg-card border border-border/60 rounded-xl shadow-2xs space-y-2.5 sm:space-y-0 sm:flex sm:items-center sm:justify-between sm:gap-3">
       {/* Current selection label & Controls */}
-      <div className="flex items-center gap-2">
-        <div className="size-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
-          <CalendarIcon className="size-4" />
-        </div>
-        <div className="flex items-center gap-1.5">
-          <span className="font-semibold text-sm text-foreground">
-            {MONTH_NAMES[month - 1]} {year}
-          </span>
-          {isCurrentMonth && (
-            <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-primary/15 text-primary border border-primary/20">
-              Current Month
+      <div className="flex items-center justify-between sm:justify-start gap-2">
+        <div className="flex items-center gap-2 min-w-0">
+          <div className="size-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
+            <CalendarIcon className="size-4" />
+          </div>
+          <div className="flex items-center gap-1.5 min-w-0">
+            <span className="font-bold text-sm text-foreground truncate">
+              {MONTH_NAMES[month - 1]} {year}
             </span>
-          )}
+            {isCurrentMonth ? (
+              <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-primary/15 text-primary border border-primary/20 shrink-0">
+                Current
+              </span>
+            ) : (
+              <button
+                onClick={onJumpToCurrent}
+                className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-muted hover:bg-muted/80 text-foreground border border-border/60 shrink-0 cursor-pointer"
+              >
+                Today
+              </button>
+            )}
+          </div>
         </div>
+
+        {/* Refresh button on mobile right top */}
+        {onRefresh && (
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={onRefresh}
+            disabled={isRefreshing}
+            className="size-8 rounded-lg sm:hidden shrink-0"
+            title="Refresh Attendance Data"
+          >
+            <RefreshCw className={`size-3.5 ${isRefreshing ? "animate-spin text-primary" : ""}`} />
+          </Button>
+        )}
       </div>
 
-      {/* Selectors and Arrow Navigation */}
-      <div className="flex items-center gap-2 self-end sm:self-auto flex-wrap">
+      {/* Selectors and Arrow Navigation: Perfectly responsive row */}
+      <div className="flex items-center gap-1.5 sm:gap-2 w-full sm:w-auto">
         {/* Month Dropdown */}
         <Select
           value={String(month)}
           onValueChange={(val) => onMonthChange(parseInt(val, 10))}
         >
-          <SelectTrigger className="h-8 text-xs w-[120px] rounded-lg bg-muted/30">
-            <SelectValue placeholder="Month" />
+          <SelectTrigger className="h-8 text-xs flex-1 sm:w-[130px] rounded-lg bg-muted/30">
+            <SelectValue placeholder="Month">
+              {MONTH_NAMES[month - 1]}
+            </SelectValue>
           </SelectTrigger>
           <SelectContent className="max-h-60">
             {MONTH_NAMES.map((name, idx) => (
@@ -69,7 +94,7 @@ export function MonthFilterBar({
           value={String(year)}
           onValueChange={(val) => onYearChange(parseInt(val, 10))}
         >
-          <SelectTrigger className="h-8 text-xs w-[90px] rounded-lg bg-muted/30">
+          <SelectTrigger className="h-8 text-xs w-[80px] sm:w-[90px] rounded-lg bg-muted/30 shrink-0">
             <SelectValue placeholder="Year" />
           </SelectTrigger>
           <SelectContent>
@@ -82,7 +107,7 @@ export function MonthFilterBar({
         </Select>
 
         {/* Prev / Next buttons */}
-        <div className="flex items-center border border-border/60 rounded-lg overflow-hidden bg-background">
+        <div className="flex items-center border border-border/60 rounded-lg overflow-hidden bg-background shrink-0">
           <Button
             variant="ghost"
             size="icon"
@@ -104,26 +129,26 @@ export function MonthFilterBar({
           </Button>
         </div>
 
-        {/* Jump to Today button */}
+        {/* Desktop Jump to Today button */}
         {!isCurrentMonth && (
           <Button
             variant="outline"
             size="sm"
             onClick={onJumpToCurrent}
-            className="h-8 text-xs px-2.5 rounded-lg"
+            className="h-8 text-xs px-2.5 rounded-lg hidden sm:flex shrink-0"
           >
             Today
           </Button>
         )}
 
-        {/* Refresh button */}
+        {/* Desktop Refresh button */}
         {onRefresh && (
           <Button
             variant="outline"
             size="icon"
             onClick={onRefresh}
             disabled={isRefreshing}
-            className="size-8 rounded-lg"
+            className="size-8 rounded-lg hidden sm:flex shrink-0"
             title="Refresh Attendance Data"
           >
             <RefreshCw className={`size-3.5 ${isRefreshing ? "animate-spin text-primary" : ""}`} />

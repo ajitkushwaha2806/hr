@@ -13,6 +13,12 @@ export const EMPLOYEE_SIDEBAR_CONFIG = {
         icon: <LayoutDashboard />,
       },
       {
+        title: "Attendance Logs",
+        url: "/employee/attendance",
+        icon: <Clock />,
+        teamLeadOnly: true,
+      },
+      {
         title: "My Leaves",
         url: "/employee/leaves",
         icon: <CalendarDays />,

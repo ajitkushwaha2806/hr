@@ -5,13 +5,21 @@ import { cn } from "@/lib/utils";
 import { Menu } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { useSidebar } from "@/components/ui/sidebar";
+import { useEmployeeProfile } from "@/store/hooks/useEmployee";
 import { ADMIN_SIDEBAR_CONFIG, EMPLOYEE_SIDEBAR_CONFIG } from "@/constants/sidebar";
 
 export function MobileNav() {
   const pathname = usePathname();
   const { toggleSidebar } = useSidebar();
+  const { employee } = useEmployeeProfile();
 
   const isAdmin = pathname?.startsWith("/admin");
+  const isTeamLead = Boolean(
+    employee?.isTeamLead ||
+    employee?.role === "TEAM_LEAD" ||
+    employee?.role === "org:admin"
+  );
+
   const activeConfig = isAdmin ? ADMIN_SIDEBAR_CONFIG : EMPLOYEE_SIDEBAR_CONFIG;
   const items = activeConfig?.navMain?.items || [];
   
@@ -39,6 +47,17 @@ export function MobileNav() {
           item: items.find((i) => i.title.includes("Dashboard")) || { title: "Dashboard", url: "/employee/dashboard" },
           label: "Dashboard",
         },
+        ...(isTeamLead
+          ? [
+              {
+                item: items.find((i) => i.title.includes("Attendance")) || {
+                  title: "Attendance Logs",
+                  url: "/employee/attendance",
+                },
+                label: "Attendance",
+              },
+            ]
+          : []),
         {
           item: items.find((i) => i.title.includes("Leave")) || { title: "Leaves", url: "/employee/leaves" },
           label: "Leaves",

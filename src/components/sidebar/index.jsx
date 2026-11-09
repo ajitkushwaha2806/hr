@@ -5,15 +5,26 @@ import { NavUser } from "./nav-user";
 import { NavMain } from "./nav-main";
 import { useUser } from "@clerk/nextjs";
 import { usePathname } from "next/navigation";
+import { useEmployeeProfile } from "@/store/hooks/useEmployee";
 import { ADMIN_SIDEBAR_CONFIG, EMPLOYEE_SIDEBAR_CONFIG } from "@/constants/sidebar";
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarRail, SidebarSeparator } from "@/components/ui/sidebar";
 
 export function AppSidebar(props) {
   const { user, isLoaded } = useUser();
   const pathname = usePathname();
+  const { employee } = useEmployeeProfile();
 
   const isAdmin = pathname?.startsWith("/admin");
+  const isTeamLead = Boolean(
+    employee?.isTeamLead ||
+    employee?.role === "TEAM_LEAD" ||
+    employee?.role === "org:admin"
+  );
+
   const activeConfig = isAdmin ? ADMIN_SIDEBAR_CONFIG : EMPLOYEE_SIDEBAR_CONFIG;
+  const filteredNavItems = (activeConfig?.navMain?.items || []).filter(
+    (item) => !item.teamLeadOnly || isTeamLead
+  );
 
   const sidebarConfig = {
     user: {
@@ -58,7 +69,7 @@ export function AppSidebar(props) {
       <SidebarContent className="px-1.5 py-1 group-data-[collapsible=icon]:px-0">
         <NavMain
           title={activeConfig?.navMain?.title}
-          items={activeConfig?.navMain?.items}
+          items={filteredNavItems}
         />
       </SidebarContent>
 

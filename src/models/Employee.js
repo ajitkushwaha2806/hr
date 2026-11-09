@@ -29,6 +29,13 @@ const EmployeeSchema = new mongoose.Schema(
       default: null,
       index: true,
     },
+    teamLeads: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Employee",
+        index: true,
+      },
+    ],
     employeeId: {
       type: String,
       required: [true, "Employee ID is required"],

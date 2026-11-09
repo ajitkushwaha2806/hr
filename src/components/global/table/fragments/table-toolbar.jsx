@@ -12,8 +12,8 @@ export function TableToolbar({ title, subtitle, totalCount, searchable = false, 
   return (
     <div className={cn("flex flex-col gap-2.5 sm:gap-3 w-full min-w-0", className)}>
       {(title || subtitle || actions || hasSelected) && (
-        <div className={cn("flex flex-wrap sm:flex-nowrap items-start sm:items-center justify-between gap-2 sm:gap-3 w-full min-w-0", hideTitleOnMobile && !actions && !hasSelected ? "hidden md:flex" : "flex")}>
-          <div className={cn("min-w-[140px] flex-1", hideTitleOnMobile && "hidden md:block")}>
+        <div className={cn("flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3 w-full min-w-0", hideTitleOnMobile && !actions && !hasSelected ? "hidden md:flex" : "flex")}>
+          <div className={cn("w-full sm:w-auto min-w-0 flex-1", hideTitleOnMobile && "hidden md:block")}>
             {title && (
               <h3 className="text-sm sm:text-base font-semibold text-gray-900 dark:text-zinc-100 flex items-center gap-1.5 sm:gap-2 tracking-tight">
                 <span className="truncate">{title}</span>
@@ -27,7 +27,7 @@ export function TableToolbar({ title, subtitle, totalCount, searchable = false, 
             {subtitle && <p className="text-[11px] sm:text-xs text-gray-500 dark:text-zinc-400 mt-0.5 line-clamp-1 sm:truncate">{subtitle}</p>}
           </div>
 
-          <div className="flex items-center gap-2 shrink-0">
+          <div className="flex items-center gap-2 w-full sm:w-auto min-w-0 shrink-0 sm:shrink">
             {hasSelected ? (
               <div className="inline-flex items-center gap-2 bg-primary/10 dark:bg-primary/20 border border-primary/20 text-primary px-3 py-1.5 rounded-md text-xs font-medium animate-in fade-in duration-150">
                 <span>{selectedCount} selected</span>
@@ -51,7 +51,7 @@ export function TableToolbar({ title, subtitle, totalCount, searchable = false, 
       {(filterTabs || searchable) && (
         <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-2.5 pt-1 w-full min-w-0">
           {filterTabs && filterTabs.length > 0 ? (
-            <div className="flex items-center gap-1 p-1 bg-gray-100/80 dark:bg-zinc-900/80 border border-gray-200/60 dark:border-zinc-800 rounded-md overflow-x-auto scrollbar-none max-w-full">
+            <div className="flex items-center gap-1 p-1 bg-gray-100/80 dark:bg-zinc-900/80 border border-gray-200/60 dark:border-zinc-800 rounded-md overflow-x-auto scrollbar-none max-w-full touch-pan-x overscroll-x-contain">
               {filterTabs.map((tab) => {
                 const isActive = (activeFilterTab || filterTabs[0].value) === tab.value;
                 return (

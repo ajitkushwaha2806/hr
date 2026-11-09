@@ -25,7 +25,7 @@ export default function EmployeeManagement() {
   const availableDepts = dbDepartments.length > 0 ? dbDepartments.map((d) => d.name) : DEPARTMENTS;
 
 
-  const { employees, stats, isLoading, isFetching, error, refetch, addEmployee, updateEmployee, deleteEmployee, isDeleting } = useEmployees({
+  const { employees, isLoading, isFetching, error, refetch, addEmployee, updateEmployee, deleteEmployee } = useEmployees({
     status: statusFilter,
     department: departmentFilter,
     search: searchQuery,
@@ -74,7 +74,7 @@ export default function EmployeeManagement() {
 
   return (
     <div className="flex flex-col m-2 sm:m-4 space-y-4 sm:space-y-6 min-w-0 pb-24 sm:pb-8"> 
-      <div className="bg-white dark:bg-zinc-900 p-3 sm:p-5 rounded-xl border border-border/40 shadow-xs">
+      <div className="bg-white dark:bg-zinc-900 p-3 sm:p-5 rounded-xl border border-border/40 shadow-xs min-w-0">
         <DataTable
           title="Employee Directory"
           subtitle="View, search, and manage all employees in your organization"
@@ -90,7 +90,7 @@ export default function EmployeeManagement() {
           activeFilterTab={statusFilter}
           onFilterTabChange={setStatusFilter}
           actions={
-            <div className="flex items-center gap-2 w-full sm:w-auto justify-start sm:justify-end flex-nowrap overflow-x-auto scrollbar-none py-0.5">
+            <div className="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-end min-w-0">
               {refetch && (
                 <Button
                   variant="outline"
@@ -104,10 +104,10 @@ export default function EmployeeManagement() {
                 </Button>
               )}
 
-              <div className="w-auto shrink-0">
+              <div className="flex-1 sm:flex-initial sm:w-auto min-w-0">
                 <Select value={departmentFilter} onValueChange={setDepartmentFilter}>
-                  <SelectTrigger className="w-auto shrink-0 h-8.5 px-3 text-xs rounded-md bg-muted/40 border-border/60 gap-2 whitespace-nowrap cursor-pointer">
-                    <SelectValue placeholder="All Departments">
+                  <SelectTrigger className="w-full sm:w-auto min-w-0 sm:min-w-[130px] h-8.5 px-2.5 sm:px-3 text-xs rounded-md bg-muted/40 border-border/60 gap-1.5 sm:gap-2 whitespace-nowrap cursor-pointer">
+                    <SelectValue placeholder="All Departments" className="truncate">
                       {departmentFilter === "all" ? "All Departments" : departmentFilter}
                     </SelectValue>
                   </SelectTrigger>
@@ -127,10 +127,10 @@ export default function EmployeeManagement() {
               <Button
                 onClick={handleAddEmployee}
                 size="sm"
-                className="w-auto shrink-0 h-8.5 px-3 rounded-md font-semibold text-xs gap-1.5 cursor-pointer shadow-2xs"
+                className="shrink-0 h-8.5 px-2.5 sm:px-3 rounded-md font-semibold text-xs gap-1.5 cursor-pointer shadow-2xs"
               >
-                <Plus size={14} strokeWidth={2.5} />
-                <span>Onboard Employee</span>
+                <Plus size={14} strokeWidth={2.5} className="shrink-0" />
+                <span>Onboard<span className="hidden xs:inline sm:inline"> Employee</span></span>
               </Button>
             </div>
           }

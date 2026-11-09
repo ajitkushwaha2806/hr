@@ -1,11 +1,15 @@
 import { LeaveService } from "@/services/backend/leave";
 import { getAuthContext, getAuthUser, getUserRoleContext } from "@/lib/api/helpers/auth";
-import { withErrorHandler, successResponse } from "@/lib/api/response-handler";
+import { withErrorHandler, successResponse, ForbiddenError } from "@/lib/api/response-handler";
 
 export const GET = withErrorHandler(async (req) => {
   const { orgId, orgRole } = await getAuthContext();
   const clerkUser = await getAuthUser();
   const callerContext = await getUserRoleContext(clerkUser, orgId, orgRole);
+
+  if (!callerContext.isAdmin) {
+    throw new ForbiddenError("Admin access required");
+  }
 
   const organizationId = orgId || "default_org";
 
@@ -27,6 +31,10 @@ export const PATCH = withErrorHandler(async (req) => {
   const { orgId, orgRole } = await getAuthContext();
   const clerkUser = await getAuthUser();
   const callerContext = await getUserRoleContext(clerkUser, orgId, orgRole);
+
+  if (!callerContext.isAdmin) {
+    throw new ForbiddenError("Admin access required");
+  }
 
   const organizationId = orgId || "default_org";
 

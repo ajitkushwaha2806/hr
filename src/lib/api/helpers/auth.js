@@ -87,9 +87,12 @@ export async function getUserRoleContext(clerkUser = null, orgId = null, orgRole
     dbUser?.role === "TEAM_LEAD";
 
   if (isTeamLead && employee?._id) {
-    // Find all team members reporting to this Team Lead
+    // Find all team members reporting to this Team Lead (supports both teamLeads array & legacy teamLead)
     const directReports = await Employee.find({
-      teamLead: employee._id,
+      $or: [
+        { teamLeads: employee._id },
+        { teamLead: employee._id },
+      ],
     })
       .select("_id")
       .lean();

@@ -39,9 +39,15 @@ export const getEmployeeColumns = ({ onEdit, onDelete }) => [
             <Mail className="size-2.5 shrink-0 opacity-60" />
             <span className="truncate">{row.email}</span>
           </span>
-          {row.teamLead && (
+          {((Array.isArray(row.teamLeads) && row.teamLeads.length > 0) || row.teamLead) && (
             <span className="text-[10px] text-muted-foreground/80 truncate block mt-0.5">
-              TL: {row.teamLead.name || `${row.teamLead.firstName || ""} ${row.teamLead.lastName || ""}`.trim()}
+              TL:{" "}
+              {Array.isArray(row.teamLeads) && row.teamLeads.length > 0
+                ? row.teamLeads
+                    .map((tl) => tl.name || `${tl.firstName || ""} ${tl.lastName || ""}`.trim())
+                    .filter(Boolean)
+                    .join(", ")
+                : row.teamLead.name || `${row.teamLead.firstName || ""} ${row.teamLead.lastName || ""}`.trim()}
             </span>
           )}
         </div>

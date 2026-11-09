@@ -22,6 +22,7 @@ export const API_ENDPOINTS = {
     CHECK_IN: "/api/attendance/check-in",
     CHECK_OUT: "/api/attendance/check-out",
     ADMIN_LOGS: "/api/admin/attendance",
+    TEAM_LOGS: "/api/employee/team-attendance",
   },
   OFFICE_LOCATION: {
     GET: "/api/office-location",

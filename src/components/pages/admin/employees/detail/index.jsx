@@ -15,7 +15,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Asset } from "@/components/common/Asset";
-import { EmployeeStatusBadge, DepartmentBadge, EmploymentTypeBadge } from "../helpers/badges";
+import { EmployeeStatusBadge, DepartmentBadge, EmploymentTypeBadge, TeamLeadBadge } from "../helpers/badges";
 import { EmployeeFormSheet } from "../fragments";
 import { useEmployeeDetail } from "@/store/hooks/useEmployee";
 import {
@@ -135,32 +135,32 @@ export default function EmployeeDetailView({ employeeId }) {
   const fullName = `${employee.firstName || ""} ${employee.lastName || ""}`.trim() || employee.name;
 
   return (
-    <div className="flex flex-col m-2 sm:m-4 space-y-5 min-w-0 pb-24 sm:pb-8">
+    <div className="flex flex-col m-2 sm:m-4 space-y-4 sm:space-y-5 min-w-0 pb-28 sm:pb-8">
       {/* Top Navigation & Breadcrumbs */}
-      <div className="flex items-center justify-between gap-3">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
         <div className="flex items-center gap-2 text-xs text-muted-foreground">
           <Link
             href="/admin/employees"
-            className="flex items-center gap-1.5 hover:text-foreground transition-colors font-medium text-xs"
+            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-muted/60 hover:bg-muted text-foreground transition-colors font-medium text-xs shadow-2xs shrink-0"
           >
             <ArrowLeft className="size-3.5" />
             <span>Employees</span>
           </Link>
-          <span className="text-muted-foreground/40">/</span>
-          <span className="font-semibold text-foreground truncate max-w-[200px] sm:max-w-none">
+          <span className="hidden sm:inline text-muted-foreground/40">/</span>
+          <span className="hidden sm:inline font-semibold text-foreground truncate max-w-[200px] lg:max-w-none">
             {fullName}
           </span>
-          <span className="font-mono text-[11px] px-1.5 py-0.2 rounded bg-muted text-muted-foreground border border-border/50">
+          <span className="hidden sm:inline font-mono text-[11px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground border border-border/50">
             {employee.employeeId}
           </span>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 justify-end w-full sm:w-auto">
           <Button
             variant="outline"
             size="sm"
             onClick={() => setIsEmailModalOpen(true)}
-            className="h-8 text-xs gap-1.5 rounded-lg shadow-2xs"
+            className="h-8 text-xs gap-1.5 rounded-lg shadow-2xs flex-1 sm:flex-initial justify-center"
           >
             <Mail className="size-3.5" />
             <span>Send Email</span>
@@ -170,7 +170,7 @@ export default function EmployeeDetailView({ employeeId }) {
             variant="outline"
             size="sm"
             onClick={() => setIsEditOpen(true)}
-            className="h-8 text-xs gap-1.5 rounded-lg shadow-2xs"
+            className="h-8 text-xs gap-1.5 rounded-lg shadow-2xs flex-1 sm:flex-initial justify-center"
           >
             <Edit className="size-3.5" />
             <span>Edit Profile</span>
@@ -179,10 +179,10 @@ export default function EmployeeDetailView({ employeeId }) {
       </div>
 
       {/* Hero Employee Profile Card */}
-      <div className="bg-card border border-border/60 rounded-2xl p-4 sm:p-6 shadow-xs">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-5">
+      <div className="bg-card border border-border/60 rounded-2xl p-3.5 sm:p-6 shadow-xs space-y-4">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 sm:gap-5">
           {/* Avatar & Key Info */}
-          <div className="flex items-start sm:items-center gap-4">
+          <div className="flex items-start gap-3 sm:gap-4 min-w-0">
             <div className="relative shrink-0">
               <Asset
                 src={employee.avatar}
@@ -199,50 +199,56 @@ export default function EmployeeDetailView({ employeeId }) {
               )}
             </div>
 
-            <div className="space-y-1.5 min-w-0">
-              <div className="flex items-center gap-2.5 flex-wrap">
-                <h1 className="text-lg sm:text-xl font-bold text-foreground tracking-tight">
+            <div className="space-y-1.5 min-w-0 flex-1">
+              <div className="flex items-center gap-2 flex-wrap">
+                <h1 className="text-base sm:text-xl font-bold text-foreground tracking-tight truncate">
                   {fullName}
                 </h1>
-                <span className="font-mono text-xs font-semibold px-2 py-0.5 rounded bg-muted/80 text-muted-foreground border border-border/50">
+                <span className="font-mono text-[11px] sm:text-xs font-semibold px-2 py-0.5 rounded bg-muted/80 text-muted-foreground border border-border/50 shrink-0">
                   {employee.employeeId}
                 </span>
-                <EmployeeStatusBadge status={employee.status || "Active"} />
+                <div className="shrink-0">
+                  <EmployeeStatusBadge status={employee.status || "Active"} />
+                </div>
+                {(employee.isTeamLead || employee.role === "TEAM_LEAD") && (
+                  <div className="shrink-0">
+                    <TeamLeadBadge />
+                  </div>
+                )}
               </div>
 
-              <div className="flex items-center gap-2 flex-wrap text-xs text-muted-foreground">
-                <span className="font-medium text-foreground">
+              {/* Designation & Department Pills */}
+              <div className="flex items-center gap-1.5 flex-wrap text-xs pt-0.5">
+                <span className="font-semibold text-xs text-foreground bg-muted/60 px-2 py-0.5 rounded-md">
                   {employee.designation || "No Designation"}
                 </span>
-                <span>•</span>
                 <DepartmentBadge department={employee.department || "General"} />
-                <span>•</span>
                 <EmploymentTypeBadge type={employee.employmentType || "Full-Time"} />
               </div>
 
               {/* Quick Contact & Joining info */}
-              <div className="flex items-center gap-4 flex-wrap text-xs text-muted-foreground pt-1">
+              <div className="flex items-center gap-2 sm:gap-3 flex-wrap text-xs text-muted-foreground pt-1">
                 {employee.email && (
                   <a
                     href={`mailto:${employee.email}`}
-                    className="flex items-center gap-1.5 hover:text-foreground transition-colors"
+                    className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-muted/40 hover:bg-muted hover:text-foreground transition-colors max-w-full truncate"
                   >
-                    <Mail className="size-3 text-muted-foreground/70" />
-                    <span>{employee.email}</span>
+                    <Mail className="size-3 text-muted-foreground/70 shrink-0" />
+                    <span className="truncate">{employee.email}</span>
                   </a>
                 )}
                 {employee.phone && (
                   <a
                     href={`tel:${employee.phone}`}
-                    className="flex items-center gap-1.5 hover:text-foreground transition-colors"
+                    className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-muted/40 hover:bg-muted hover:text-foreground transition-colors shrink-0"
                   >
-                    <Phone className="size-3 text-muted-foreground/70" />
+                    <Phone className="size-3 text-muted-foreground/70 shrink-0" />
                     <span>{employee.phone}</span>
                   </a>
                 )}
                 {employee.joiningDate && (
-                  <span className="flex items-center gap-1.5">
-                    <Calendar className="size-3 text-muted-foreground/70" />
+                  <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-muted/40 shrink-0">
+                    <Calendar className="size-3 text-muted-foreground/70 shrink-0" />
                     <span>
                       Joined{" "}
                       {new Date(employee.joiningDate).toLocaleDateString("en-US", {
@@ -258,16 +264,16 @@ export default function EmployeeDetailView({ employeeId }) {
           </div>
 
           {/* Quick Stats on Right side of Hero */}
-          <div className="flex items-center gap-2 sm:gap-3 border-t md:border-t-0 md:border-l border-border/60 pt-3 md:pt-0 md:pl-6 shrink-0">
-            <div className="p-2.5 rounded-xl bg-muted/30 border border-border/40 text-center min-w-[80px]">
+          <div className="grid grid-cols-2 md:flex items-center gap-2 sm:gap-3 border-t md:border-t-0 md:border-l border-border/60 pt-3 md:pt-0 md:pl-5 shrink-0">
+            <div className="p-2 sm:p-2.5 rounded-xl bg-muted/30 border border-border/40 text-center min-w-[75px]">
               <span className="text-[10px] text-muted-foreground uppercase font-medium block">
                 Leaves / Mo
               </span>
-              <span className="text-base font-bold text-foreground">
+              <span className="text-sm sm:text-base font-bold text-foreground">
                 {employee.monthlyCasualLeavesQuota || 4}d
               </span>
             </div>
-            <div className="p-2.5 rounded-xl bg-muted/30 border border-border/40 text-center min-w-[80px]">
+            <div className="p-2 sm:p-2.5 rounded-xl bg-muted/30 border border-border/40 text-center min-w-[75px]">
               <span className="text-[10px] text-muted-foreground uppercase font-medium block">
                 NDA Status
               </span>
@@ -285,29 +291,31 @@ export default function EmployeeDetailView({ employeeId }) {
         </div>
 
         {/* View Switcher Tabs Bar */}
-        <div className="flex items-center gap-1.5 border-t border-border/60 mt-5 pt-3">
+        <div className="grid grid-cols-2 p-1 bg-muted/60 dark:bg-muted/30 rounded-xl border border-border/50">
           <button
             onClick={() => setActiveTab("attendance")}
-            className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center gap-2 ${
+            className={`py-2 px-2 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
               activeTab === "attendance"
                 ? "bg-primary text-primary-foreground shadow-xs"
-                : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
             }`}
           >
-            <Clock className="size-3.5" />
-            <span>Monthly Attendance & Calendar</span>
+            <Clock className="size-3.5 shrink-0" />
+            <span className="sm:hidden">Attendance</span>
+            <span className="hidden sm:inline">Monthly Attendance & Calendar</span>
           </button>
 
           <button
             onClick={() => setActiveTab("profile")}
-            className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center gap-2 ${
+            className={`py-2 px-2 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
               activeTab === "profile"
                 ? "bg-primary text-primary-foreground shadow-xs"
-                : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
             }`}
           >
-            <User className="size-3.5" />
-            <span>Complete Profile (A to Z Details)</span>
+            <User className="size-3.5 shrink-0" />
+            <span className="sm:hidden">Profile (A-Z)</span>
+            <span className="hidden sm:inline">Complete Profile (A to Z Details)</span>
           </button>
         </div>
       </div>

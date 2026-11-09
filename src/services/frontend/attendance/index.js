@@ -44,4 +44,9 @@ export const AttendanceService = {
     const res = await axios.get(API_ENDPOINTS.ATTENDANCE.ADMIN_LOGS, { params });
     return res.data;
   },
+
+  async getTeamAttendanceLogs(params = {}) {
+    const res = await axios.get(API_ENDPOINTS.ATTENDANCE.TEAM_LOGS, { params });
+    return res.data;
+  },
 };
