@@ -25,7 +25,7 @@ export default function EmployeeManagement() {
   const availableDepts = dbDepartments.length > 0 ? dbDepartments.map((d) => d.name) : DEPARTMENTS;
 
 
-  const { employees, isLoading, isFetching, error, refetch, addEmployee, updateEmployee, deleteEmployee } = useEmployees({
+  const { employees, isLoading, isFetching, error, refetch, addEmployee, updateEmployee, deleteEmployee, isDeleting } = useEmployees({
     status: statusFilter,
     department: departmentFilter,
     search: searchQuery,
