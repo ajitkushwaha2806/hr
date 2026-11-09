@@ -20,6 +20,10 @@ export function AttendanceSummaryCards({ stats = {}, isLoading = false }) {
     fullDayLeaves = 0,
     halfDayLeaves = 0,
     onLeave = 0,
+    casualLeaves = {},
+    approvedLopLeaves = {},
+    totalPayLossDays = 0,
+    unapprovedAbsentDays = 0,
     absent = 0,
     holidays = 0,
     weeklyOffs = 0,
@@ -29,6 +33,9 @@ export function AttendanceSummaryCards({ stats = {}, isLoading = false }) {
     totalHoursWorked = 0,
     avgHoursPerDay = 0,
   } = stats || {};
+
+  const casualDays = Number(casualLeaves?.totalDays || 0);
+  const lopDays = Number(approvedLopLeaves?.totalDays || 0);
 
   const cards = [
     {
@@ -45,7 +52,7 @@ export function AttendanceSummaryCards({ stats = {}, isLoading = false }) {
     {
       title: "Full Day Present",
       value: `${fullDaysPresent}d`,
-      subtitle: "Standard shifts (4+ hours worked)",
+      subtitle: "Standard shifts (8+ hours worked)",
       icon: Sun,
       color: "text-emerald-600 dark:text-emerald-400",
       bg: "bg-emerald-50/50 dark:bg-emerald-950/20 border-emerald-200/60 dark:border-emerald-800/40",
@@ -56,7 +63,10 @@ export function AttendanceSummaryCards({ stats = {}, isLoading = false }) {
     {
       title: "Half Day Present",
       value: `${halfDaysPresent}d`,
-      subtitle: halfDaysPresent > 0 ? "Short shifts (<4h) or half session" : "No half-day shifts",
+      subtitle:
+        halfDaysPresent > 0
+          ? `${halfDaysPresent} day(s) with 3h-8h worked or no punch-out`
+          : "3h-8h worked, or missed punch-out",
       icon: Hourglass,
       color: halfDaysPresent > 0 ? "text-amber-600 dark:text-amber-400" : "text-muted-foreground",
       bg: halfDaysPresent > 0
@@ -69,22 +79,24 @@ export function AttendanceSummaryCards({ stats = {}, isLoading = false }) {
     {
       title: "Approved Leaves",
       value: `${onLeave}d`,
-      subtitle: `${fullDayLeaves} Full Day · ${halfDayLeaves} Half Day`,
+      subtitle: `${casualDays}d Casual · ${lopDays}d LOP (${fullDayLeaves}F / ${halfDayLeaves}H)`,
       icon: CalendarCheck2,
       color: "text-sky-600 dark:text-sky-400",
       bg: "bg-sky-50/70 dark:bg-sky-950/20 border-sky-200/60 dark:border-sky-800/40",
       iconBg: "bg-sky-500/10 text-sky-600 dark:text-sky-400",
     },
     {
-      title: "Absent Days",
+      title: "Unapproved Absent",
       value: `${absent}d`,
-      subtitle: absent === 0 ? "Zero absences recorded!" : "Unmarked working days",
+      subtitle: absent === 0 ? "Zero absences recorded!" : `2x Penalty: -${absent * 2}d Pay Loss`,
       icon: XCircle,
       color: absent > 0 ? "text-rose-600 dark:text-rose-400" : "text-muted-foreground",
       bg: absent > 0
         ? "bg-rose-50/70 dark:bg-rose-950/20 border-rose-200/60 dark:border-rose-800/40"
         : "bg-card border-border/60",
       iconBg: absent > 0 ? "bg-rose-500/10 text-rose-600 dark:text-rose-400" : "bg-muted text-muted-foreground",
+      pill: absent > 0 ? "2x Pay Loss" : null,
+      pillColor: "bg-rose-100 dark:bg-rose-950 text-rose-700 dark:text-rose-300",
     },
     {
       title: "Total Hours Logged",
@@ -174,6 +186,24 @@ export function AttendanceSummaryCards({ stats = {}, isLoading = false }) {
           );
         })}
       </div>
+
+      {/* Pay Loss Deductions Banner (Approved LOP + 2x Unapproved Absences) */}
+      {totalPayLossDays > 0 && (
+        <div className="flex flex-wrap items-center justify-between gap-2 p-2.5 rounded-lg bg-rose-50 dark:bg-rose-950/30 border border-rose-200/80 dark:border-rose-800/50 text-xs text-rose-800 dark:text-rose-300">
+          <div className="flex items-center gap-2">
+            <AlertTriangle className="size-4 shrink-0 text-rose-600 dark:text-rose-400" />
+            <span className="font-semibold">
+              Total Pay Loss Deductions: {totalPayLossDays} Day(s)
+            </span>
+            <span className="text-muted-foreground text-[11px]">
+              ({lopDays}d Approved LOP [1x] + {unapprovedAbsentDays}d Unapproved Absence [2x Penalty = {unapprovedAbsentDays * 2}d])
+            </span>
+          </div>
+          <span className="font-bold text-[10px] px-2 py-0.5 rounded bg-rose-600 text-white tracking-wide uppercase">
+            Double Pay Loss Policy Active
+          </span>
+        </div>
+      )}
 
       {/* Special status alert banner if any missed checkouts or currently clocked in */}
       {(noPunchOut > 0 || inProgress > 0) && (

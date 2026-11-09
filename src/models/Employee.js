@@ -14,8 +14,19 @@ const EmployeeSchema = new mongoose.Schema(
     },
     role: {
       type: String,
-      enum: ["org:admin", "org:member"],
+      enum: ["org:admin", "org:member", "TEAM_LEAD"],
       default: "org:member",
+      index: true,
+    },
+    isTeamLead: {
+      type: Boolean,
+      default: false,
+      index: true,
+    },
+    teamLead: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Employee",
+      default: null,
       index: true,
     },
     employeeId: {

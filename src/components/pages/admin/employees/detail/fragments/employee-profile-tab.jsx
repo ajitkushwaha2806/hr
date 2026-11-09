@@ -20,7 +20,7 @@ import {
   AlertCircle,
   Phone,
 } from "lucide-react";
-import { EmployeeStatusBadge, DepartmentBadge, EmploymentTypeBadge } from "../../helpers/badges";
+import { EmployeeStatusBadge, DepartmentBadge, EmploymentTypeBadge, TeamLeadBadge } from "../../helpers/badges";
 
 export function EmployeeProfileTab({ employee }) {
   const [showAccountNumber, setShowAccountNumber] = useState(false);
@@ -160,6 +160,28 @@ export function EmployeeProfileTab({ employee }) {
             <InfoItem
               label="Monthly Casual Leaves Quota"
               value={`${employee.monthlyCasualLeavesQuota || 4} days / month`}
+            />
+            <InfoItem
+              label="Leadership Role"
+              value={
+                employee.isTeamLead || employee.role === "TEAM_LEAD" ? (
+                  <span className="inline-flex items-center gap-1.5 font-semibold text-violet-700 dark:text-violet-400">
+                    <TeamLeadBadge /> Team Lead
+                  </span>
+                ) : (
+                  "Team Member"
+                )
+              }
+            />
+            <InfoItem
+              label="Reporting Team Lead"
+              value={
+                employee.teamLead
+                  ? (typeof employee.teamLead === "object"
+                      ? employee.teamLead.name || `${employee.teamLead.firstName || ""} ${employee.teamLead.lastName || ""}`.trim()
+                      : "Assigned")
+                  : "Direct Admin / Management"
+              }
             />
             <InfoItem
               label="Base Salary"

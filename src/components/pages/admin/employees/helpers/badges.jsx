@@ -1,5 +1,4 @@
 import React from "react";
-import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
 const STATUS_VARIANTS = {
@@ -53,6 +52,15 @@ export const EmploymentTypeBadge = ({ type = "Full-Time" }) => {
   return (
     <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium text-muted-foreground bg-secondary/50">
       {type}
+    </span>
+  );
+};
+
+export const TeamLeadBadge = () => {
+  return (
+    <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold bg-violet-100 text-violet-700 dark:bg-violet-950/50 dark:text-violet-300 border border-violet-200 dark:border-violet-800 shrink-0">
+      <span className="size-1.5 rounded-full bg-violet-500" />
+      TL
     </span>
   );
 };

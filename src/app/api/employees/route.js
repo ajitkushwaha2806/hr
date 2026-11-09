@@ -1,13 +1,22 @@
 import { EmployeeService } from "@/services/backend/employee";
-import { getAuthContext } from "@/lib/api/helpers/auth";
+import { getAuthContext, getAuthUser, getUserRoleContext } from "@/lib/api/helpers/auth";
 import { validateRequiredFields } from "@/lib/api/helpers/validator";
 import { withErrorHandler, successResponse, BadRequestError } from "@/lib/api/response-handler";
 
 const EMPLOYEE_REQUIRED_FIELDS = ["firstName", "lastName", "email", "phone", "department", "designation"];
 
 export const GET = withErrorHandler(async (req) => {
-  const { orgId } = await getAuthContext();
+  const { orgId, orgRole } = await getAuthContext();
+  const clerkUser = await getAuthUser();
   const { searchParams } = new URL(req.url);
+
+  // If requesting list of designated team leads for dropdown assignment
+  if (searchParams.get("teamLeads") === "true") {
+    const leads = await EmployeeService.getTeamLeads(orgId);
+    return successResponse(leads, "Team leads fetched successfully");
+  }
+
+  const callerContext = await getUserRoleContext(clerkUser, orgId, orgRole);
 
   const search = searchParams.get("search") || "";
   const department = searchParams.get("department") || "";
@@ -24,6 +33,7 @@ export const GET = withErrorHandler(async (req) => {
     employmentType,
     page,
     limit,
+    callerContext,
   });
 
   return successResponse(result, "Employees fetched successfully");

@@ -70,9 +70,10 @@ export class LeaveService {
 
   /**
    * Resolves email addresses for organization admins & HR.
+   * If an employee has an assigned Team Lead, includes their specific TL.
    * Checks ADMIN_EMAIL env, DB admin users, and falls back to SUPPORT_EMAIL.
    */
-  static async getAdminRecipients(organizationId) {
+  static async getAdminRecipients(organizationId, employee = null) {
     const recipients = new Set();
 
     // 1. Explicit ADMIN_EMAIL environment variable
@@ -85,7 +86,8 @@ export class LeaveService {
       });
     }
 
-    // 2. Query administrative users in MongoDB
+    // 2. Query company administrative users in MongoDB (SUPER_ADMIN, HR_ADMIN, HR_MANAGER, org:admin)
+    // NOTE: Does NOT query TEAM_LEAD so other unrelated leads never receive this notification.
     try {
       const adminRoles = ["SUPER_ADMIN", "HR_ADMIN", "HR_MANAGER", "org:admin"];
       const userQuery = {
@@ -110,7 +112,19 @@ export class LeaveService {
       console.error("[LeaveService] Failed to query admin users for notification:", err);
     }
 
-    // 3. Fallback to configured support/company email
+    // 3. Directly include the employee's designated Team Lead (if assigned)
+    if (employee?.teamLead) {
+      try {
+        const tl = await Employee.findById(employee.teamLead).select("email firstName lastName").lean();
+        if (tl?.email && tl.email.includes("@")) {
+          recipients.add(tl.email.toLowerCase().trim());
+        }
+      } catch (err) {
+        console.error("[LeaveService] Failed to query applicant team lead email:", err);
+      }
+    }
+
+    // 4. Fallback to configured support/company email
     if (recipients.size === 0) {
       const fallback = process.env.SUPPORT_EMAIL || "truehr.payroll@gmail.com";
       recipients.add(fallback.toLowerCase().trim());
@@ -273,8 +287,8 @@ export class LeaveService {
       appliedAt: new Date(),
     });
 
-    // Asynchronously dispatch notification to organization admins / HR
-    this.getAdminRecipients(orgId)
+    // Asynchronously dispatch notification to organization admins / HR & designated TL
+    this.getAdminRecipients(orgId, employee)
       .then((adminEmails) => {
         const portalUrl = `${process.env.NEXT_PUBLIC_BASE_APP || process.env.NEXT_PUBLIC_APP_URL || "https://truehr.magicscale.in"}/admin/leaves`;
 
@@ -337,10 +351,15 @@ export class LeaveService {
     return leave;
   }
 
-  static async adminGetLeaves(organizationId, { status = "all", month = null, search = "" } = {}) {
+  static async adminGetLeaves(organizationId, { status = "all", month = null, search = "", callerContext = null } = {}) {
     await dbConnect();
 
     const query = { organizationId };
+
+    // Role-based scoping: If caller is a Team Lead (and not full Admin), restrict to their managed team
+    if (callerContext?.isTeamLead && !callerContext?.isAdmin && Array.isArray(callerContext?.managedEmployeeIds)) {
+      query.employeeId = { $in: callerContext.managedEmployeeIds };
+    }
 
     if (status && status !== "all") {
       query.status = status.toUpperCase();
@@ -365,7 +384,11 @@ export class LeaveService {
       .sort({ createdAt: -1 })
       .lean();
 
-    const allOrgLeaves = await Leave.find({ organizationId }).lean();
+    const statsQuery = { organizationId };
+    if (callerContext?.isTeamLead && !callerContext?.isAdmin && Array.isArray(callerContext?.managedEmployeeIds)) {
+      statsQuery.employeeId = { $in: callerContext.managedEmployeeIds };
+    }
+    const allOrgLeaves = await Leave.find(statsQuery).lean();
     const stats = {
       total: allOrgLeaves.length,
       pending: allOrgLeaves.filter((l) => l.status === "PENDING").length,
@@ -379,7 +402,7 @@ export class LeaveService {
     };
   }
 
-  static async adminReviewLeave(clerkUser, organizationId, leaveId, { action, adminRemarks = "" }) {
+  static async adminReviewLeave(clerkUser, organizationId, leaveId, { action, adminRemarks = "", callerContext = null }) {
     if (!["APPROVE", "REJECT"].includes(action)) {
       throw new BadRequestError("Invalid action. Must be APPROVE or REJECT.");
     }
@@ -398,12 +421,27 @@ export class LeaveService {
       throw new BadRequestError(`This leave request is already marked as ${leave.status}`);
     }
 
+    // Role-based scoping check: Team Leads can only review their own team members' leaves
+    if (callerContext?.isTeamLead && !callerContext?.isAdmin && Array.isArray(callerContext?.managedEmployeeIds)) {
+      const isManaged = callerContext.managedEmployeeIds.some(
+        (id) => id.toString() === leave.employeeId?.toString()
+      );
+      if (!isManaged) {
+        throw new BadRequestError("You only have permission to review leave requests for your direct team members.");
+      }
+    }
+
     const newStatus = action === "APPROVE" ? "APPROVED" : "REJECTED";
     leave.status = newStatus;
     leave.adminRemarks = adminRemarks || "";
-    leave.reviewedBy = clerkUser?.firstName
+
+    const reviewerName = callerContext?.employee
+      ? `${callerContext.employee.firstName || ""} ${callerContext.employee.lastName || ""}`.trim()
+      : clerkUser?.firstName
       ? `${clerkUser.firstName} ${clerkUser.lastName || ""}`.trim()
       : "Admin";
+
+    leave.reviewedBy = callerContext?.isTeamLead ? `${reviewerName} (Team Lead)` : reviewerName;
     leave.reviewedAt = new Date();
 
     await leave.save();

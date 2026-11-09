@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import dbConnect from "@/lib/db";
 import Employee from "@/models/Employee";
+import User from "@/models/User";
 import { emailService } from "@/services/backend/email";
 import { NotFoundError, ConflictError } from "@/lib/api/response-handler";
 
@@ -13,13 +14,24 @@ export class EmployeeService {
     employmentType = "",
     page = 1,
     limit = 50,
+    callerContext = null,
   } = {}) {
     await dbConnect();
 
     const query = {};
 
     if (organizationId) {
-      query.organizationId = organizationId;
+      query.$or = [
+        { organizationId },
+        { organizationId: "default_org" },
+        { organizationId: { $exists: false } },
+        { organizationId: null },
+      ];
+    }
+
+    // Role-based scoping: If caller is a Team Lead (and not full Admin), restrict to their managed team
+    if (callerContext?.isTeamLead && !callerContext?.isAdmin && Array.isArray(callerContext?.managedEmployeeIds)) {
+      query._id = { $in: callerContext.managedEmployeeIds };
     }
 
     if (status && status !== "all") {
@@ -37,7 +49,7 @@ export class EmployeeService {
     if (search && search.trim()) {
       const q = search.trim();
       const regex = new RegExp(q, "i");
-      query.$or = [
+      const searchOr = [
         { firstName: regex },
         { lastName: regex },
         { email: regex },
@@ -45,16 +57,41 @@ export class EmployeeService {
         { employeeId: regex },
         { designation: regex },
       ];
+
+      if (query.$or) {
+        query.$and = [{ $or: query.$or }, { $or: searchOr }];
+        delete query.$or;
+      } else {
+        query.$or = searchOr;
+      }
     }
 
     const pageNum = Math.max(1, parseInt(page, 10) || 1);
     const limitNum = Math.max(1, parseInt(limit, 10) || 50);
     const skip = (pageNum - 1) * limitNum;
 
-    const baseCountFilter = organizationId ? { organizationId } : {};
+    const baseCountFilter = organizationId
+      ? {
+          $or: [
+            { organizationId },
+            { organizationId: "default_org" },
+            { organizationId: { $exists: false } },
+            { organizationId: null },
+          ],
+        }
+      : {};
+
+    if (callerContext?.isTeamLead && !callerContext?.isAdmin && Array.isArray(callerContext?.managedEmployeeIds)) {
+      baseCountFilter._id = { $in: callerContext.managedEmployeeIds };
+    }
 
     const [employees, total, totalAll, activeCount, onLeaveCount, probationCount] = await Promise.all([
-      Employee.find(query).sort({ createdAt: -1 }).skip(skip).limit(limitNum).lean(),
+      Employee.find(query)
+        .populate("teamLead", "firstName lastName employeeId email avatar isTeamLead")
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limitNum)
+        .lean(),
       Employee.countDocuments(query),
       Employee.countDocuments(baseCountFilter),
       Employee.countDocuments({ ...baseCountFilter, status: "Active" }),
@@ -65,6 +102,12 @@ export class EmployeeService {
     const employeesWithFullName = employees.map((emp) => ({
       ...emp,
       name: `${emp.firstName || ""} ${emp.lastName || ""}`.trim(),
+      teamLead: emp.teamLead
+        ? {
+            ...emp.teamLead,
+            name: `${emp.teamLead.firstName || ""} ${emp.teamLead.lastName || ""}`.trim(),
+          }
+        : null,
     }));
 
     return {
@@ -81,16 +124,30 @@ export class EmployeeService {
     };
   }
 
-  static _buildIdQuery(id, organizationId = null) {
-    let baseQuery;
+  static _buildBaseIdQuery(id) {
     if (mongoose.isValidObjectId(id)) {
-      baseQuery = { $or: [{ _id: id }, { employeeId: id }] };
-    } else {
-      baseQuery = { employeeId: id };
+      return { $or: [{ _id: id }, { employeeId: id }, { clerkId: id }] };
     }
+    return { $or: [{ employeeId: id }, { clerkId: id }] };
+  }
+
+  static _buildIdQuery(id, organizationId = null) {
+    const baseQuery = this._buildBaseIdQuery(id);
 
     if (organizationId) {
-      return { $and: [baseQuery, { organizationId }] };
+      return {
+        $and: [
+          baseQuery,
+          {
+            $or: [
+              { organizationId },
+              { organizationId: "default_org" },
+              { organizationId: { $exists: false } },
+              { organizationId: null },
+            ],
+          },
+        ],
+      };
     }
     return baseQuery;
   }
@@ -98,14 +155,54 @@ export class EmployeeService {
   static async getEmployeeById(id, organizationId = null) {
     await dbConnect();
     const query = this._buildIdQuery(id, organizationId);
-    const employee = await Employee.findOne(query).lean();
+    let employee = await Employee.findOne(query)
+      .populate("teamLead", "firstName lastName employeeId email avatar isTeamLead")
+      .lean();
+
+    // Fallback: if not found with org scope (e.g. legacy org ID or global admin view), search without org filter
+    if (!employee && organizationId) {
+      employee = await Employee.findOne(this._buildBaseIdQuery(id))
+        .populate("teamLead", "firstName lastName employeeId email avatar isTeamLead")
+        .lean();
+    }
+
     if (!employee) {
       throw new NotFoundError("Employee not found");
     }
     return {
       ...employee,
       name: `${employee.firstName || ""} ${employee.lastName || ""}`.trim(),
+      teamLead: employee.teamLead
+        ? {
+            ...employee.teamLead,
+            name: `${employee.teamLead.firstName || ""} ${employee.teamLead.lastName || ""}`.trim(),
+          }
+        : null,
     };
+  }
+
+  static async getTeamLeads(organizationId = null) {
+    await dbConnect();
+    const query = {
+      isTeamLead: true,
+      status: { $nin: ["Terminated", "Inactive"] },
+    };
+    if (organizationId) {
+      query.$or = [
+        { organizationId },
+        { organizationId: "default_org" },
+        { organizationId: { $exists: false } },
+        { organizationId: null },
+      ];
+    }
+    const leads = await Employee.find(query)
+      .select("firstName lastName employeeId email department designation avatar")
+      .lean();
+
+    return leads.map((l) => ({
+      ...l,
+      name: `${l.firstName || ""} ${l.lastName || ""}`.trim(),
+    }));
   }
 
   static async createEmployee(data) {
@@ -159,11 +256,25 @@ export class EmployeeService {
       }
     }
 
+    const isTeamLead = Boolean(data.isTeamLead || data.role === "TEAM_LEAD");
+    const sanitizedTeamLead =
+      data.teamLead && mongoose.Types.ObjectId.isValid(data.teamLead) ? data.teamLead : null;
+
     const newEmployee = await Employee.create({
       ...data,
       employeeId,
       email: data.email.toLowerCase().trim(),
+      isTeamLead,
+      teamLead: sanitizedTeamLead,
+      role: isTeamLead ? "TEAM_LEAD" : (data.role || "org:member"),
     });
+
+    if (isTeamLead) {
+      await User.updateOne(
+        { email: data.email.toLowerCase().trim() },
+        { role: "TEAM_LEAD" }
+      ).catch(() => {});
+    }
 
     const obj = newEmployee.toObject();
     const fullName = `${obj.firstName || ""} ${obj.lastName || ""}`.trim();
@@ -196,10 +307,15 @@ export class EmployeeService {
   static async updateEmployee(id, data, organizationId = null) {
     await dbConnect();
     const query = this._buildIdQuery(id, organizationId);
-    const existing = await Employee.findOne(query);
+    let existing = await Employee.findOne(query);
+    if (!existing && organizationId) {
+      existing = await Employee.findOne(this._buildBaseIdQuery(id));
+    }
     if (!existing) {
       throw new NotFoundError("Employee not found");
     }
+
+    const updatePayload = { ...data };
 
     if (data.email) {
       const emailFilter = {
@@ -213,7 +329,7 @@ export class EmployeeService {
       if (existingEmail) {
         throw new ConflictError(`Another employee with email ${data.email} already exists.`);
       }
-      data.email = data.email.toLowerCase().trim();
+      updatePayload.email = data.email.toLowerCase().trim();
     }
 
     if (data.employeeId) {
@@ -229,25 +345,55 @@ export class EmployeeService {
       if (existingId) {
         throw new ConflictError(`Employee ID ${formattedId} is already in use.`);
       }
-      data.employeeId = formattedId;
+      updatePayload.employeeId = formattedId;
+    }
+
+    if (data.teamLead !== undefined) {
+      updatePayload.teamLead =
+        data.teamLead && mongoose.Types.ObjectId.isValid(data.teamLead) ? data.teamLead : null;
+    }
+
+    if (data.isTeamLead !== undefined) {
+      updatePayload.isTeamLead = Boolean(data.isTeamLead);
+      if (updatePayload.isTeamLead && existing.role !== "org:admin") {
+        updatePayload.role = "TEAM_LEAD";
+      } else if (!updatePayload.isTeamLead && existing.role === "TEAM_LEAD") {
+        updatePayload.role = "org:member";
+      }
+
+      await User.updateOne(
+        { email: existing.email },
+        { role: updatePayload.role || existing.role }
+      ).catch(() => {});
     }
 
     const updated = await Employee.findByIdAndUpdate(
       existing._id,
-      { $set: data },
+      { $set: updatePayload },
       { new: true, runValidators: true }
-    ).lean();
+    )
+      .populate("teamLead", "firstName lastName employeeId email avatar isTeamLead")
+      .lean();
 
     return {
       ...updated,
       name: `${updated.firstName || ""} ${updated.lastName || ""}`.trim(),
+      teamLead: updated.teamLead
+        ? {
+            ...updated.teamLead,
+            name: `${updated.teamLead.firstName || ""} ${updated.teamLead.lastName || ""}`.trim(),
+          }
+        : null,
     };
   }
 
   static async deleteEmployee(id, organizationId = null) {
     await dbConnect();
     const query = this._buildIdQuery(id, organizationId);
-    const deleted = await Employee.findOneAndDelete(query);
+    let deleted = await Employee.findOneAndDelete(query);
+    if (!deleted && organizationId) {
+      deleted = await Employee.findOneAndDelete(this._buildBaseIdQuery(id));
+    }
     if (!deleted) {
       throw new NotFoundError("Employee not found");
     }

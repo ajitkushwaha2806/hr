@@ -4,7 +4,7 @@ import { format } from "date-fns";
 import { Asset } from "@/components/common/Asset";
 import { MoreHorizontal, Edit, Trash2, Mail, Phone, Landmark, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { EmployeeStatusBadge, DepartmentBadge, EmploymentTypeBadge } from "./badges";
+import { EmployeeStatusBadge, DepartmentBadge, EmploymentTypeBadge, TeamLeadBadge } from "./badges";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,7 +13,7 @@ import {
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 
-export const getEmployeeColumns = ({ onEdit, onDelete, onView }) => [
+export const getEmployeeColumns = ({ onEdit, onDelete }) => [
   {
     key: "employee",
     header: "Employee",
@@ -29,13 +29,21 @@ export const getEmployeeColumns = ({ onEdit, onDelete, onView }) => [
           className="size-9 rounded-full border border-border/60 shrink-0 shadow-2xs group-hover/emp:ring-2 group-hover/emp:ring-primary/40 transition-all"
         />
         <div className="flex flex-col min-w-0 flex-1">
-          <span className="font-semibold text-xs text-foreground group-hover/emp:text-primary transition-colors truncate block">
-            {row.name || `${row.firstName} ${row.lastName}`}
-          </span>
+          <div className="flex items-center gap-1.5 min-w-0">
+            <span className="font-semibold text-xs text-foreground group-hover/emp:text-primary transition-colors truncate block">
+              {row.name || `${row.firstName} ${row.lastName}`}
+            </span>
+            {(row.isTeamLead || row.role === "TEAM_LEAD") && <TeamLeadBadge />}
+          </div>
           <span className="text-[11px] text-muted-foreground flex items-center gap-1 mt-0.5 min-w-0">
             <Mail className="size-2.5 shrink-0 opacity-60" />
             <span className="truncate">{row.email}</span>
           </span>
+          {row.teamLead && (
+            <span className="text-[10px] text-muted-foreground/80 truncate block mt-0.5">
+              TL: {row.teamLead.name || `${row.teamLead.firstName || ""} ${row.teamLead.lastName || ""}`.trim()}
+            </span>
+          )}
         </div>
       </Link>
     ),

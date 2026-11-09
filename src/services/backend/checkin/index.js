@@ -410,7 +410,7 @@ export class CheckInService {
     };
   }
 
-  static async getAdminAttendanceLogs(organizationId, { date, limit = 50 } = {}) {
+  static async getAdminAttendanceLogs(organizationId, { date, limit = 50, callerContext = null } = {}) {
     await dbConnect();
     const query = {};
     if (organizationId) {
@@ -418,6 +418,11 @@ export class CheckInService {
     }
     if (date) {
       query.date = date;
+    }
+
+    // Role-based scoping: If caller is a Team Lead, only show attendance for their assigned team members
+    if (callerContext?.isTeamLead && !callerContext?.isAdmin && Array.isArray(callerContext?.managedEmployeeIds)) {
+      query.employeeId = { $in: callerContext.managedEmployeeIds };
     }
 
     const punches = await AttendancePunch.find(query)
@@ -434,10 +439,18 @@ export class CheckInService {
             .map((p) => (p.employeeId._id || p.employeeId.id).toString())
         );
 
-        const allEmployees = await Employee.find({
+        const allEmployeesFilter = {
           ...(organizationId ? { organizationId } : {}),
           status: { $nin: ["Terminated", "Inactive"] },
-        }).select("name firstName lastName email department designation avatar employeeCode");
+        };
+
+        if (callerContext?.isTeamLead && !callerContext?.isAdmin && Array.isArray(callerContext?.managedEmployeeIds)) {
+          allEmployeesFilter._id = { $in: callerContext.managedEmployeeIds };
+        }
+
+        const allEmployees = await Employee.find(allEmployeesFilter).select(
+          "name firstName lastName email department designation avatar employeeCode"
+        );
 
         const absentLogs = [];
         for (const emp of allEmployees) {

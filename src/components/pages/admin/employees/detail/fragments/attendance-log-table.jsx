@@ -1,7 +1,18 @@
 "use client";
 import React, { useState } from "react";
 import { format } from "date-fns";
-import { Clock, MapPin, ShieldCheck, AlertCircle, X, Sun, Hourglass } from "lucide-react";
+import {
+  Clock,
+  MapPin,
+  ShieldCheck,
+  AlertCircle,
+  X,
+  Sun,
+  Hourglass,
+  XCircle,
+  CalendarDays,
+  CalendarCheck2,
+} from "lucide-react";
 
 export function AttendanceLogTable({ dailyBreakdown = [], isLoading = false }) {
   const [selectedSelfie, setSelectedSelfie] = useState(null);
@@ -37,14 +48,21 @@ export function AttendanceLogTable({ dailyBreakdown = [], isLoading = false }) {
       case "HALF_DAY_LEAVE":
         return (
           <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-sky-100 text-sky-800 dark:bg-sky-950/60 dark:text-sky-400">
-            <span className="size-1.5 rounded-full bg-sky-500" /> {d.leaveTypeLabel || "Half Day Leave"}
+            <span className="size-1.5 rounded-full bg-sky-500" /> {d.leaveTypeLabel || (d.leave?.type === "Loss of Pay" ? "Loss of Pay (0.5d)" : "Casual Leave (0.5d)")}
           </span>
         );
       case "ON_LEAVE":
       case "FULL_DAY_LEAVE":
+        if (d.leave?.type === "Loss of Pay") {
+          return (
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-indigo-100 text-indigo-800 dark:bg-indigo-950/60 dark:text-indigo-400">
+              <span className="size-1.5 rounded-full bg-indigo-500" /> Loss of Pay (1x LOP)
+            </span>
+          );
+        }
         return (
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-blue-100 text-blue-800 dark:bg-blue-950/60 dark:text-blue-400">
-            <span className="size-1.5 rounded-full bg-blue-500" /> Full Day Leave
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-sky-100 text-sky-800 dark:bg-sky-950/60 dark:text-sky-400">
+            <span className="size-1.5 rounded-full bg-sky-500" /> Casual Leave (Paid)
           </span>
         );
       case "IN_PROGRESS":
@@ -55,8 +73,8 @@ export function AttendanceLogTable({ dailyBreakdown = [], isLoading = false }) {
         );
       case "NO_PUNCH_OUT":
         return (
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-yellow-100 text-yellow-800 dark:bg-yellow-950/60 dark:text-yellow-400">
-            <AlertCircle className="size-3" /> No Checkout
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-400">
+            <AlertCircle className="size-3" /> Half Day (No Out)
           </span>
         );
       case "HOLIDAY":
@@ -71,10 +89,11 @@ export function AttendanceLogTable({ dailyBreakdown = [], isLoading = false }) {
             Weekly Off
           </span>
         );
+      case "DOUBLE_PAY_LOSS":
       case "ABSENT":
         return (
           <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-rose-100 text-rose-800 dark:bg-rose-950/60 dark:text-rose-400">
-            <span className="size-1.5 rounded-full bg-rose-500" /> Absent
+            <span className="size-1.5 rounded-full bg-rose-500" /> Absent (2x LOP)
           </span>
         );
       case "NOT_MARKED":
@@ -91,6 +110,27 @@ export function AttendanceLogTable({ dailyBreakdown = [], isLoading = false }) {
   };
 
   const getShiftClassificationBadge = (d) => {
+    if (d.status === "ABSENT" || d.isDoublePayLoss) {
+      return (
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 border border-rose-200/80 dark:border-rose-800/50 text-[10px] font-semibold">
+          <XCircle className="size-2.5" /> 2x Pay Loss (-2.0d)
+        </span>
+      );
+    }
+    if (d.leave?.type === "Loss of Pay") {
+      return (
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 border border-indigo-200/80 dark:border-indigo-800/50 text-[10px] font-semibold">
+          <CalendarDays className="size-2.5" /> 1x LOP (-{d.isHalfDay ? "0.5" : "1.0"}d)
+        </span>
+      );
+    }
+    if (d.leave?.type === "Casual Leave") {
+      return (
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-sky-50 dark:bg-sky-950/40 text-sky-700 dark:text-sky-300 border border-sky-200/80 dark:border-sky-800/50 text-[10px] font-semibold">
+          <CalendarCheck2 className="size-2.5" /> Paid Leave (0.0d)
+        </span>
+      );
+    }
     if (d.isHalfDay) {
       return (
         <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border border-amber-200/80 dark:border-amber-800/50 text-[10px] font-semibold">

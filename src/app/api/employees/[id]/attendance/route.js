@@ -4,11 +4,14 @@ import Employee from "@/models/Employee";
 import AttendancePunch from "@/models/AttendancePunch";
 import CalendarDay from "@/models/CalendarDay";
 import Leave from "@/models/Leave";
-import { getAuthContext } from "@/lib/api/helpers/auth";
+import { getAuthContext, getAuthUser, getUserRoleContext } from "@/lib/api/helpers/auth";
 import { withErrorHandler, successResponse, BadRequestError, NotFoundError } from "@/lib/api/response-handler";
 
 export const GET = withErrorHandler(async (req, { params }) => {
-  const { orgId } = await getAuthContext();
+  const { orgId, orgRole } = await getAuthContext();
+  const clerkUser = await getAuthUser();
+  const callerContext = await getUserRoleContext(clerkUser, orgId, orgRole);
+
   const { id } = await params;
   if (!id) throw new BadRequestError("Employee ID is required");
 
@@ -18,22 +21,49 @@ export const GET = withErrorHandler(async (req, { params }) => {
 
   await dbConnect();
 
-  // Resolve employee doc by ObjectId or employeeId
+  // Resolve employee doc by ObjectId, employeeId, or clerkId
   const isObjectId = mongoose.isValidObjectId(id);
-  const empQuery = isObjectId
-    ? { $or: [{ _id: id }, { employeeId: id }] }
-    : { employeeId: id };
+  const empBaseQuery = isObjectId
+    ? { $or: [{ _id: id }, { employeeId: id }, { clerkId: id }] }
+    : { $or: [{ employeeId: id }, { clerkId: id }] };
 
-  const employee = await Employee.findOne({
-    ...empQuery,
-    ...(orgId ? { organizationId: orgId } : {}),
-  }).lean();
+  let employee = null;
+  if (orgId) {
+    employee = await Employee.findOne({
+      $and: [
+        empBaseQuery,
+        {
+          $or: [
+            { organizationId: orgId },
+            { organizationId: "default_org" },
+            { organizationId: { $exists: false } },
+            { organizationId: null },
+          ],
+        },
+      ],
+    }).lean();
+  }
+
+  // Fallback: search without organizationId filter if not found
+  if (!employee) {
+    employee = await Employee.findOne(empBaseQuery).lean();
+  }
 
   if (!employee) {
     throw new NotFoundError("Employee not found");
   }
 
   const employeeObjectId = employee._id;
+
+  // Role-based scoping check: Team Leads can only view attendance for their own team members
+  if (callerContext?.isTeamLead && !callerContext?.isAdmin && Array.isArray(callerContext?.managedEmployeeIds)) {
+    const canAccess = callerContext.managedEmployeeIds.some(
+      (mId) => mId.toString() === employeeObjectId.toString()
+    );
+    if (!canAccess) {
+      throw new BadRequestError("You only have permission to view attendance for your assigned team members.");
+    }
+  }
 
   // Build date range strings
   const startDate = `${year}-${String(month).padStart(2, "0")}-01`;
@@ -106,7 +136,15 @@ export const GET = withErrorHandler(async (req, { params }) => {
   let halfDaysPresent = 0;
   let fullDayLeaves = 0;
   let halfDayLeaves = 0;
+
+  // Breakdown by leave type
+  let casualFullDays = 0;
+  let casualHalfDays = 0;
+  let lopFullDays = 0;
+  let lopHalfDays = 0;
+
   let absent = 0;
+  let unapprovedAbsentDays = 0;
   let holidays = 0;
   let weeklyOffs = 0;
   let inProgress = 0;
@@ -135,10 +173,12 @@ export const GET = withErrorHandler(async (req, { params }) => {
     }
 
     let dayStatus = "FUTURE";
-    let dayClassification = "FUTURE"; // FULL_DAY_PRESENT | HALF_DAY_PRESENT | FULL_DAY_LEAVE | HALF_DAY_LEAVE | IN_PROGRESS | NO_PUNCH_OUT | ABSENT | HOLIDAY | WEEKLY_OFF | NOT_MARKED
+    let dayClassification = "FUTURE"; // FULL_DAY_PRESENT | HALF_DAY_PRESENT | FULL_DAY_CASUAL | HALF_DAY_CASUAL | FULL_DAY_LOP | HALF_DAY_LOP | DOUBLE_PAY_LOSS | IN_PROGRESS | NO_PUNCH_OUT | HOLIDAY | WEEKLY_OFF | NOT_MARKED
     let leaveTypeLabel = null;
     let isHalfDay = false;
     let isFullDay = false;
+    let payLossMultiplier = 0; // 0 = paid, 1 = single pay loss, 2 = double pay loss
+    let isDoublePayLoss = false;
 
     if (dayType === "HOLIDAY") {
       holidays++;
@@ -163,64 +203,102 @@ export const GET = withErrorHandler(async (req, { params }) => {
       if (hasPunch) {
         totalMinutesWorked += durationMinutes;
 
-        if (punch.status === "COMPLETED") {
-          // Standard threshold: 240 mins (4 hrs) = Half Day vs Full Day
-          if (durationMinutes >= 240) {
+        const hasCheckOut = Boolean(punch.checkOut?.time || punch.status === "COMPLETED");
+
+        if (hasCheckOut) {
+          // Standard Attendance Thresholds:
+          // Minimum 8 hrs (480 mins) = Full Day (1.0d)
+          // Minimum 3 hrs (180 mins) = Half Day (0.5d)
+          // Less than 3 hrs (<180 mins) = Absent (0.0d) without approved leave -> Double Pay Loss!
+          if (durationMinutes >= 480) {
             fullDaysPresent++;
             dayStatus = "PRESENT";
             dayClassification = "FULL_DAY_PRESENT";
             isFullDay = true;
-          } else {
+          } else if (durationMinutes >= 180) {
             halfDaysPresent++;
             dayStatus = "HALF_DAY";
             dayClassification = "HALF_DAY_PRESENT";
             isHalfDay = true;
+          } else {
+            // Worked <3 hrs without approved leave: marked as Absent with Double Pay Loss!
+            absent++;
+            unapprovedAbsentDays++;
+            dayStatus = "ABSENT";
+            dayClassification = "DOUBLE_PAY_LOSS";
+            payLossMultiplier = 2.0;
+            isDoublePayLoss = true;
           }
-        } else if (punch.status === "IN_PROGRESS") {
+        } else if (isToday) {
+          // Today: user has clocked in, shift is currently in progress
           inProgress++;
           dayStatus = "IN_PROGRESS";
           dayClassification = "IN_PROGRESS";
-        } else if (punch.status === "NO_PUNCH_OUT") {
-          noPunchOut++;
-          // If no punch out recorded, count as half day or in-progress based on punch
-          halfDaysPresent++;
-          dayStatus = "NO_PUNCH_OUT";
-          dayClassification = "NO_PUNCH_OUT";
-          isHalfDay = true;
-        } else if (punch.status === "FAILED") {
-          absent++;
-          dayStatus = "FAILED";
-          dayClassification = "ABSENT";
         } else {
-          fullDaysPresent++;
-          dayStatus = "PRESENT";
-          dayClassification = "FULL_DAY_PRESENT";
-          isFullDay = true;
+          // Past day where check-in occurred but NO punch-out was recorded:
+          // Rule: "if no punch out only check in then simply mark half day on that day"
+          halfDaysPresent++;
+          noPunchOut++;
+          dayStatus = "NO_PUNCH_OUT";
+          dayClassification = "HALF_DAY_PRESENT";
+          isHalfDay = true;
         }
       } else if (isLeave) {
-        // Leave handling (Check whether Full Day or Half Day leave)
+        // Leave handling: Distinguish between Casual Leave (Paid) and Loss of Pay (1x LOP)
+        const isLop = leaveDoc.type === "Loss of Pay";
         const isHalfDayLeave = leaveDoc.dayType === "FIRST_HALF" || leaveDoc.dayType === "SECOND_HALF";
-        if (isHalfDayLeave) {
-          halfDayLeaves++;
-          dayStatus = "HALF_DAY_LEAVE";
-          dayClassification = "HALF_DAY_LEAVE";
-          isHalfDay = true;
-          leaveTypeLabel = leaveDoc.dayType === "FIRST_HALF" ? "First Half Leave" : "Second Half Leave";
+
+        if (isLop) {
+          // Approved Loss of Pay (1x pay loss because it was officially requested and approved)
+          if (isHalfDayLeave) {
+            lopHalfDays++;
+            halfDayLeaves++;
+            dayStatus = "HALF_DAY_LEAVE";
+            dayClassification = "HALF_DAY_LOP";
+            isHalfDay = true;
+            payLossMultiplier = 0.5;
+            leaveTypeLabel = leaveDoc.dayType === "FIRST_HALF" ? "Loss of Pay (First Half)" : "Loss of Pay (Second Half)";
+          } else {
+            lopFullDays++;
+            fullDayLeaves++;
+            dayStatus = "ON_LEAVE";
+            dayClassification = "FULL_DAY_LOP";
+            isFullDay = true;
+            payLossMultiplier = 1.0;
+            leaveTypeLabel = "Loss of Pay (Full Day)";
+          }
         } else {
-          fullDayLeaves++;
-          dayStatus = "ON_LEAVE";
-          dayClassification = "FULL_DAY_LEAVE";
-          isFullDay = true;
-          leaveTypeLabel = "Full Day Leave";
+          // Approved Casual Leave (Paid from monthly casual quota)
+          if (isHalfDayLeave) {
+            casualHalfDays++;
+            halfDayLeaves++;
+            dayStatus = "HALF_DAY_LEAVE";
+            dayClassification = "HALF_DAY_CASUAL";
+            isHalfDay = true;
+            payLossMultiplier = 0.0;
+            leaveTypeLabel = leaveDoc.dayType === "FIRST_HALF" ? "Casual Leave (First Half)" : "Casual Leave (Second Half)";
+          } else {
+            casualFullDays++;
+            fullDayLeaves++;
+            dayStatus = "ON_LEAVE";
+            dayClassification = "FULL_DAY_CASUAL";
+            isFullDay = true;
+            payLossMultiplier = 0.0;
+            leaveTypeLabel = "Casual Leave (Full Day)";
+          }
         }
       } else {
         if (isToday) {
           dayStatus = "NOT_MARKED";
           dayClassification = "NOT_MARKED";
         } else {
+          // Absent without taking or requesting approved leave -> Double Pay Loss (2x LOP)!
           absent++;
+          unapprovedAbsentDays++;
           dayStatus = "ABSENT";
-          dayClassification = "ABSENT";
+          dayClassification = "DOUBLE_PAY_LOSS";
+          payLossMultiplier = 2.0;
+          isDoublePayLoss = true;
         }
       }
     }
@@ -241,12 +319,21 @@ export const GET = withErrorHandler(async (req, { params }) => {
       isLeave,
       isFuture,
       isToday,
+      payLossMultiplier,
+      isDoublePayLoss,
     });
   }
 
   // Calculate effective present and on-leave days
   const effectivePresentDays = fullDaysPresent + halfDaysPresent * 0.5;
   const effectiveLeaveDays = fullDayLeaves + halfDayLeaves * 0.5;
+
+  // Pay loss metrics
+  const casualLeaveDays = casualFullDays + casualHalfDays * 0.5;
+  const approvedLopDays = lopFullDays + lopHalfDays * 0.5;
+  const doublePayLossDays = unapprovedAbsentDays;
+  const penaltyPayLossDays = unapprovedAbsentDays * 2;
+  const totalPayLossDays = approvedLopDays + penaltyPayLossDays;
 
   const attendancePercentage =
     totalWorkingDays > 0
@@ -283,14 +370,32 @@ export const GET = withErrorHandler(async (req, { params }) => {
         totalPresent: totalPresentCount,
         effectivePresentDays,
 
-        // Full vs Half Day Leave Breakdown
+        // Approved Leaves by Category (Casual vs Loss of Pay)
+        casualLeaves: {
+          fullDays: casualFullDays,
+          halfDays: casualHalfDays,
+          totalDays: casualLeaveDays,
+        },
+        approvedLopLeaves: {
+          fullDays: lopFullDays,
+          halfDays: lopHalfDays,
+          totalDays: approvedLopDays,
+        },
         fullDayLeaves,
         halfDayLeaves,
         onLeave: fullDayLeaves + halfDayLeaves,
         effectiveLeaveDays,
 
-        // Absences & Offs
+        // Absences & Penalties (Double Pay Loss)
         absent,
+        unapprovedAbsentDays,
+        doublePayLossDays,
+        penaltyPayLossDays,
+
+        // Total Pay Loss Days (Approved LOP [1x] + Unapproved Absences [2x])
+        totalPayLossDays,
+        approvedLopDays,
+
         holidays,
         weeklyOffs,
         inProgress,

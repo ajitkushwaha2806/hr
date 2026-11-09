@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -28,6 +28,8 @@ function getEmployeeFormData(employee) {
       status: "Active",
       joiningDate: new Date().toISOString().split("T")[0],
       salary: "",
+      isTeamLead: false,
+      teamLead: "",
       city: "",
       bankName: "",
       accountHolderName: "",
@@ -52,6 +54,8 @@ function getEmployeeFormData(employee) {
       ? new Date(employee.joiningDate).toISOString().split("T")[0]
       : new Date().toISOString().split("T")[0],
     salary: employee.salary != null ? String(employee.salary) : "",
+    isTeamLead: Boolean(employee.isTeamLead || employee.role === "TEAM_LEAD"),
+    teamLead: employee.teamLead?._id || employee.teamLead || "",
     city: employee.address?.city || "",
     bankName: employee.bankDetails?.bankName || "",
     accountHolderName: employee.bankDetails?.accountHolderName || "",
@@ -70,6 +74,24 @@ export default function EmployeeFormSheet({ isOpen, onClose, employee, onSave, i
   const [formData, setFormData] = useState(() => getEmployeeFormData(employee));
   const [prevKey, setPrevKey] = useState("");
   const [errors, setErrors] = useState({});
+  const [teamLeads, setTeamLeads] = useState([]);
+
+  useEffect(() => {
+    let isMounted = true;
+    if (isOpen) {
+      fetch("/api/employees?teamLeads=true")
+        .then((res) => res.json())
+        .then((data) => {
+          if (isMounted && data?.success && Array.isArray(data.data)) {
+            setTeamLeads(data.data);
+          }
+        })
+        .catch(() => {});
+    }
+    return () => {
+      isMounted = false;
+    };
+  }, [isOpen]);
 
   const availableDepts = dbDepartments.length > 0 ? dbDepartments.map((d) => d.name) : DEPARTMENTS;
   const currentDeptObj = dbDepartments.find(
@@ -128,6 +150,8 @@ export default function EmployeeFormSheet({ isOpen, onClose, employee, onSave, i
       status: formData.status,
       joiningDate: formData.joiningDate ? new Date(formData.joiningDate) : new Date(),
       salary: formData.salary ? Number(formData.salary) : 0,
+      isTeamLead: Boolean(formData.isTeamLead),
+      teamLead: formData.teamLead ? formData.teamLead : null,
       address: {
         city: formData.city.trim(),
       },
@@ -336,6 +360,58 @@ export default function EmployeeFormSheet({ isOpen, onClose, employee, onSave, i
                     placeholder="Select date of joining"
                     className="h-9"
                   />
+                </div>
+              </div>
+            </div>
+
+            {/* Team Hierarchy & Leadership */}
+            <div className="space-y-3.5 pt-3 border-t border-border/40">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground/80">
+                Team Hierarchy & Permissions
+              </span>
+              <div className="p-3.5 rounded-lg border border-border/60 bg-muted/20 space-y-3">
+                <label className="flex items-start gap-2.5 cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    checked={Boolean(formData.isTeamLead)}
+                    onChange={(e) => handleChange("isTeamLead", e.target.checked)}
+                    className="mt-0.5 size-4 rounded border-border text-primary focus:ring-primary cursor-pointer"
+                  />
+                  <div className="flex flex-col">
+                    <span className="text-xs font-semibold text-foreground flex items-center gap-1.5">
+                      Designate as Team Lead (TL)
+                    </span>
+                    <span className="text-[11px] text-muted-foreground">
+                      Grants TL permissions to monitor attendance logs and review leave requests for assigned team members.
+                    </span>
+                  </div>
+                </label>
+
+                <div className="space-y-1.5 pt-2.5 border-t border-border/40">
+                  <Label className="text-xs font-semibold">Reports To (Team Lead)</Label>
+                  <Select
+                    value={formData.teamLead || "none"}
+                    onValueChange={(val) => handleChange("teamLead", val === "none" ? "" : val)}
+                  >
+                    <SelectTrigger className="h-9 text-xs">
+                      <SelectValue placeholder="Select Team Lead or Direct Admin" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none" className="text-xs">
+                        None (Direct Management / Admin)
+                      </SelectItem>
+                      {teamLeads
+                        .filter((tl) => !employee?._id || tl._id !== employee._id)
+                        .map((tl) => (
+                          <SelectItem key={tl._id} value={tl._id} className="text-xs">
+                            {tl.name} ({tl.department || "General"} · {tl.designation || "Lead"})
+                          </SelectItem>
+                        ))}
+                    </SelectContent>
+                  </Select>
+                  <span className="text-[10.5px] text-muted-foreground block">
+                    Leave request emails from this employee will route only to this TL and company Admins.
+                  </span>
                 </div>
               </div>
             </div>

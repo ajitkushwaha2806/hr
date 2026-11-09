@@ -13,6 +13,7 @@ import {
   Sun,
   Hourglass,
   CalendarDays,
+  AlertTriangle,
 } from "lucide-react";
 
 const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
@@ -55,28 +56,59 @@ export function AttendanceCalendar({
       case "HALF_DAY_PRESENT":
         return {
           label: "Half Day",
-          fullLabel: "Half Day Present (<4h)",
+          fullLabel: "Half Day Present (3h - 8h)",
           badgeBg: "bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-400 border-amber-300 dark:border-amber-800",
           dot: "bg-amber-500",
           cardBorder: "border-amber-300/80 dark:border-amber-800/60 hover:border-amber-400",
           bgTint: "bg-card hover:bg-amber-50/25 dark:hover:bg-amber-950/10",
         };
       case "HALF_DAY_LEAVE":
+      case "HALF_DAY_CASUAL":
         return {
-          label: item.leaveTypeLabel || "Half Day Leave",
-          fullLabel: item.leaveTypeLabel || "Half Day Leave (0.5d)",
+          label: "Casual (0.5d)",
+          fullLabel: item.leaveTypeLabel || "Casual Leave (Half Day = 0.5d)",
           badgeBg: "bg-sky-100 text-sky-800 dark:bg-sky-950/60 dark:text-sky-400 border-sky-300 dark:border-sky-800",
           dot: "bg-sky-500",
           cardBorder: "border-border/60 hover:border-sky-400/60",
           bgTint: "bg-card hover:bg-sky-50/20 dark:hover:bg-sky-950/10",
         };
+      case "HALF_DAY_LOP":
+        return {
+          label: "LOP (0.5d)",
+          fullLabel: item.leaveTypeLabel || "Loss of Pay (Half Day = 0.5d LOP)",
+          badgeBg: "bg-indigo-100 text-indigo-800 dark:bg-indigo-950/60 dark:text-indigo-400 border-indigo-300 dark:border-indigo-800",
+          dot: "bg-indigo-500",
+          cardBorder: "border-indigo-300 dark:border-indigo-800/60 hover:border-indigo-400",
+          bgTint: "bg-card hover:bg-indigo-50/20 dark:hover:bg-indigo-950/10",
+        };
+      case "FULL_DAY_CASUAL":
+        return {
+          label: "Casual Leave",
+          fullLabel: "Casual Leave (Full Day Paid)",
+          badgeBg: "bg-sky-100 text-sky-800 dark:bg-sky-950/60 dark:text-sky-400 border-sky-300 dark:border-sky-800",
+          dot: "bg-sky-500",
+          cardBorder: "border-border/60 hover:border-sky-400/60",
+          bgTint: "bg-card hover:bg-sky-50/20 dark:hover:bg-sky-950/10",
+        };
+      case "FULL_DAY_LOP":
+        return {
+          label: "Loss of Pay",
+          fullLabel: "Loss of Pay (Full Day = 1x LOP)",
+          badgeBg: "bg-indigo-100 text-indigo-800 dark:bg-indigo-950/60 dark:text-indigo-400 border-indigo-300 dark:border-indigo-800",
+          dot: "bg-indigo-500",
+          cardBorder: "border-indigo-300 dark:border-indigo-800/60 hover:border-indigo-400",
+          bgTint: "bg-card hover:bg-indigo-50/20 dark:hover:bg-indigo-950/10",
+        };
       case "ON_LEAVE":
       case "FULL_DAY_LEAVE":
         return {
-          label: "Full Day Leave",
-          fullLabel: "Full Day Approved Leave",
-          badgeBg: "bg-blue-100 text-blue-800 dark:bg-blue-950/60 dark:text-blue-400 border-blue-300 dark:border-blue-800",
-          dot: "bg-blue-500",
+          label: item.leave?.type === "Loss of Pay" ? "Loss of Pay" : "Casual Leave",
+          fullLabel: item.leaveTypeLabel || (item.leave?.type === "Loss of Pay" ? "Loss of Pay (1x LOP)" : "Casual Leave (Paid)"),
+          badgeBg:
+            item.leave?.type === "Loss of Pay"
+              ? "bg-indigo-100 text-indigo-800 dark:bg-indigo-950/60 dark:text-indigo-400 border-indigo-300 dark:border-indigo-800"
+              : "bg-sky-100 text-sky-800 dark:bg-sky-950/60 dark:text-sky-400 border-sky-300 dark:border-sky-800",
+          dot: item.leave?.type === "Loss of Pay" ? "bg-indigo-500" : "bg-sky-500",
           cardBorder: "border-border/60 hover:border-blue-400/60",
           bgTint: "bg-card hover:bg-blue-50/20 dark:hover:bg-blue-950/10",
         };
@@ -91,12 +123,12 @@ export function AttendanceCalendar({
         };
       case "NO_PUNCH_OUT":
         return {
-          label: "No Checkout",
-          fullLabel: "Missed Punch Out",
-          badgeBg: "bg-yellow-100 text-yellow-800 dark:bg-yellow-950/60 dark:text-yellow-400 border-yellow-300 dark:border-yellow-800",
-          dot: "bg-yellow-500",
-          cardBorder: "border-yellow-300 dark:border-yellow-800/60",
-          bgTint: "bg-yellow-50/20 dark:bg-yellow-950/10",
+          label: "Half Day (No Out)",
+          fullLabel: "Half Day (No Punch Out = 0.5d)",
+          badgeBg: "bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-400 border-amber-300 dark:border-amber-800",
+          dot: "bg-amber-500",
+          cardBorder: "border-amber-300/80 dark:border-amber-800/60 hover:border-amber-400",
+          bgTint: "bg-amber-50/25 dark:bg-amber-950/10",
         };
       case "HOLIDAY":
         return {
@@ -116,14 +148,15 @@ export function AttendanceCalendar({
           cardBorder: "border-border/40",
           bgTint: "bg-muted/15",
         };
+      case "DOUBLE_PAY_LOSS":
       case "ABSENT":
         return {
-          label: "Absent",
-          fullLabel: "Absent / No Attendance",
+          label: item.isDoublePayLoss || item.status === "ABSENT" ? "2x Pay Loss" : "Absent",
+          fullLabel: "Absent without Leave (Double Pay Loss = 2x LOP)",
           badgeBg: "bg-rose-100 text-rose-800 dark:bg-rose-950/60 dark:text-rose-400 border-rose-300 dark:border-rose-800",
           dot: "bg-rose-500",
-          cardBorder: "border-border/60 hover:border-rose-400/60",
-          bgTint: "bg-card hover:bg-rose-50/20 dark:hover:bg-rose-950/10",
+          cardBorder: "border-rose-300 dark:border-rose-800/60 hover:border-rose-400",
+          bgTint: "bg-card hover:bg-rose-50/25 dark:hover:bg-rose-950/10",
         };
       case "NOT_MARKED":
         return {
@@ -378,9 +411,11 @@ export function AttendanceCalendar({
               </span>
               <span className="font-semibold text-foreground">
                 {selectedDay.isHalfDay
-                  ? "Half Day Shift (<4h or Half Day Session = 0.5d)"
+                  ? selectedDay.status === "NO_PUNCH_OUT" || !selectedDay.punch?.checkOut?.time
+                    ? "Half Day Shift (No Punch Out = 0.5d credited)"
+                    : "Half Day Shift (3h - 8h Completed = 0.5d)"
                   : selectedDay.isFullDay
-                  ? "Full Day Shift (Standard 4h+ Completed = 1.0d)"
+                  ? "Full Day Shift (Standard 8h+ Completed = 1.0d)"
                   : selectedDay.leaveTypeLabel || getStatusConfig(selectedDay).fullLabel}
               </span>
             </div>
@@ -388,6 +423,14 @@ export function AttendanceCalendar({
             {/* Check-In & Check-Out Details */}
             {selectedDay.punch ? (
               <div className="space-y-4">
+                {/* No Checkout Notice if applicable */}
+                {!selectedDay.punch.checkOut?.time && !selectedDay.isToday && (
+                  <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-xs text-amber-800 dark:text-amber-300 flex items-center justify-between">
+                    <span>Missed Check-Out: Auto-credited as Half Day (0.5d)</span>
+                    <span className="font-semibold text-[11px] px-2 py-0.5 rounded bg-amber-500/20">Half Day (0.5d)</span>
+                  </div>
+                )}
+
                 {/* Duration Banner */}
                 {selectedDay.punch.durationMinutes > 0 && (
                   <div className="p-3 rounded-xl bg-primary/5 border border-primary/15 flex items-center justify-between">
@@ -395,13 +438,17 @@ export function AttendanceCalendar({
                     <span className="font-bold text-sm text-primary">
                       {Math.floor(selectedDay.punch.durationMinutes / 60)} hrs{" "}
                       {selectedDay.punch.durationMinutes % 60} mins{" "}
-                      {selectedDay.punch.durationMinutes >= 240 ? (
+                      {selectedDay.punch.durationMinutes >= 480 ? (
                         <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400">
-                          (Full Day Qualified)
+                          (Full Day Qualified — 8h+)
+                        </span>
+                      ) : selectedDay.punch.durationMinutes >= 180 ? (
+                        <span className="text-xs font-semibold text-amber-600 dark:text-amber-400">
+                          (Half Day Qualified — 3h to 8h)
                         </span>
                       ) : (
-                        <span className="text-xs font-semibold text-amber-600 dark:text-amber-400">
-                          (Half Day Qualified)
+                        <span className="text-xs font-semibold text-rose-600 dark:text-rose-400">
+                          (Under 3 hrs — Marked Absent with 2x Pay Loss)
                         </span>
                       )}
                     </span>
@@ -538,12 +585,45 @@ export function AttendanceCalendar({
                 )}
               </div>
             ) : (
-              <div className="py-6 text-center text-muted-foreground text-xs space-y-1">
+              <div className="py-2 text-center text-muted-foreground text-xs space-y-2">
                 <p>No biometric punches recorded for this date.</p>
-                {selectedDay.isLeave && (
-                  <p className="text-sky-600 dark:text-sky-400 font-medium">
-                    This day is covered by an approved leave request ({selectedDay.leaveTypeLabel || "Leave"}).
-                  </p>
+                {selectedDay.isLeave ? (
+                  selectedDay.leave?.type === "Loss of Pay" ? (
+                    <div className="p-3.5 rounded-xl bg-indigo-50 dark:bg-indigo-950/30 border border-indigo-200/80 dark:border-indigo-800/50 text-left space-y-1.5">
+                      <div className="flex items-center justify-between font-semibold text-xs text-indigo-700 dark:text-indigo-300">
+                        <span>Approved Loss of Pay Leave</span>
+                        <span className="px-2 py-0.5 rounded bg-indigo-600 text-white text-[10px] font-bold">1x Pay Loss</span>
+                      </div>
+                      <p className="text-[11px] text-muted-foreground">
+                        Leave requested and approved by HR without pay. Reason: <em>&quot;{selectedDay.leave?.reason || "N/A"}&quot;</em>.
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="p-3.5 rounded-xl bg-sky-50 dark:bg-sky-950/30 border border-sky-200/80 dark:border-sky-800/50 text-left space-y-1.5">
+                      <div className="flex items-center justify-between font-semibold text-xs text-sky-700 dark:text-sky-300">
+                        <span>Approved Casual Leave</span>
+                        <span className="px-2 py-0.5 rounded bg-sky-600 text-white text-[10px] font-bold">Paid Leave (0x)</span>
+                      </div>
+                      <p className="text-[11px] text-muted-foreground">
+                        Covered by monthly casual leave quota. Reason: <em>&quot;{selectedDay.leave?.reason || "N/A"}&quot;</em>.
+                      </p>
+                    </div>
+                  )
+                ) : (
+                  (selectedDay.status === "ABSENT" || selectedDay.isDoublePayLoss) && (
+                    <div className="p-3.5 rounded-xl bg-rose-50 dark:bg-rose-950/30 border border-rose-200/80 dark:border-rose-800/50 text-left space-y-1.5">
+                      <div className="flex items-center justify-between font-semibold text-xs text-rose-700 dark:text-rose-300">
+                        <span className="flex items-center gap-1.5">
+                          <AlertTriangle className="size-3.5 text-rose-600" />
+                          Unapproved Absence
+                        </span>
+                        <span className="px-2 py-0.5 rounded bg-rose-600 text-white text-[10px] font-bold">2x Pay Loss Penalty</span>
+                      </div>
+                      <p className="text-[11px] text-rose-700/80 dark:text-rose-300/80 leading-relaxed">
+                        Employee was absent without taking or requesting approved leave. Policy applied: <strong>Double Pay Loss (2 days salary deduction)</strong>.
+                      </p>
+                    </div>
+                  )
                 )}
               </div>
             )}

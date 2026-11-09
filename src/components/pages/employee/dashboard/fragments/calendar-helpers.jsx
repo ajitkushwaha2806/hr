@@ -15,7 +15,7 @@ export function resolveDayCategory(dayItem, todayString) {
     return isToday ? "TODAY_PRESENT" : "PRESENT";
   }
 
-  if (dayItem.attendanceStatus === "ABSENT") {
+  if (dayItem.attendanceStatus === "ABSENT" || dayItem.attendanceStatus === "DOUBLE_PAY_LOSS") {
     return isToday ? "TODAY_ABSENT" : "ABSENT";
   }
 
@@ -25,6 +25,10 @@ export function resolveDayCategory(dayItem, todayString) {
 
   if (dayItem.attendanceStatus === "NOT_CHECKED_OUT" || dayItem.attendanceStatus === "NO_PUNCH_OUT") {
     return isToday ? "TODAY_NOT_CHECKED_OUT" : "NOT_CHECKED_OUT";
+  }
+
+  if (dayItem.attendanceStatus === "LOSS_OF_PAY") {
+    return isToday ? "TODAY_LEAVE" : "LOSS_OF_PAY";
   }
 
   if (dayItem.attendanceStatus === "CASUAL_LEAVE") {
@@ -134,6 +138,13 @@ export function getDayCellStyles(category) {
         isToday: false,
       };
 
+    case "LOSS_OF_PAY":
+      return {
+        cellClass: "bg-indigo-500/5 dark:bg-indigo-950/20 hover:bg-indigo-500/10",
+        numberClass: "text-indigo-600 dark:text-indigo-400 font-bold",
+        isToday: false,
+      };
+
     case "HOLIDAY":
       return {
         cellClass: "bg-purple-500/5 dark:bg-purple-950/20 hover:bg-purple-500/10",
@@ -208,7 +219,31 @@ export function getStatusBadge(statusOrDay, customTitle, extra) {
         </div>
       );
 
-    case "HALF_DAY":
+    case "DOUBLE_PAY_LOSS":
+      return (
+        <div className={`${baseBadgeClass} bg-rose-500/15 text-rose-700 dark:text-rose-300 border border-rose-500/30`}>
+          <XCircle className="size-3 shrink-0 text-rose-600 dark:text-rose-400" />
+          <span className="truncate">{title && title !== "Working Day" ? title : "Absent (2x Pay Loss)"}</span>
+        </div>
+      );
+
+    case "LOSS_OF_PAY":
+    case "LOP":
+      return (
+        <div className={`${baseBadgeClass} bg-indigo-500/10 text-indigo-700 dark:text-indigo-300 border border-indigo-500/20`}>
+          <CalendarDays className="size-3 shrink-0 text-indigo-600 dark:text-indigo-400" />
+          <span className="truncate">{title && title !== "Working Day" ? title : "Loss of Pay (1x)"}</span>
+        </div>
+      );
+
+    case "CASUAL_LEAVE":
+    case "LEAVE":
+      return (
+        <div className={`${baseBadgeClass} bg-sky-500/10 text-sky-700 dark:text-sky-300`}>
+          <CalendarDays className="size-3 shrink-0 text-sky-600 dark:text-sky-400" />
+          <span className="truncate">{title && title !== "Working Day" ? title : "Casual Leave"}</span>
+        </div>
+      );
       return (
         <div className={`${baseBadgeClass} bg-amber-500/10 text-amber-700 dark:text-amber-300`}>
           <Clock className="size-3 shrink-0 text-amber-600 dark:text-amber-400" />
@@ -219,9 +254,9 @@ export function getStatusBadge(statusOrDay, customTitle, extra) {
     case "NOT_CHECKED_OUT":
     case "NO_PUNCH_OUT":
       return (
-        <div className={`${baseBadgeClass} bg-orange-500/10 text-orange-700 dark:text-orange-300`}>
-          <Clock className="size-3 shrink-0 text-orange-600 dark:text-orange-400" />
-          <span className="truncate">{title && title !== "Working Day" ? title : "No Punch Out"}</span>
+        <div className={`${baseBadgeClass} bg-amber-500/10 text-amber-700 dark:text-amber-300`}>
+          <Clock className="size-3 shrink-0 text-amber-600 dark:text-amber-400" />
+          <span className="truncate">{title && title !== "Working Day" ? title : "Half Day (No Out)"}</span>
         </div>
       );
 

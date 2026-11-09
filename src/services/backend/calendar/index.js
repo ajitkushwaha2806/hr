@@ -225,10 +225,15 @@ export class CalendarService {
 
         if (hasCheckedOut) {
           // Checkout completed: finalize status based on worked hours
-          if (durationMinutes >= 240) {
+          // Full day minimum 8 hrs (480 mins) = PRESENT (1.0d)
+          // Half day minimum 3 hrs (180 mins) = HALF_DAY (0.5d)
+          // Less than 3 hrs (<180 mins) = ABSENT (0.0d)
+          if (durationMinutes >= 480) {
             attendanceStatus = "PRESENT";
-          } else {
+          } else if (durationMinutes >= 180) {
             attendanceStatus = "HALF_DAY";
+          } else {
+            attendanceStatus = "ABSENT";
           }
         } else if (isToday) {
           // Today: user has checked in, but not checked out yet.
@@ -236,12 +241,13 @@ export class CalendarService {
             // Day/shift is currently ongoing: user is actively working!
             attendanceStatus = "CHECKED_IN";
           } else {
-            // Day/shift ended and user never checked out
-            attendanceStatus = "NOT_CHECKED_OUT";
+            // Day/shift ended and user never checked out -> Mark as HALF_DAY!
+            attendanceStatus = "HALF_DAY";
           }
         } else if (isPast) {
-          // Past day where check-in succeeded but no check-out was recorded
-          attendanceStatus = "NOT_CHECKED_OUT";
+          // Past day where check-in succeeded but NO punch-out was recorded -> Mark as HALF_DAY!
+          // Rule: "if no punch out only check in then simply mark half day on that day"
+          attendanceStatus = "HALF_DAY";
         }
       } else {
         // RULE 2: No successful check-in punch on this day
@@ -250,18 +256,19 @@ export class CalendarService {
         } else if (d.type === "WEEKLY_OFF") {
           attendanceStatus = "WEEKLY_OFF";
         } else if (leaveForDay) {
-          // User has an approved leave and did not come to work
-          attendanceStatus = "CASUAL_LEAVE";
+          // Differentiate between Casual Leave (Paid) and Loss of Pay (1x LOP)
+          const isLop = leaveForDay.type === "Loss of Pay";
+          attendanceStatus = isLop ? "LOSS_OF_PAY" : "CASUAL_LEAVE";
         } else if (d.title?.toLowerCase().includes("leave") || d.type === "LEAVE") {
           attendanceStatus = "CASUAL_LEAVE";
         } else if (isPast) {
-          // Past working day with no punch and no leave -> ABSENT
-          attendanceStatus = "ABSENT";
+          // Past working day with no punch and no approved leave -> ABSENT with Double Pay Loss (2x LOP)!
+          attendanceStatus = "DOUBLE_PAY_LOSS";
         } else if (isToday) {
           // RULE 3: For Today, status is only finalized after today ends or after checkout!
           if (isTodayDayEnded) {
-            // Day/shift ended without check-in or leave -> finalize as ABSENT
-            attendanceStatus = "ABSENT";
+            // Day/shift ended without check-in or leave -> finalize as ABSENT (Double Pay Loss)
+            attendanceStatus = "DOUBLE_PAY_LOSS";
           } else {
             // Shift is still ongoing -> do NOT show ABSENT yet (status is null/in progress)
             attendanceStatus = null;
@@ -293,10 +300,19 @@ export class CalendarService {
       holidays: enrichedDays.filter((d) => d.type === "HOLIDAY").length,
       presentDays: enrichedDays.filter((d) => d.attendanceStatus === "PRESENT").length,
       checkedIn: enrichedDays.filter((d) => d.attendanceStatus === "CHECKED_IN").length,
-      absentDays: enrichedDays.filter((d) => d.attendanceStatus === "ABSENT").length,
       halfDays: enrichedDays.filter((d) => d.attendanceStatus === "HALF_DAY").length,
-      notCheckedOut: enrichedDays.filter((d) => d.attendanceStatus === "NOT_CHECKED_OUT").length,
-      leaves: enrichedDays.filter((d) => d.attendanceStatus === "CASUAL_LEAVE").length,
+      casualLeaves: enrichedDays.filter((d) => d.attendanceStatus === "CASUAL_LEAVE").length,
+      lossOfPayLeaves: enrichedDays.filter((d) => d.attendanceStatus === "LOSS_OF_PAY").length,
+      absentDays: enrichedDays.filter(
+        (d) => d.attendanceStatus === "ABSENT" || d.attendanceStatus === "DOUBLE_PAY_LOSS"
+      ).length,
+      doublePayLossDays: enrichedDays.filter((d) => d.attendanceStatus === "DOUBLE_PAY_LOSS").length,
+      notCheckedOut: enrichedDays.filter(
+        (d) => !d.punch?.checkOutTime && d.attendanceStatus === "HALF_DAY"
+      ).length,
+      leaves: enrichedDays.filter(
+        (d) => d.attendanceStatus === "CASUAL_LEAVE" || d.attendanceStatus === "LOSS_OF_PAY"
+      ).length,
     };
 
     return {
