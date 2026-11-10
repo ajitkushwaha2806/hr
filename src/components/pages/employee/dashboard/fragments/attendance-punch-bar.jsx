@@ -50,6 +50,7 @@ export default function AttendancePunchBar({ todayStatus, onRefresh, isLoading =
   const rawPunch = todayStatus?.todayPunch;
   const punch = rawPunch?.date === clientTodayDate ? rawPunch : null;
   const employee = todayStatus?.employee;
+  const isOverridden = Boolean(punch?.manualOverride?.isOverridden && punch?.manualOverride?.status);
 
   const hasCheckedIn = Boolean(punch?.checkIn?.status === "SUCCESS");
   const hasCheckedOut = Boolean(punch?.checkOut?.status === "SUCCESS");
@@ -124,7 +125,11 @@ export default function AttendancePunchBar({ todayStatus, onRefresh, isLoading =
       <div className="w-full rounded-md border border-border/80 bg-white dark:bg-zinc-900 p-4 sm:p-5 shadow-xs transition-all relative overflow-hidden">
         <div className="flex items-center justify-between gap-2 pb-3 border-b border-border/50">
           <div className="flex items-center gap-2">
-            {hasCheckedOut ? (
+            {isOverridden ? (
+              <span className="inline-flex items-center gap-1.5 text-[11px] font-bold px-2.5 py-1 rounded-md bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
+                <CheckCircle2 className="w-3.5 h-3.5" /> Manual Override: {punch.manualOverride.status}
+              </span>
+            ) : hasCheckedOut ? (
               <span className="inline-flex items-center gap-1.5 text-[11px] font-bold px-2.5 py-1 rounded-md bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
                 <CheckCircle2 className="w-3.5 h-3.5" /> Shift Completed
               </span>
@@ -215,7 +220,12 @@ export default function AttendancePunchBar({ todayStatus, onRefresh, isLoading =
         )}
 
         <div className="pt-2">
-          {!hasCheckedIn && (
+          {isOverridden ? (
+            <div className="w-full h-11 rounded-md bg-emerald-500/10 border border-emerald-500/25 text-emerald-700 dark:text-emerald-300 text-xs sm:text-sm font-bold flex items-center justify-center gap-2">
+              <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+              <span>Status set to <strong>{punch?.manualOverride?.status}</strong> by Administrator</span>
+            </div>
+          ) : !hasCheckedIn ? (
             <button
               type="button"
               onClick={handleOpenCheckIn}
@@ -225,9 +235,9 @@ export default function AttendancePunchBar({ todayStatus, onRefresh, isLoading =
               <span>Check In Now</span>
               <ChevronRight className="w-4 h-4 text-white/80 transition-transform group-hover:translate-x-0.5" />
             </button>
-          )}
+          ) : null}
 
-          {hasCheckedIn && !hasCheckedOut && (
+          {hasCheckedIn && !hasCheckedOut && !isOverridden && (
             <div className="space-y-2">
               <button
                 type="button"
@@ -241,7 +251,7 @@ export default function AttendancePunchBar({ todayStatus, onRefresh, isLoading =
             </div>
           )}
 
-          {hasCheckedOut && (
+          {hasCheckedOut && !isOverridden && (
             <div className="w-full h-11 rounded-md bg-emerald-500/10 border border-emerald-500/25 text-emerald-700 dark:text-emerald-300 text-xs sm:text-sm font-bold flex items-center justify-center gap-2">
               <CheckCircle2 className="w-4 h-4 text-emerald-500" />
               <span>Today&apos;s Attendance Completed 🎉</span>

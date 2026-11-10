@@ -35,6 +35,14 @@ export function resolveDayCategory(dayItem, todayString) {
     return isToday ? "TODAY_LEAVE" : "CASUAL_LEAVE";
   }
 
+  if (dayItem.attendanceStatus === "HOLIDAY") {
+    return "HOLIDAY";
+  }
+
+  if (dayItem.attendanceStatus === "WEEKLY_OFF") {
+    return "WEEKLY_OFF";
+  }
+
   if (isToday) {
     return "TODAY";
   }
@@ -244,6 +252,8 @@ export function getStatusBadge(statusOrDay, customTitle, extra) {
           <span className="truncate">{title && title !== "Working Day" ? title : "Casual Leave"}</span>
         </div>
       );
+
+    case "HALF_DAY":
       return (
         <div className={`${baseBadgeClass} bg-amber-500/10 text-amber-700 dark:text-amber-300`}>
           <Clock className="size-3 shrink-0 text-amber-600 dark:text-amber-400" />
@@ -257,15 +267,6 @@ export function getStatusBadge(statusOrDay, customTitle, extra) {
         <div className={`${baseBadgeClass} bg-amber-500/10 text-amber-700 dark:text-amber-300`}>
           <Clock className="size-3 shrink-0 text-amber-600 dark:text-amber-400" />
           <span className="truncate">{title && title !== "Working Day" ? title : "Half Day (No Out)"}</span>
-        </div>
-      );
-
-    case "CASUAL_LEAVE":
-    case "LEAVE":
-      return (
-        <div className={`${baseBadgeClass} bg-sky-500/10 text-sky-700 dark:text-sky-300`}>
-          <CalendarDays className="size-3 shrink-0 text-sky-600 dark:text-sky-400" />
-          <span className="truncate">{title && title !== "Working Day" ? title : "Leave"}</span>
         </div>
       );
 

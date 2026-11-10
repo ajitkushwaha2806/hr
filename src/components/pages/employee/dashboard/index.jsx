@@ -19,7 +19,9 @@ export default function EmployeeDashboard() {
   const presentDays = days.filter(
     (d) => d.attendanceStatus === "PRESENT" || d.attendanceStatus === "HALF_DAY" || d.attendanceStatus === "CHECKED_IN"
   ).length;
-  const absentDays = days.filter((d) => d.attendanceStatus === "ABSENT").length;
+  const absentDays = days.filter(
+    (d) => d.attendanceStatus === "ABSENT" || d.attendanceStatus === "DOUBLE_PAY_LOSS"
+  ).length;
   const totalWorkedMinutes = days.reduce((acc, d) => acc + (d.punch?.durationMinutes || 0), 0);
   const totalHours = Math.floor(totalWorkedMinutes / 60);
   const remainingMinutes = totalWorkedMinutes % 60;

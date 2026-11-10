@@ -164,7 +164,15 @@ export class CalendarService {
 
       if (emp) {
         punchOrConditions.push({ employeeId: emp._id });
+        punchOrConditions.push({ employeeId: String(emp._id) });
+        if (emp.employeeId) {
+          punchOrConditions.push({ employeeId: emp.employeeId });
+        }
+        if (emp.clerkId) {
+          punchOrConditions.push({ clerkId: emp.clerkId });
+        }
         leaveOrConditions.push({ employeeId: emp._id });
+        leaveOrConditions.push({ employeeId: String(emp._id) });
       }
       if (userId) {
         punchOrConditions.push({ clerkId: userId });
@@ -192,7 +200,9 @@ export class CalendarService {
 
     const punchMap = {};
     for (const p of employeePunches) {
-      punchMap[p.date] = p;
+      if (!punchMap[p.date] || p.manualOverride?.isOverridden) {
+        punchMap[p.date] = p;
+      }
     }
 
     // Determine shift timings and current time in IST
@@ -242,10 +252,29 @@ export class CalendarService {
       const isFuture = d.dateString > todayStr;
 
       let attendanceStatus = null;
+      const isOverridden = Boolean(punch?.manualOverride?.isOverridden && punch?.manualOverride?.status);
 
-      // RULE 1: If user physically checked in successfully, biometric attendance
-      // ALWAYS takes precedence over leave records!
-      if (punch && punch.checkIn?.status === "SUCCESS") {
+      // RULE 0 (HIGHEST PRIORITY): Admin manual override status for this day
+      if (isOverridden) {
+        const over = punch.manualOverride.status;
+        if (over === "PRESENT") {
+          attendanceStatus = "PRESENT";
+        } else if (over === "HALF_DAY") {
+          attendanceStatus = "HALF_DAY";
+        } else if (over === "ABSENT") {
+          attendanceStatus = "DOUBLE_PAY_LOSS";
+        } else if (over === "CASUAL_LEAVE") {
+          attendanceStatus = "CASUAL_LEAVE";
+        } else if (over === "LOP") {
+          attendanceStatus = "LOSS_OF_PAY";
+        } else if (over === "HOLIDAY") {
+          attendanceStatus = "HOLIDAY";
+        } else if (over === "WEEKLY_OFF") {
+          attendanceStatus = "WEEKLY_OFF";
+        }
+      } else if (punch && punch.checkIn?.status === "SUCCESS") {
+        // RULE 1: If user physically checked in successfully, biometric attendance
+        // ALWAYS takes precedence over leave records!
         const hasCheckedOut = Boolean(punch.checkOut?.time) || punch.status === "COMPLETED";
 
         let durationMinutes = punch.durationMinutes || 0;
@@ -314,25 +343,48 @@ export class CalendarService {
         }
       }
 
+      let durationMinutes = punch?.durationMinutes || 0;
+      if (!durationMinutes && punch?.checkIn?.time && punch?.checkOut?.time) {
+        durationMinutes = Math.max(
+          0,
+          Math.round(
+            (new Date(punch.checkOut.time).getTime() - new Date(punch.checkIn.time).getTime()) / (1000 * 60)
+          )
+        );
+      }
+      if (isOverridden && !durationMinutes) {
+        if (punch?.manualOverride?.status === "PRESENT") durationMinutes = 480;
+        else if (punch?.manualOverride?.status === "HALF_DAY") durationMinutes = 240;
+      }
+
       return {
         ...d,
         attendanceStatus,
+        isManualOverride: isOverridden,
+        manualOverride: punch?.manualOverride || null,
         punch: punch
           ? {
               checkInTime: punch.checkIn?.time,
               checkOutTime: punch.checkOut?.time,
-              durationMinutes: punch.durationMinutes || 0,
+              durationMinutes,
               status: punch.status,
+              manualOverride: punch.manualOverride || null,
             }
-          : null,
+          : (isOverridden ? {
+              checkInTime: null,
+              checkOutTime: null,
+              durationMinutes,
+              status: "MANUAL_OVERRIDE",
+              manualOverride: punch?.manualOverride || null,
+            } : null),
       };
     });
 
     const stats = {
       totalDays: enrichedDays.length,
       workingDays: enrichedDays.filter((d) => d.type === "WORKING_DAY").length,
-      weeklyOffs: enrichedDays.filter((d) => d.type === "WEEKLY_OFF").length,
-      holidays: enrichedDays.filter((d) => d.type === "HOLIDAY").length,
+      weeklyOffs: enrichedDays.filter((d) => d.type === "WEEKLY_OFF" || d.attendanceStatus === "WEEKLY_OFF").length,
+      holidays: enrichedDays.filter((d) => d.type === "HOLIDAY" || d.attendanceStatus === "HOLIDAY").length,
       presentDays: enrichedDays.filter((d) => d.attendanceStatus === "PRESENT").length,
       checkedIn: enrichedDays.filter((d) => d.attendanceStatus === "CHECKED_IN").length,
       halfDays: enrichedDays.filter((d) => d.attendanceStatus === "HALF_DAY").length,
@@ -343,7 +395,7 @@ export class CalendarService {
       ).length,
       doublePayLossDays: enrichedDays.filter((d) => d.attendanceStatus === "DOUBLE_PAY_LOSS").length,
       notCheckedOut: enrichedDays.filter(
-        (d) => !d.punch?.checkOutTime && d.attendanceStatus === "HALF_DAY"
+        (d) => !d.punch?.checkOutTime && d.attendanceStatus === "HALF_DAY" && !d.isManualOverride
       ).length,
       leaves: enrichedDays.filter(
         (d) => d.attendanceStatus === "CASUAL_LEAVE" || d.attendanceStatus === "LOSS_OF_PAY"

@@ -22,6 +22,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { EmployeeService } from "@/services/frontend/employee";
 import useNotification from "@/store/hooks/useNotification";
+import { useQueryClient } from "@tanstack/react-query";
 
 const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
@@ -35,6 +36,7 @@ export function AttendanceCalendar({
   onStatusUpdated,
 }) {
   const notification = useNotification();
+  const queryClient = useQueryClient();
   const [selectedDay, setSelectedDay] = useState(null);
   const [selfieZoom, setSelfieZoom] = useState(null);
   const [overrideStatus, setOverrideStatus] = useState("");
@@ -53,6 +55,8 @@ export function AttendanceCalendar({
         date: selectedDay.date,
         status: overrideStatus,
       });
+      queryClient.invalidateQueries({ queryKey: ["organization-calendar"] });
+      queryClient.invalidateQueries({ queryKey: ["attendance-today-status"] });
       notification.success(
         overrideStatus === "RESET"
           ? `Attendance for ${selectedDay.date} reset to automatic biometric status.`

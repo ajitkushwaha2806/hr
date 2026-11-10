@@ -36,10 +36,14 @@ export function AttendanceCalendar({
   const presentCount = days.filter((d) => d.attendanceStatus === "PRESENT").length;
   const checkedInCount = days.filter((d) => d.attendanceStatus === "CHECKED_IN").length;
   const halfDaysCount = days.filter((d) => d.attendanceStatus === "HALF_DAY").length;
-  const absentCount = days.filter((d) => d.attendanceStatus === "ABSENT").length;
-  const holidaysCount = days.filter((d) => d.type === "HOLIDAY").length;
-  const weeklyOffCount = days.filter((d) => d.type === "WEEKLY_OFF").length;
-  const leavesCount = days.filter((d) => d.attendanceStatus === "CASUAL_LEAVE").length;
+  const absentCount = days.filter(
+    (d) => d.attendanceStatus === "ABSENT" || d.attendanceStatus === "DOUBLE_PAY_LOSS"
+  ).length;
+  const holidaysCount = days.filter((d) => d.type === "HOLIDAY" || d.attendanceStatus === "HOLIDAY").length;
+  const weeklyOffCount = days.filter((d) => d.type === "WEEKLY_OFF" || d.attendanceStatus === "WEEKLY_OFF").length;
+  const leavesCount = days.filter(
+    (d) => d.attendanceStatus === "CASUAL_LEAVE" || d.attendanceStatus === "LOSS_OF_PAY"
+  ).length;
 
   return (
     <div className="rounded-md border border-border/80 bg-white dark:bg-zinc-900 shadow-xs overflow-hidden transition-all">
@@ -230,8 +234,11 @@ export function AttendanceCalendar({
                   </div>
 
                   <div className="flex items-center gap-1 shrink-0">
-                    {dayItem.isCustom && (
-                      <span className="size-1.5 rounded-full bg-amber-500" title="Custom override by admin" />
+                    {(dayItem.isCustom || dayItem.isManualOverride) && (
+                      <span
+                        className="size-1.5 rounded-full bg-amber-500"
+                        title={dayItem.isManualOverride ? `Manual override: ${dayItem.manualOverride?.status || "Set by Admin"}` : "Custom day by admin"}
+                      />
                     )}
                   </div>
                 </div>
