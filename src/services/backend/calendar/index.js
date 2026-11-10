@@ -164,15 +164,13 @@ export class CalendarService {
 
       if (emp) {
         punchOrConditions.push({ employeeId: emp._id });
-        punchOrConditions.push({ employeeId: String(emp._id) });
-        if (emp.employeeId) {
-          punchOrConditions.push({ employeeId: emp.employeeId });
-        }
         if (emp.clerkId) {
           punchOrConditions.push({ clerkId: emp.clerkId });
         }
         leaveOrConditions.push({ employeeId: emp._id });
-        leaveOrConditions.push({ employeeId: String(emp._id) });
+        if (emp.clerkId) {
+          leaveOrConditions.push({ clerkId: emp.clerkId });
+        }
       }
       if (userId) {
         punchOrConditions.push({ clerkId: userId });
